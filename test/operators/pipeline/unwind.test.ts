@@ -1,9 +1,7 @@
-import { aggregate } from "../../../src";
 import { ProcessingMode } from "../../../src/core";
-import { DEFAULT_OPTS, studentsData } from "../../support";
+import { aggregate, studentsData } from "../../support";
 
 const options = {
-  ...DEFAULT_OPTS,
   processingMode: ProcessingMode.CLONE_INPUT
 };
 

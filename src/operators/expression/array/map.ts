@@ -25,14 +25,11 @@ export const $map: ExpressionOperator = (
 
   const copts = ComputeOptions.init(options);
   const k = expr.as || "this";
+  const locals = {
+    variables: { [k]: null }
+  };
   return input.map((o: Any) => {
-    return computeValue(
-      obj,
-      expr.in,
-      null,
-      copts.update(copts.root, {
-        variables: { [k]: o }
-      })
-    );
+    locals.variables[k] = o;
+    return computeValue(obj, expr.in, null, copts.update(locals));
   });
 };

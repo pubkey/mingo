@@ -1,7 +1,4 @@
-import "../../../src/init/system";
-
-import { aggregate } from "../../../src";
-import { DEFAULT_OPTS, testPath } from "../../support";
+import { aggregate, testPath } from "../../support";
 
 describe(testPath(__filename), () => {
   it("Computes and returns the hash value of the input expression", () => {
@@ -27,17 +24,13 @@ describe(testPath(__filename), () => {
       { item: { a: 1, b: 2 } }
     ];
 
-    const result = aggregate(
-      data,
-      [
-        {
-          $addFields: {
-            hashedKey: { $toHashedIndexKey: "$item" }
-          }
+    const result = aggregate(data, [
+      {
+        $addFields: {
+          hashedKey: { $toHashedIndexKey: "$item" }
         }
-      ],
-      DEFAULT_OPTS
-    );
+      }
+    ]);
 
     expect(result).toEqual([
       { item: "", hashedKey: 1084 },

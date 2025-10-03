@@ -1,5 +1,4 @@
-import { aggregate } from "../../../src";
-import { DEFAULT_OPTS, ISODate } from "../../support";
+import { aggregate, ISODate } from "../../support";
 
 /**
  * You want to generate daily summaries for the exchange rates of foreign currency "pairs" (e.g. "Euro-to-USDollar").
@@ -49,7 +48,7 @@ describe("Summarising Arrays For First, Last, Minimum, Maximum & Average Values"
   ];
 
   it("returns documents now showing the daily summary open, low, high, close and average prices for each currency pair", () => {
-    expect(aggregate(current_pair_values, pipeline, DEFAULT_OPTS)).toEqual([
+    expect(aggregate(current_pair_values, pipeline)).toEqual([
       {
         currencyPair: "USD/GBP",
         day: ISODate("2021-07-05T00:00:00.000Z"),

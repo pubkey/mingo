@@ -1,5 +1,10 @@
 import { AggregatorImpl } from "../../aggregator/_internal";
-import { Options, PipelineOperator, ProcessingMode } from "../../core";
+import {
+  ComputeOptions,
+  Options,
+  PipelineOperator,
+  ProcessingMode
+} from "../../core";
 import { Iterator } from "../../lazy";
 import { AnyObject, Callback } from "../../types";
 /**
@@ -17,13 +22,16 @@ export const $facet: PipelineOperator = (
   expr: Record<string, AnyObject[]>,
   options: Options
 ): Iterator => {
+  if (!(options.processingMode & ProcessingMode.CLONE_INPUT)) {
+    options = {
+      ...ComputeOptions.init(options).options,
+      processingMode: ProcessingMode.CLONE_INPUT
+    };
+  }
   return collection.transform(((array: AnyObject[]) => {
     const o: AnyObject = {};
     for (const [k, pipeline] of Object.entries(expr)) {
-      o[k] = new AggregatorImpl(pipeline, {
-        ...options,
-        processingMode: ProcessingMode.CLONE_INPUT
-      }).run(array);
+      o[k] = new AggregatorImpl(pipeline, options).run(array);
     }
     return [o];
   }) as Callback<AnyObject[]>);

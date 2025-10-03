@@ -1,5 +1,4 @@
-import { aggregate } from "../../../src";
-import { DEFAULT_OPTS, ISODate } from "../../support";
+import { aggregate, ISODate } from "../../support";
 
 /**
  * You are an IT administrator managing some virtual machine deployments in a data centre to host a
@@ -264,7 +263,7 @@ describe("Comparison Of Two Arrays", () => {
   ];
 
   it("returns five documents showing whether anyone added, removed or modified a deployment or left it unchanged, with the deployment's changes shown if modified", () => {
-    const result = aggregate(deployments, pipeline, DEFAULT_OPTS);
+    const result = aggregate(deployments, pipeline);
     expect(result).toEqual([
       {
         name: "ProdServer",

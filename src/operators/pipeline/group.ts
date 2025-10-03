@@ -63,7 +63,7 @@ export const $group: PipelineOperator = (
           partitions.get(groupId),
           expr[key] as AnyObject,
           null,
-          copts.update(null, { groupId })
+          copts.update({ root: null, groupId })
         );
       }
 

@@ -1,7 +1,7 @@
 import { aggregate as srcAggregate, find as srcFind } from "../src";
 import {
+  ComputeOptions,
   computeValue,
-  initOptions,
   Options,
   ProcessingMode
 } from "../src/core";
@@ -13,7 +13,16 @@ import simpleGrades from "./data/grades_simple";
 import person from "./data/person";
 import students from "./data/students";
 
-export const DEFAULT_OPTS = initOptions({ context: fullContext() });
+export const DEFAULT_OPTS = Object.freeze({
+  idKey: "_id",
+  scriptEnabled: true,
+  useStrictMode: true,
+  useGlobalContext: true,
+  processingMode: ProcessingMode.CLONE_OFF,
+  context: fullContext()
+});
+
+export const COMPUTE_OPTS = ComputeOptions.init(DEFAULT_OPTS);
 
 export const complexGradesData = complexGrades;
 export const simpleGradesData = simpleGrades;
@@ -40,7 +49,7 @@ export const aggregate = (
   coll: Source,
   pipeline: AnyObject[],
   options?: Partial<Options>
-) => srcAggregate(coll, pipeline, options ?? DEFAULT_OPTS);
+) => srcAggregate(coll, pipeline, Object.assign({}, DEFAULT_OPTS, options));
 
 export const find = (
   collection: Source,
@@ -79,11 +88,13 @@ export function runTest(
 
           if (ctx.err) {
             it(`${prefix} => Error("${expected as string}")`, () => {
-              expect(() => computeValue(obj, input, field)).toThrow();
+              expect(() =>
+                computeValue(obj, input, field, COMPUTE_OPTS)
+              ).toThrow();
             });
           } else {
             it(`${prefix} => ${JSON.stringify(expected)}`, () => {
-              let actual = computeValue(obj, input, field, DEFAULT_OPTS);
+              let actual = computeValue(obj, input, field, COMPUTE_OPTS);
               // NaNs don't compare
               if (actual !== actual && expected !== expected) {
                 actual = expected = 0;

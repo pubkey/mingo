@@ -1,5 +1,4 @@
-import { aggregate } from "../../../src";
-import { DEFAULT_OPTS, runTest } from "../../support";
+import { aggregate, runTest } from "../../support";
 
 runTest("operators/expression/boolean", {
   $and: [
@@ -40,18 +39,14 @@ describe("Boolean Operators: More Examples", () => {
   ];
 
   it("can apply $and operator", () => {
-    const result = aggregate(
-      inventory,
-      [
-        {
-          $project: {
-            item: 1,
-            result: { $and: [{ $gt: ["$qty", 100] }, { $lt: ["$qty", 250] }] }
-          }
+    const result = aggregate(inventory, [
+      {
+        $project: {
+          item: 1,
+          result: { $and: [{ $gt: ["$qty", 100] }, { $lt: ["$qty", 250] }] }
         }
-      ],
-      DEFAULT_OPTS
-    );
+      }
+    ]);
     expect(result).toEqual([
       { _id: 1, item: "abc1", result: false },
       { _id: 2, item: "abc2", result: true },
@@ -62,18 +57,14 @@ describe("Boolean Operators: More Examples", () => {
   });
 
   it("can apply $or aggregate operator", () => {
-    const result = aggregate(
-      inventory,
-      [
-        {
-          $project: {
-            item: 1,
-            result: { $or: [{ $gt: ["$qty", 250] }, { $lt: ["$qty", 200] }] }
-          }
+    const result = aggregate(inventory, [
+      {
+        $project: {
+          item: 1,
+          result: { $or: [{ $gt: ["$qty", 250] }, { $lt: ["$qty", 200] }] }
         }
-      ],
-      DEFAULT_OPTS
-    );
+      }
+    ]);
 
     expect(result).toEqual([
       { _id: 1, item: "abc1", result: true },
@@ -85,18 +76,14 @@ describe("Boolean Operators: More Examples", () => {
   });
 
   it("can apply $not aggregate operator", () => {
-    const result = aggregate(
-      inventory,
-      [
-        {
-          $project: {
-            item: 1,
-            result: { $not: [{ $gt: ["$qty", 250] }] }
-          }
+    const result = aggregate(inventory, [
+      {
+        $project: {
+          item: 1,
+          result: { $not: [{ $gt: ["$qty", 250] }] }
         }
-      ],
-      DEFAULT_OPTS
-    );
+      }
+    ]);
 
     expect(result).toEqual([
       { _id: 1, item: "abc1", result: false },
@@ -108,18 +95,14 @@ describe("Boolean Operators: More Examples", () => {
   });
 
   it("can apply $in aggregate operator", () => {
-    const result = aggregate(
-      inventory,
-      [
-        {
-          $project: {
-            item: 1,
-            result: { $in: ["$item", ["abc1", "abc2"]] }
-          }
+    const result = aggregate(inventory, [
+      {
+        $project: {
+          item: 1,
+          result: { $in: ["$item", ["abc1", "abc2"]] }
         }
-      ],
-      DEFAULT_OPTS
-    );
+      }
+    ]);
 
     expect(result).toEqual([
       { _id: 1, item: "abc1", result: true },
@@ -131,18 +114,14 @@ describe("Boolean Operators: More Examples", () => {
   });
 
   it("can apply $nin aggregate operator", () => {
-    const result = aggregate(
-      inventory,
-      [
-        {
-          $project: {
-            item: 1,
-            result: { $nin: ["$item", ["abc1", "abc2"]] }
-          }
+    const result = aggregate(inventory, [
+      {
+        $project: {
+          item: 1,
+          result: { $nin: ["$item", ["abc1", "abc2"]] }
         }
-      ],
-      DEFAULT_OPTS
-    );
+      }
+    ]);
 
     expect(result).toEqual([
       { _id: 1, item: "abc1", result: false },

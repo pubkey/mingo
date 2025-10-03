@@ -1,5 +1,4 @@
-import { aggregate } from "../../../src";
-import { DEFAULT_OPTS, ISODate } from "../../support";
+import { aggregate, ISODate } from "../../support";
 
 /**
  * You are developing a new dating website using a database to hold the profiles of all registered users.
@@ -94,7 +93,7 @@ describe("Array Fields Joining", () => {
   ];
 
   it("returns two document each showing a new moodActivities array field containing descriptions of how a user conducts their preferred hobby for each mood", () => {
-    expect(aggregate(users, pipeline, DEFAULT_OPTS)).toEqual([
+    expect(aggregate(users, pipeline)).toEqual([
       {
         firstName: "Alice",
         lastName: "Jones",

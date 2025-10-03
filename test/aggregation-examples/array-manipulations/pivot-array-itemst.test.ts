@@ -1,5 +1,4 @@
-import { aggregate } from "../../../src";
-import { DEFAULT_OPTS, ISODate } from "../../support";
+import { aggregate, ISODate } from "../../support";
 
 /**
  * You have a set of geographically dispersed weather station zones where each zone has multiple
@@ -76,7 +75,7 @@ describe("Pivot Array Items By A Key", () => {
   ];
 
   it("returns documents with the weather station hourly records containing a new array field of elements representing each device and its measurements", () => {
-    expect(aggregate(weather_measurements, pipeline, DEFAULT_OPTS)).toEqual([
+    expect(aggregate(weather_measurements, pipeline)).toEqual([
       {
         weatherStationsZone: "FieldZone-ABCD",
         dayHour: ISODate("2021-07-05T15:00:00.000Z"),

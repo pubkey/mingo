@@ -1,6 +1,6 @@
 import { AnyObject } from "../../../src/types";
 import { cloneDeep } from "../../../src/util";
-import { aggregate, DEFAULT_OPTS } from "../../support";
+import { aggregate } from "../../support";
 
 describe("operators/pipeline/unionWith", () => {
   describe("$unionWith", () => {
@@ -99,7 +99,6 @@ describe("operators/pipeline/unionWith", () => {
     };
 
     const options = {
-      ...DEFAULT_OPTS,
       collectionResolver: (s: string): AnyObject[] =>
         cloneDeep(collections[s]) as AnyObject[]
     };

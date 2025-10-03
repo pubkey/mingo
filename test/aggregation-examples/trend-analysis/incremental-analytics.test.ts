@@ -1,6 +1,5 @@
-import { aggregate } from "../../../src";
 import { Any, AnyObject } from "../../../src/types";
-import { DEFAULT_OPTS, ISODate } from "../../support";
+import { aggregate, ISODate } from "../../support";
 
 /**
  * You have a set of shop orders accumulated over many years, with the retail channel adding new order records continuously to the orders collection throughout each trading day.
@@ -53,9 +52,6 @@ describe("Incremental Analytics", () => {
   ];
 
   const daily_orders_summary = new Array<Any>();
-  const options = {
-    ...DEFAULT_OPTS
-  };
 
   function getDayAggPipeline(startDay: string, endDay: string): AnyObject[] {
     return [
@@ -115,7 +111,7 @@ describe("Incremental Analytics", () => {
     );
 
     // Run aggregation for 01-Feb-2021 orders & put result in summary collection
-    aggregate(orders, pipeline, options);
+    aggregate(orders, pipeline);
 
     // View the summary collection content (should be 1 record only)
     expect(daily_orders_summary).toEqual([
@@ -135,7 +131,7 @@ describe("Incremental Analytics", () => {
     );
 
     // Run aggregation for 02-Feb-2021 orders & put result in summary collection
-    aggregate(orders, pipeline, options);
+    aggregate(orders, pipeline);
 
     // View the summary collection content (should be 2 record now)
     expect(daily_orders_summary).toEqual([
@@ -169,7 +165,7 @@ describe("Incremental Analytics", () => {
     );
 
     // Re-run aggregation for 01-Feb-2021 overwriting 1st record in summary collections
-    aggregate(ordersUpdated, pipeline, options);
+    aggregate(ordersUpdated, pipeline);
 
     // View the summary collection content (should still be 2 records but 1st changed)
     expect(daily_orders_summary).toEqual([

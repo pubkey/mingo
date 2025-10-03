@@ -1,5 +1,4 @@
-import { aggregate } from "../../../src";
-import { DEFAULT_OPTS, ISODate } from "../../support";
+import { aggregate, ISODate } from "../../support";
 
 /**
  * You want to query a collection of people to find the three youngest people who have a job in engineering, sorted by the youngest person first.
@@ -106,7 +105,7 @@ describe("Filter Top Subset", () => {
       { $unset: ["_id", "vocation", "address"] }
     ];
 
-    expect(aggregate(persons, pipeline, DEFAULT_OPTS)).toEqual([
+    expect(aggregate(persons, pipeline)).toEqual([
       {
         person_id: "7363626383",
         firstname: "Carl",

@@ -1,4 +1,4 @@
-import { initOptions, Options } from "../core";
+import { ComputeOptions, Options } from "../core";
 import { $match } from "../operators/pipeline/match";
 import { $project } from "../operators/pipeline/project";
 import { $sort } from "../operators/pipeline/sort";
@@ -18,7 +18,7 @@ export class Aggregator extends AggregatorImpl {
    * @param options - Optional configuration settings for the aggregator.
    */
   constructor(pipeline: AnyObject[], options?: Partial<Options>) {
-    const opts = initOptions(options);
+    const opts = ComputeOptions.init(options);
     opts.context.addPipelineOps({ $match, $project, $sort });
     super(pipeline, opts);
   }

@@ -1,6 +1,4 @@
-import "../../../src/init/system";
-
-import { aggregate } from "../../../src";
+import { aggregate } from "../../support";
 
 describe("operators/expression/set", () => {
   const experiments = [

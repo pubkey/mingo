@@ -1,6 +1,5 @@
-import { aggregate } from "../../../src";
 import { ProcessingMode } from "../../../src/core";
-import { DEFAULT_OPTS, runTest } from "../../support";
+import { aggregate, runTest } from "../../support";
 
 describe("operators/expression/object", () => {
   runTest("$mergeObjects", {
@@ -35,28 +34,24 @@ describe("operators/expression/object", () => {
     ];
 
     it("can apply $mergeObjects", () => {
-      const result = aggregate(
-        orders,
-        [
-          {
-            $lookup: {
-              from: items,
-              localField: "item", // field in the orders collection
-              foreignField: "item", // field in the items collection
-              as: "fromItems"
+      const result = aggregate(orders, [
+        {
+          $lookup: {
+            from: items,
+            localField: "item", // field in the orders collection
+            foreignField: "item", // field in the items collection
+            as: "fromItems"
+          }
+        },
+        {
+          $replaceRoot: {
+            newRoot: {
+              $mergeObjects: [{ $arrayElemAt: ["$fromItems", 0] }, "$$ROOT"]
             }
-          },
-          {
-            $replaceRoot: {
-              newRoot: {
-                $mergeObjects: [{ $arrayElemAt: ["$fromItems", 0] }, "$$ROOT"]
-              }
-            }
-          },
-          { $project: { fromItems: 0 } }
-        ],
-        DEFAULT_OPTS
-      );
+          }
+        },
+        { $project: { fromItems: 0 } }
+      ]);
 
       expect(result).toStrictEqual([
         {
@@ -101,19 +96,15 @@ describe("operators/expression/object", () => {
     ];
 
     it("can apply $mergeObjects as accumulator", () => {
-      const result = aggregate(
-        sales,
-        [
-          {
-            $group: {
-              _id: "$item",
-              mergedSales: { $mergeObjects: "$quantity" }
-            }
-          },
-          { $sort: { _id: -1 } }
-        ],
-        DEFAULT_OPTS
-      );
+      const result = aggregate(sales, [
+        {
+          $group: {
+            _id: "$item",
+            mergedSales: { $mergeObjects: "$quantity" }
+          }
+        },
+        { $sort: { _id: -1 } }
+      ]);
 
       expect(result).toStrictEqual([
         {
@@ -145,7 +136,6 @@ describe("operators/expression/object", () => {
     ];
 
     const options = {
-      ...DEFAULT_OPTS,
       processingMode: ProcessingMode.CLONE_INPUT
     };
 

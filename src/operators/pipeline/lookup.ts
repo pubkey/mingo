@@ -1,5 +1,10 @@
 import { AggregatorImpl } from "../../aggregator/_internal";
-import { computeValue, Options, PipelineOperator } from "../../core";
+import {
+  ComputeOptions,
+  computeValue,
+  Options,
+  PipelineOperator
+} from "../../core";
 import { Iterator } from "../../lazy";
 import { Any, AnyObject } from "../../types";
 import {
@@ -115,10 +120,10 @@ export const $lookup: PipelineOperator = (
 
   // options to use for processing each stage.
   const agg = new AggregatorImpl(pipeline, options);
-  const opts = { ...options };
+  const opts = ComputeOptions.init(options);
   return collection.map((obj: AnyObject) => {
     const vars = computeValue(obj, letExpr, null, options) as AnyObject;
-    opts.variables = { ...options.variables, ...vars };
+    opts.update({ root: null, variables: vars });
     const [ok, res] = lookupEq(obj);
     return {
       ...obj,

@@ -3,7 +3,7 @@ import "../../../src/init/system";
 import { Query } from "../../../src";
 import { $exists } from "../../../src/operators/query";
 import { AnyObject } from "../../../src/types";
-import { DEFAULT_OPTS } from "../../support";
+import { COMPUTE_OPTS } from "../../support";
 
 describe("operators/query/element", () => {
   const obj = {
@@ -82,7 +82,7 @@ describe("operators/query/element", () => {
     it.each(fixtures)(
       "can apply $exists operator",
       (expected, obj, selector, cond) => {
-        const actual = $exists(selector, cond, DEFAULT_OPTS)(obj);
+        const actual = $exists(selector, cond, COMPUTE_OPTS)(obj);
         expect(actual).toEqual(expected);
       }
     );

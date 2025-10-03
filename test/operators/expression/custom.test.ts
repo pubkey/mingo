@@ -1,6 +1,4 @@
-import "../../../src/init/system";
-
-import { aggregate } from "../../../src";
+import { aggregate } from "../../support";
 
 describe("operators/expressions/custom", () => {
   describe("$accumulator", () => {
@@ -11,7 +9,7 @@ describe("operators/expressions/custom", () => {
           { _id: 8752, title: "Divine Comedy", author: "Dante", copies: 1 },
           { _id: 8645, title: "Eclogues", author: "Dante", copies: 2 },
           { _id: 7000, title: "The Odyssey", author: "Homer", copies: 10 },
-          { _id: 7020, title: "Iliad", author: "Homer", copies: 10 },
+          { _id: 7020, title: "Iliad", author: "Homer", copies: 10 }
         ],
         [
           {
@@ -30,7 +28,7 @@ describe("operators/expressions/custom", () => {
                     // Define how to update the state
                     return {
                       count: state.count + 1,
-                      sum: state.sum + numCopies,
+                      sum: state.sum + numCopies
                     };
                   },
                   accumulateArgs: ["$copies"], // Argument required by the accumulate function
@@ -38,16 +36,16 @@ describe("operators/expressions/custom", () => {
                     // After collecting the results from all documents,
                     return state.sum / state.count; // calculate the average
                   },
-                  lang: "js",
-                },
-              },
-            },
-          },
+                  lang: "js"
+                }
+              }
+            }
+          }
         ]
       );
       expect(result).toEqual([
         { _id: "Dante", avgCopies: 1.6666666666666667 },
-        { _id: "Homer", avgCopies: 10 },
+        { _id: "Homer", avgCopies: 10 }
       ]);
     });
 
@@ -56,31 +54,31 @@ describe("operators/expressions/custom", () => {
         Bettles: [
           {
             _id: { city: "Bettles" },
-            restaurants: ["Food Fury", "Meal Macro", "Big Crisp"],
+            restaurants: ["Food Fury", "Meal Macro", "Big Crisp"]
           },
           { _id: { city: "Onida" }, restaurants: ["The Wrap"] },
-          { _id: { city: "Pyote" }, restaurants: ["Crave"] },
+          { _id: { city: "Pyote" }, restaurants: ["Crave"] }
         ],
         Onida: [
           { _id: { city: "Bettles" }, restaurants: ["Food Fury"] },
           {
             _id: { city: "Onida" },
-            restaurants: ["The Wrap", "Spice Attack", "Soup City"],
+            restaurants: ["The Wrap", "Spice Attack", "Soup City"]
           },
-          { _id: { city: "Pyote" }, restaurants: ["Crave"] },
+          { _id: { city: "Pyote" }, restaurants: ["Crave"] }
         ],
 
         Pyote: [
           { _id: { city: "Bettles" }, restaurants: ["Food Fury"] },
           { _id: { city: "Onida" }, restaurants: ["The Wrap"] },
-          { _id: { city: "Pyote" }, restaurants: ["Crave", "The Gala"] },
+          { _id: { city: "Pyote" }, restaurants: ["Crave", "The Gala"] }
         ],
 
         unknown: [
           { _id: { city: "Bettles" }, restaurants: ["Food Fury"] },
           { _id: { city: "Onida" }, restaurants: ["The Wrap"] },
-          { _id: { city: "Pyote" }, restaurants: ["Crave"] },
-        ],
+          { _id: { city: "Pyote" }, restaurants: ["Crave"] }
+        ]
       })) {
         const result = aggregate(
           [
@@ -91,7 +89,7 @@ describe("operators/expressions/custom", () => {
             { _id: 5, name: "Spice Attack", city: "Onida", cuisine: "Latin" },
             { _id: 6, name: "Soup City", city: "Onida", cuisine: "Chinese" },
             { _id: 7, name: "Crave", city: "Pyote", cuisine: "American" },
-            { _id: 8, name: "The Gala", city: "Pyote", cuisine: "Chinese" },
+            { _id: 8, name: "The Gala", city: "Pyote", cuisine: "Chinese" }
           ],
           [
             {
@@ -103,7 +101,7 @@ describe("operators/expressions/custom", () => {
                       // Set the initial state
                       return {
                         max: city === userProfileCity ? 3 : 1, // If the group matches the user's city, return 3 restaurants
-                        restaurants: [], // else, return 1 restaurant
+                        restaurants: [] // else, return 1 restaurant
                       };
                     },
                     initArgs: ["$city", key], // Argument to pass to the init function
@@ -124,11 +122,11 @@ describe("operators/expressions/custom", () => {
                     }) => {
                       // Adjust the state to only return field we need
                       return state.restaurants;
-                    },
-                  },
-                },
-              },
-            },
+                    }
+                  }
+                }
+              }
+            }
           ]
         );
         expect(result).toEqual(expected);
@@ -141,7 +139,7 @@ describe("operators/expressions/custom", () => {
       const data = [
         { _id: 1, name: "Miss Cheevous", scores: [10, 5, 10] },
         { _id: 2, name: "Miss Ann Thrope", scores: [10, 10, 10] },
-        { _id: 3, name: "Mrs. Eppie Delta ", scores: [9, 8, 8] },
+        { _id: 3, name: "Mrs. Eppie Delta ", scores: [9, 8, 8] }
       ];
 
       const result = aggregate(data, [
@@ -151,22 +149,22 @@ describe("operators/expressions/custom", () => {
               $function: {
                 body: (name: string): boolean => name.length == 15,
                 args: ["$name"],
-                lang: "js",
-              },
+                lang: "js"
+              }
             },
             message: {
               $function: {
                 body: function (name: string, scores: number[]) {
                   let total = 0;
-                  scores.forEach((n) => (total += n));
+                  scores.forEach(n => (total += n));
                   return `Hello ${name}.  Your total score is ${total}.`;
                 },
                 args: ["$name", "$scores"],
-                lang: "js",
-              },
-            },
-          },
-        },
+                lang: "js"
+              }
+            }
+          }
+        }
       ]);
 
       expect(result).toEqual([
@@ -175,22 +173,22 @@ describe("operators/expressions/custom", () => {
           name: "Miss Cheevous",
           scores: [10, 5, 10],
           isFound: false,
-          message: "Hello Miss Cheevous.  Your total score is 25.",
+          message: "Hello Miss Cheevous.  Your total score is 25."
         },
         {
           _id: 2,
           name: "Miss Ann Thrope",
           scores: [10, 10, 10],
           isFound: true,
-          message: "Hello Miss Ann Thrope.  Your total score is 30.",
+          message: "Hello Miss Ann Thrope.  Your total score is 30."
         },
         {
           _id: 3,
           name: "Mrs. Eppie Delta ",
           scores: [9, 8, 8],
           isFound: false,
-          message: "Hello Mrs. Eppie Delta .  Your total score is 25.",
-        },
+          message: "Hello Mrs. Eppie Delta .  Your total score is 25."
+        }
       ]);
     });
   });

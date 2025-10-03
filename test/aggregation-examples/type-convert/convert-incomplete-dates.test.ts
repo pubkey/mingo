@@ -1,5 +1,4 @@
-import { aggregate } from "../../../src";
-import { DEFAULT_OPTS, ISODate } from "../../support";
+import { aggregate, ISODate } from "../../support";
 
 /**
  *
@@ -16,7 +15,7 @@ import { DEFAULT_OPTS, ISODate } from "../../support";
  *
  * See {@link https://www.practical-mongodb-aggregations.com/examples/type-convert/convert-incomplete-dates.html}
  */
-describe("", () => {
+describe("Convert Incomplete Date Strings", () => {
   const payments = [
     {
       account: "010101",
@@ -132,7 +131,7 @@ describe("", () => {
   ];
 
   it("returns twelve documents should be returned, corresponding to the original twelve source documents, but this time with the paymentDate field converted from text values to proper date typed values", () => {
-    expect(aggregate(payments, pipeline, DEFAULT_OPTS)).toEqual([
+    expect(aggregate(payments, pipeline)).toEqual([
       {
         account: "010101",
         paymentDate: ISODate("2020-01-01T01:01:01.123Z"),

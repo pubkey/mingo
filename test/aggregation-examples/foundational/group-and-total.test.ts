@@ -1,5 +1,4 @@
-import { aggregate } from "../../../src";
-import { DEFAULT_OPTS, ISODate } from "../../support";
+import { aggregate, ISODate } from "../../support";
 
 /**
  * You want to generate a report to show what each shop customer purchased in 2020. You will group the individual order records by customer,
@@ -104,7 +103,7 @@ describe("Group & Total", () => {
       { $unset: ["_id"] }
     ];
 
-    expect(aggregate(orders, pipeline, DEFAULT_OPTS)).toEqual([
+    expect(aggregate(orders, pipeline)).toEqual([
       {
         customer_id: "oranieri@warmmail.com",
         first_purchase_date: ISODate("2020-01-01T08:25:37.000Z"),

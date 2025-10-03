@@ -1,5 +1,4 @@
-import { aggregate } from "../../../src";
-import { DEFAULT_OPTS, ISODate } from "../../support";
+import { aggregate, ISODate } from "../../support";
 
 /**
  * You want to generate a report to list all the orders made for each product in 2020.
@@ -108,7 +107,7 @@ describe("Multi-Field Join & One-to-Many", () => {
       { $unset: ["_id", "product_id", "product_mapping"] }
     ];
 
-    expect(aggregate(orders, pipeline, DEFAULT_OPTS)).toEqual([
+    expect(aggregate(orders, pipeline)).toEqual([
       {
         customer_id: "elise_smith@myemail.com",
         orderdate: ISODate("2020-05-30T08:35:52.000Z"),

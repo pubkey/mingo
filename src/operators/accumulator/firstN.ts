@@ -1,9 +1,5 @@
-import {
-  AccumulatorOperator,
-  ComputeOptions,
-  computeValue,
-  Options
-} from "../../core";
+import type { ComputeOptions } from "../../core";
+import { AccumulatorOperator, computeValue, Options } from "../../core";
 import { Any, AnyObject } from "../../types";
 import { assert } from "../../util";
 import { $push } from "./push";
@@ -27,7 +23,7 @@ export const $firstN: AccumulatorOperator = (
   expr: InputExpr,
   options: Options
 ): Any[] => {
-  const copts = ComputeOptions.init(options);
+  const copts = options as ComputeOptions;
   const m = collection.length;
   const n = computeValue(copts?.local?.groupId, expr.n, null, copts) as number;
   assert(n > 0, "$firstN: 'n' must resolve to a positive integer.");

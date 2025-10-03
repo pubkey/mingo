@@ -1,5 +1,4 @@
-import { aggregate } from "../../../src";
-import { DEFAULT_OPTS } from "../../support";
+import { aggregate } from "../../support";
 
 /**
  * You want to query a collection of persons where each document contains data on one or more languages spoken by the person.
@@ -98,7 +97,7 @@ describe("Distinct List Of Values", () => {
       }
     ];
 
-    expect(aggregate(persons, pipeline, DEFAULT_OPTS)).toEqual([
+    expect(aggregate(persons, pipeline)).toEqual([
       { language: "English" },
       { language: "French" },
       { language: "Gaelic" },

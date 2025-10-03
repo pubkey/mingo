@@ -1,12 +1,8 @@
-import "../../../src/init/system";
-
-import { aggregate } from "../../../src";
-import { initOptions, ProcessingMode } from "../../../src/core";
+import { ComputeOptions, ProcessingMode } from "../../../src/core";
 import { Any, AnyObject } from "../../../src/types";
-import { DEFAULT_OPTS } from "../../support";
+import { aggregate } from "../../support";
 
-const options = initOptions({
-  ...DEFAULT_OPTS,
+const options = ComputeOptions.init({
   processingMode: ProcessingMode.CLONE_INPUT
 });
 

@@ -1,5 +1,4 @@
-import { aggregate } from "../../../src";
-import { DEFAULT_OPTS, ISODate } from "../../support";
+import { aggregate, ISODate } from "../../support";
 
 /**
  * A 3rd party has imported a set of retail orders into a MongoDB collection but with all data typing lost (it stored all field values as strings).
@@ -73,9 +72,7 @@ describe("Strongly-Typed Conversion", () => {
       "with the same field structure and fields names, but now using strongly-typed boolean/date/integer/decimal values where appropriate"
     ].join(""),
     () => {
-      expect(
-        aggregate(orders, pipeline, { ...DEFAULT_OPTS, collectionResolver })
-      ).toEqual([
+      expect(aggregate(orders, pipeline, { collectionResolver })).toEqual([
         {
           customer_id: "elise_smith@myemail.com",
           further_info: {

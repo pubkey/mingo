@@ -1,5 +1,4 @@
-import { aggregate, find } from "../../../src";
-import { DEFAULT_OPTS, ISODate } from "../../support";
+import { aggregate, find, ISODate } from "../../support";
 
 /**
  * You have a user management system containing data about various people in a database, and you need to ensure a particular client application cannot view the sensitive parts of the data relating to each person.
@@ -102,10 +101,10 @@ describe("Redacted View", () => {
     { $unset: ["_id", "social_security_num"] }
   ];
 
-  const data = aggregate(persons, pipeline, DEFAULT_OPTS);
+  const data = aggregate(persons, pipeline);
 
   it("returns three documents, representing the three persons who are over 18 but not showing their social security numbers", () => {
-    expect(find(data, {}, {}, DEFAULT_OPTS).all()).toEqual([
+    expect(find(data, {}, {}).all()).toEqual([
       {
         person_id: "6392529400",
         firstname: "Elise",
@@ -141,7 +140,7 @@ describe("Redacted View", () => {
   });
 
   it("returns two females records only because the male record has been excluded", () => {
-    expect(find(data, { gender: "FEMALE" }, {}, DEFAULT_OPTS).all()).toEqual([
+    expect(find(data, { gender: "FEMALE" }, {}).all()).toEqual([
       {
         person_id: "6392529400",
         firstname: "Elise",

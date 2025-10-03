@@ -24,19 +24,14 @@ export const $filter: ExpressionOperator = (
   if (isNil(input)) return null;
   assert(isArray(input), "$filter 'input' expression must resolve to an array");
 
-  const copts = ComputeOptions.init(options, obj);
+  const copts = ComputeOptions.init(options);
   const k = expr.as || "this";
-  const local = {
+  const locals = {
     variables: { [k]: null }
   };
   return input.filter((o: Any) => {
-    local.variables[k] = o;
-    const b = computeValue(
-      obj,
-      expr.cond,
-      null,
-      copts.update(copts.root, local)
-    );
+    locals.variables[k] = o;
+    const b = computeValue(obj, expr.cond, null, copts.update(locals));
     // allow empty strings only in strict MongoDB mode (default).
     return truthy(b, options.useStrictMode);
   });

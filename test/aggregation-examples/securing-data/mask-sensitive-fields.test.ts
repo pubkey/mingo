@@ -1,5 +1,4 @@
-import { aggregate } from "../../../src";
-import { DEFAULT_OPTS, ISODate } from "../../support";
+import { aggregate, ISODate } from "../../support";
 
 /**
  * You want to perform irreversible masking on the sensitive fields of a collection of credit card payments,
@@ -136,7 +135,7 @@ describe("Mask Sensitive Fields", () => {
   ];
 
   it("return documents corresponding to the original two source documents, but this time with many of their fields redacted and obfuscated, plus the customer_info embedded document omitted for one record due to it having been marked as RESTRICTED", () => {
-    const result = aggregate(payments, pipeline, DEFAULT_OPTS);
+    const result = aggregate(payments, pipeline);
     expect(result).toHaveLength(2);
 
     expect(result[0]["card_num"]).toEqual("XXXXXXXXXXXX3456");

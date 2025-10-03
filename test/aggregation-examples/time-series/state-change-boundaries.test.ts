@@ -1,5 +1,4 @@
-import { aggregate } from "../../../src";
-import { DEFAULT_OPTS, ISODate } from "../../support";
+import { aggregate, ISODate } from "../../support";
 
 /**
  * You are monitoring various industrial devices (e.g. heaters, fans) contained in the business locations of your clients.
@@ -183,7 +182,7 @@ describe("State Change Boundaries", () => {
   ];
 
   it("captures the duration between two state change boundaries (on→off or off→on) for each device", () => {
-    const result = aggregate(device_status, pipeline, DEFAULT_OPTS);
+    const result = aggregate(device_status, pipeline);
     expect(result).toEqual([
       {
         deviceID: "DEHUMIDIFIER-555",

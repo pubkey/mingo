@@ -29,9 +29,9 @@ export const $topN: AccumulatorOperator<Any[]> = (
   expr: InputExpr,
   options: Options
 ): Any[] => {
-  const copts = ComputeOptions.init(options);
+  const copts = options as ComputeOptions;
   const { n, sortBy } = computeValue(
-    copts.local.groupId,
+    copts?.local?.groupId,
     expr,
     null,
     copts

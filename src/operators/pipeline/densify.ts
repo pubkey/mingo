@@ -1,4 +1,4 @@
-import { ComputeOptions, Options, PipelineOperator } from "../../core";
+import { Options, PipelineOperator } from "../../core";
 import { concat, Iterator, IteratorResult, Lazy } from "../../lazy";
 import { AnyObject, TIME_UNITS, TimeUnit } from "../../types";
 import {
@@ -88,14 +88,11 @@ export const $densify: PipelineOperator = (
   // sort by `expr.field` for densification.
   collection = $sort(collection, { [expr.field]: 1 }, options);
 
-  // empty options used for date range calculation.
-  const nilOptions = ComputeOptions.init(options, null);
-
   // Compute the next value in the densify sequence for the given partition key.
   const computeNextValue = (value: DateOrNumber) => {
     return isNumber(value)
       ? value + step
-      : $dateAdd(null, { startDate: value, unit, amount: step }, nilOptions);
+      : $dateAdd(null, { startDate: value, unit, amount: step }, options);
   };
 
   const isValidUnit = !!unit && TIME_UNITS.includes(unit);

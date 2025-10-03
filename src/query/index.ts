@@ -1,4 +1,4 @@
-import { initOptions, Options } from "../core";
+import { ComputeOptions, Options } from "../core";
 import * as booleanOperators from "../operators/expression/boolean";
 import * as comparisonOperators from "../operators/expression/comparison";
 import * as projectionOperators from "../operators/projection";
@@ -25,7 +25,7 @@ export class Query extends QueryImpl {
    * @param options - Optional configuration settings to customize the query behavior.
    */
   constructor(condition: AnyObject, options?: Partial<Options>) {
-    const opts = initOptions(options);
+    const opts = ComputeOptions.init(options);
     opts.context
       .addExpressionOps(booleanOperators)
       .addExpressionOps(comparisonOperators)

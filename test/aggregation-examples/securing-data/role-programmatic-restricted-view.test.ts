@@ -1,5 +1,4 @@
-import { aggregate } from "../../../src";
-import { DEFAULT_OPTS, ISODate } from "../../support";
+import { aggregate, ISODate } from "../../support";
 
 /**
  * At a medical establishment, the central IT system holds patient data that you need to surface
@@ -83,7 +82,6 @@ describe("Role Programmatic Restricted View", () => {
 
   it("returns view for the front-desk (Receptionist) includes patient data in the results but omits each patient's weight and medication fields because the user's role does not have sufficient privileges to access those fields.", () => {
     const options = {
-      ...DEFAULT_OPTS,
       variables: { USER_ROLES: { role: ["Receptionist"] } }
     };
     expect(aggregate(patients, pipeline, options)).toEqual([
@@ -116,7 +114,6 @@ describe("Role Programmatic Restricted View", () => {
 
   it("returns view for the nurse-station (Nurse) includes patient data in the results similar to the previous user, but with the weight field also shown for each record.", () => {
     const options = {
-      ...DEFAULT_OPTS,
       variables: { USER_ROLES: { role: ["Nurse"] } }
     };
     expect(aggregate(patients, pipeline, options)).toEqual([
@@ -153,7 +150,6 @@ describe("Role Programmatic Restricted View", () => {
 
   it("returns view for the exam-room (Doctor) includes each patient's entire data in the results, including the weight and medication fields, due to the user having sufficient privileges to access those fields.", () => {
     const options = {
-      ...DEFAULT_OPTS,
       variables: { USER_ROLES: { role: ["Doctor"] } }
     };
     expect(aggregate(patients, pipeline, options)).toEqual([

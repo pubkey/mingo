@@ -2,7 +2,7 @@
  * Predicates used for Query and Expression operators.
  */
 
-import { computeValue, Options } from "../core";
+import { ComputeOptions, computeValue, Options } from "../core";
 import { QueryImpl } from "../query/_internal";
 import {
   Any,
@@ -33,7 +33,7 @@ import {
   typeOf
 } from "../util";
 
-type PredicateOptions = Options & { depth: number };
+type PredicateOptions = ComputeOptions;
 
 type ConversionType = number | Exclude<JsType, "function"> | BsonType;
 
@@ -45,10 +45,11 @@ export function processQuery(
 ): (_: AnyObject) => boolean {
   const opts = { unwrapArray: true };
   const depth = Math.max(1, selector.split(".").length - 1);
+  const copts = ComputeOptions.init(options).update({ depth });
   return (o: AnyObject): boolean => {
     // value of field must be fully resolved.
     const lhs = resolve(o, selector, opts);
-    return predicate(lhs, value, { ...options, depth });
+    return predicate(lhs, value, copts);
   };
 }
 
@@ -58,8 +59,8 @@ export function processExpression(
   options: Options,
   predicate: Predicate<Any>
 ): boolean {
-  const args = computeValue(obj, expr, null, options) as Any[];
-  return predicate(...args);
+  const [lhs, rhs] = computeValue(obj, expr, null, options) as Any[];
+  return predicate(lhs, rhs, options);
 }
 
 /**
@@ -80,7 +81,7 @@ export function $eq(a: Any, b: Any, options?: PredicateOptions): boolean {
   if (isArray(a)) {
     return (
       a.some(v => isEqual(v, b)) ||
-      flatten(a, options?.depth).some(v => isEqual(v, b))
+      flatten(a, options.local?.depth).some(v => isEqual(v, b))
     );
   }
 

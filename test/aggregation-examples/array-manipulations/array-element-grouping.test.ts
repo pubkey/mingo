@@ -1,5 +1,4 @@
-import { aggregate } from "../../../src";
-import { DEFAULT_OPTS, ISODate } from "../../support";
+import { aggregate, ISODate } from "../../support";
 
 /**
  * You want to provide a report for your online game showing the total "coin" rewards each gaming
@@ -130,7 +129,7 @@ describe("Array Element Grouping", () => {
   ];
 
   it("return documents representing three gamers and showing the number of times they received each coin type and its total", () => {
-    expect(aggregate(user_rewards, pipeline, DEFAULT_OPTS)).toEqual([
+    expect(aggregate(user_rewards, pipeline)).toEqual([
       {
         userId: 123456789,
         coinTypeAwardedCounts: [

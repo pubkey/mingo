@@ -29,6 +29,6 @@ export const $let: ExpressionOperator = (
     obj,
     expr.in,
     null,
-    ComputeOptions.init(options, obj, { variables })
+    ComputeOptions.init(options).update({ variables })
   );
 };

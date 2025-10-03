@@ -1,5 +1,4 @@
-import { aggregate } from "../../../src";
-import { DEFAULT_OPTS, ISODate } from "../../support";
+import { aggregate, ISODate } from "../../support";
 
 /**
  * You are monitoring various air-conditioning units running in two buildings on an industrial campus.
@@ -158,9 +157,7 @@ describe("IoT Power Consumption", () => {
       }
     ];
 
-    expect(
-      aggregate(device_readings, pipelineRawReadings, DEFAULT_OPTS)
-    ).toEqual([
+    expect(aggregate(device_readings, pipelineRawReadings)).toEqual([
       {
         buildingID: "Building-ABC",
         deviceID: "UltraAirCon-111",
@@ -279,9 +276,7 @@ describe("IoT Power Consumption", () => {
       }
     ];
 
-    expect(
-      aggregate(device_readings, pipelineBuildingsSummary, DEFAULT_OPTS)
-    ).toEqual([
+    expect(aggregate(device_readings, pipelineBuildingsSummary)).toEqual([
       {
         buildingID: "Building-ABC",
         dayHour: "2021-07-03  11",

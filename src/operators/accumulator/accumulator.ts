@@ -45,10 +45,10 @@ export const $accumulator: AccumulatorOperator = (
   const copts = ComputeOptions.init(options);
 
   const initArgs = computeValue(
-    {},
+    copts?.local?.groupId,
     expr.initArgs || [],
     null,
-    copts.update(copts?.local?.groupId || {})
+    copts.update({ root: copts?.local?.groupId })
   ) as Any[];
 
   let state = expr.init.call(null, ...initArgs) as Any;
@@ -59,7 +59,7 @@ export const $accumulator: AccumulatorOperator = (
       doc,
       expr.accumulateArgs,
       null,
-      copts.update(doc)
+      copts.update({ root: doc })
     ) as Any[];
     // update the state with each documents value
     state = expr.accumulate.call(null, ...[state, ...args]) as Any;

@@ -95,14 +95,14 @@ export const $merge: PipelineOperator = (
         expr.let || { new: "$$ROOT" },
         null,
         // 'root' is the item from the iteration.
-        copts.update(o)
+        copts.update({ root: o })
       ) as AnyObject;
 
       if (isArray(expr.whenMatched)) {
-        const aggregator = new AggregatorImpl(expr.whenMatched, {
-          ...options,
-          variables
-        });
+        const aggregator = new AggregatorImpl(
+          expr.whenMatched,
+          copts.update({ root: null, variables })
+        );
         output[i] = aggregator.run([target])[0];
       } else {
         switch (expr.whenMatched) {
@@ -121,7 +121,7 @@ export const $merge: PipelineOperator = (
               target,
               [target, o],
               // 'root' is the item from the iteration.
-              copts.update(o, { variables })
+              copts.update({ root: o, variables })
             );
             break;
         }

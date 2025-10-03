@@ -1,4 +1,4 @@
-import { CloneMode, Context, initOptions, UpdateOptions } from "../../core";
+import { CloneMode, ComputeOptions, Context, UpdateOptions } from "../../core";
 import * as booleanOperators from "../../operators/expression/boolean";
 import * as comparisonOperators from "../../operators/expression/comparison";
 import * as queryOperators from "../../operators/query";
@@ -18,7 +18,7 @@ import {
 
 export const UPDATE_OPTIONS: UpdateOptions = {
   cloneMode: "copy",
-  queryOptions: initOptions({
+  queryOptions: ComputeOptions.init({
     context: Context.init()
       .addQueryOps(queryOperators)
       .addExpressionOps(booleanOperators)

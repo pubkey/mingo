@@ -23,6 +23,6 @@ export const $push: AccumulatorOperator<Any[]> = (
   if (isNil(expr)) return collection;
   const copts = ComputeOptions.init(options);
   return collection.map(obj =>
-    computeValue(obj, expr, null, copts.update(obj))
+    computeValue(obj, expr, null, copts.update({ root: obj }))
   );
 };

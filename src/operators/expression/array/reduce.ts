@@ -18,22 +18,19 @@ export const $reduce: ExpressionOperator = (
   expr: AnyObject,
   options: Options
 ): Any => {
-  const copts = ComputeOptions.init(options);
-  const input = computeValue(obj, expr.input, null, copts) as Any[];
-  const initialValue = computeValue(obj, expr.initialValue, null, copts);
+  const input = computeValue(obj, expr.input, null, options) as Any[];
+  const initialValue = computeValue(obj, expr.initialValue, null, options);
   const inExpr = expr["in"];
 
   if (isNil(input)) return null;
   assert(isArray(input), "$reduce 'input' expression must resolve to an array");
 
+  const copts = ComputeOptions.init(options);
+  const locals = {
+    variables: { value: null }
+  };
   return input.reduce((acc, n) => {
-    return computeValue(
-      n,
-      inExpr,
-      null,
-      copts.update(copts.root, {
-        variables: { value: acc }
-      })
-    );
+    locals.variables.value = acc;
+    return computeValue(n, inExpr, null, copts.update(locals));
   }, initialValue);
 };

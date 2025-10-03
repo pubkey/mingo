@@ -1,7 +1,7 @@
 import {
   AccumulatorOperator,
+  ComputeOptions,
   getOperator,
-  initOptions,
   Options,
   OpType,
   PipelineOperator,
@@ -65,7 +65,7 @@ export const $setWindowFields: PipelineOperator = (
   expr: SetWindowFieldsInput,
   options: Options
 ): Iterator => {
-  options = initOptions(options);
+  options = ComputeOptions.init(options);
   options.context.addExpressionOps({ $function });
 
   // validate inputs early since this can be an expensive operation.

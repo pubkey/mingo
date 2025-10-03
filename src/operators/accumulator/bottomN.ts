@@ -29,8 +29,8 @@ export const $bottomN: AccumulatorOperator<Any[]> = (
   expr: InputExpr,
   options: Options
 ): Any[] => {
-  const copts = ComputeOptions.init(options);
-  const n = computeValue(copts.local.groupId, expr.n, null, copts) as number;
+  const copts = options as ComputeOptions;
+  const n = computeValue(copts?.local?.groupId, expr.n, null, copts) as number;
   const result = $sort(Lazy(collection), expr.sortBy, options).value();
   const m = result.length;
   return $push(m <= n ? result : result.slice(m - n), expr.output, copts);

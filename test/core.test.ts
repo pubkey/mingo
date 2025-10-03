@@ -2,28 +2,23 @@ import {
   ComputeOptions,
   computeValue,
   Context,
-  initOptions,
   Options,
   OpType,
   ProcessingMode,
-  redact,
   useOperators
 } from "../src/core";
-import fullContext from "../src/init/context";
 import { Iterator } from "../src/lazy";
 import { $toString } from "../src/operators/expression";
 import { $match } from "../src/operators/pipeline/match";
 import { Any, AnyObject } from "../src/types";
 import { resolve } from "../src/util";
-import { find } from "./support";
-
-const DEFAULT_OPTS = initOptions({ context: fullContext() });
+import { COMPUTE_OPTS, DEFAULT_OPTS, find } from "./support";
 
 const copts = ComputeOptions.init(DEFAULT_OPTS);
 
 describe("core", () => {
   afterEach(() => {
-    copts.update();
+    copts.update({});
   });
 
   describe("Context", () => {
@@ -85,21 +80,21 @@ describe("core", () => {
   describe("ComputeOptions", () => {
     it("should preserve 'root' on init if defined", () => {
       expect(copts.root).toBeUndefined();
-      copts.update(false);
+      copts.update({ root: false });
       expect(copts.root).toEqual(false);
-      expect(ComputeOptions.init(copts, true).root).toEqual(false);
+      expect(ComputeOptions.init(copts).root).toEqual(false);
     });
 
     it("should preserve 'local' on init if defined", () => {
       expect(copts.local).toHaveProperty("now");
       expect(copts.local.now).toBeLessThanOrEqual(Date.now());
-      copts.update(null, { groupId: 5 });
+      copts.update({ root: null, groupId: 5 });
       expect(copts.local?.groupId).toEqual(5);
       expect(ComputeOptions.init(copts).local?.groupId).toEqual(5);
     });
 
     it("should access all members of init options", () => {
-      copts.update(true, { variables: { x: 10 } });
+      copts.update({ root: true, variables: { x: 10 } });
       expect(copts.idKey).toEqual("_id");
       expect(copts.scriptEnabled).toEqual(true);
       expect(copts.useStrictMode).toEqual(true);
@@ -114,8 +109,8 @@ describe("core", () => {
     });
 
     it("should merge new variables on update when non-empty", () => {
-      copts.update(true, { variables: { x: 10 } });
-      copts.update(true, { variables: { y: 20 } });
+      copts.update({ root: true, variables: { x: 10 } });
+      copts.update({ root: true, variables: { y: 20 } });
       expect(copts.local?.variables).toEqual({ x: 10, y: 20 });
     });
 
@@ -123,12 +118,8 @@ describe("core", () => {
       const now = copts.local?.now;
       expect(now).toBeLessThanOrEqual(Date.now());
 
-      // initializing with existing options preserves 'now'
-      const other = ComputeOptions.init(copts, { local: { now: 100 } });
-      expect(other.local?.now).not.toEqual(100);
-      expect(other.local?.now).toEqual(now);
-
-      copts.update(false, { groupId: 5, now: 200 });
+      const local = { root: false, groupId: 5, now: 200 };
+      copts.update(local);
       expect(copts.local?.groupId).toEqual(5);
       expect(copts.local?.now).toEqual(now);
     });
@@ -160,7 +151,7 @@ describe("core", () => {
 
   describe("computeValue", () => {
     it("throws for invalid operator", () => {
-      expect(() => computeValue({}, {}, "$fakeOperator", DEFAULT_OPTS)).toThrow(
+      expect(() => computeValue({}, {}, "$fakeOperator", COMPUTE_OPTS)).toThrow(
         Error
       );
     });
@@ -170,7 +161,7 @@ describe("core", () => {
         {},
         { date: "$$NOW" },
         null,
-        DEFAULT_OPTS
+        COMPUTE_OPTS
       ) as {
         date: Date;
       };
@@ -224,39 +215,13 @@ describe("core", () => {
           }
         },
         null,
-        DEFAULT_OPTS
+        COMPUTE_OPTS
       );
       expect(res).toEqual({
         data: {
           steps: [{ range: [9, 20] }, { range: [30, 50] }]
         }
       });
-    });
-  });
-
-  describe("redact", () => {
-    it("returns object with $$KEEP", () => {
-      const obj = { name: "Francis" };
-      const result = redact(obj, "$$KEEP", copts.update(obj));
-      expect(result).toStrictEqual(obj);
-    });
-
-    it("discards object with $$PRUNE", () => {
-      const obj = { name: "Francis" };
-      const result = redact(obj, "$$PRUNE", copts.update(obj));
-      expect(result).toStrictEqual(undefined);
-    });
-
-    it("return input object for $$DESCEND if operator is not $cond", () => {
-      const obj = { name: "Francis", level: "$$DESCEND" };
-      const result = redact(obj, "$level", copts.update(obj));
-      expect(result).toStrictEqual(obj);
-    });
-
-    it("ignore and return resolved value if not valid redact variable", () => {
-      const obj = { name: "Francis" };
-      const result = redact(obj, "unknown", copts.update(obj));
-      expect(result).toStrictEqual("unknown");
     });
   });
 });

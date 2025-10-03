@@ -1,5 +1,4 @@
-import { aggregate } from "../../../src";
-import { DEFAULT_OPTS } from "../../support";
+import { aggregate } from "../../support";
 
 /**
  * You want to generate a retail report to list the total value and quantity of expensive products sold (valued over 15 dollars).
@@ -111,7 +110,7 @@ describe("Unpack Arrays & Group Differently", () => {
       { $unset: ["_id"] }
     ];
 
-    expect(aggregate(orders, pipeline, DEFAULT_OPTS)).toEqual([
+    expect(aggregate(orders, pipeline)).toEqual([
       {
         product_id: "abc12345",
         product: "Asus Laptop",

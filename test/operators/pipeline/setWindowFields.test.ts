@@ -1,10 +1,8 @@
-import { aggregate } from "../../../src";
 import { ProcessingMode } from "../../../src/core";
-import { DEFAULT_OPTS, ISODate, testPath } from "../../support";
+import { aggregate, ISODate, testPath } from "../../support";
 
 describe(testPath(__filename), () => {
   const options = {
-    ...DEFAULT_OPTS,
     processingMode: ProcessingMode.CLONE_INPUT,
     scriptEnabled: true
   };

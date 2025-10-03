@@ -1,5 +1,4 @@
-import { aggregate } from "../../../src";
-import { DEFAULT_OPTS, ISODate } from "../../support";
+import { aggregate, ISODate } from "../../support";
 
 /**
  * You want to generate a report to list all shop purchases for 2020, showing the product's name and category for each order, rather than the product's id.
@@ -110,7 +109,6 @@ describe("One-to-One Join", () => {
 
     expect(
       aggregate(orders, pipeline, {
-        ...DEFAULT_OPTS,
         collectionResolver: _ => products
       })
     ).toEqual([

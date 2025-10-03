@@ -91,126 +91,101 @@ export interface Options {
   readonly context: Context;
 }
 
-interface LocalData {
+interface Locals {
+  /** Reference to the root object when processing subgraphs of the object. */
+  root?: Any;
   /** The groupId computed for a group of documents. */
-  readonly groupId?: Any;
+  groupId?: Any;
   /** Local user-defind variables. */
-  readonly variables?: AnyObject;
+  variables?: AnyObject;
   /** The current timestamp */
   readonly now?: number;
+  /** Depth of field selector in Query condition. */
+  readonly depth?: number;
 }
 
-/** Custom type to facilitate type checking for global options */
 export class ComputeOptions implements Options {
-  #options: Options;
-  /** Reference to the root object when processing subgraphs of the object. */
-  #root: Any;
-  #local: LocalData;
+  #locals: Locals;
 
-  private constructor(options: Options, root: Any, local?: LocalData) {
-    this.#options = options;
-    this.#local = {};
-    this.update(root, local);
+  private constructor(
+    readonly options: Options,
+    locals?: Locals
+  ) {
+    this.#locals = Object.assign({ now: Date.now() }, locals);
   }
 
   /**
-   * Initialize new ComputeOptions.
-   * @returns {ComputeOptions}
-   */
-  static init(options: Options, root?: Any, local?: LocalData): ComputeOptions {
-    return !(options instanceof ComputeOptions)
-      ? new ComputeOptions(options, root, local)
-      : new ComputeOptions(options.#options, null, options.#local).update(
-          options.#root ?? root,
-          local
-        );
-  }
-
-  /**
-   * Updates the internal state.
+   * Initializes a new instance of the `ComputeOptions` class with the provided options.
    *
-   * @param root The new root context for this object.
-   * @param local The new local state to merge into current if it exists.
-   * @returns
+   * @param options - A partial set of options to configure the `ComputeOptions` instance.
+   *                  If an instance of `ComputeOptions` is provided, its internal options and locals are used.
+   * @returns A new `ComputeOptions` instance configured with the provided options and root.
    */
-  update(root?: Any, local?: LocalData): ComputeOptions {
-    // NOTE: this is done for efficiency to avoid creating too many intermediate options objects.
-    this.#root = root;
-    Object.assign(this.#local, {
+  static init(options: Partial<Options>): ComputeOptions {
+    return options instanceof ComputeOptions
+      ? new ComputeOptions(options.options, options.#locals)
+      : new ComputeOptions({
+          idKey: "_id",
+          scriptEnabled: true,
+          useStrictMode: true,
+          useGlobalContext: true,
+          processingMode: ProcessingMode.CLONE_OFF,
+          ...options,
+          context: options?.context
+            ? Context.from(options?.context)
+            : Context.init()
+        });
+  }
+
+  update(locals?: Omit<Locals, "now">): ComputeOptions {
+    Object.assign(this.#locals, locals, {
+      // DO NOT override timestamp
+      now: this.#locals.now,
       // merge variables.
-      variables: { ...this.#local?.variables, ...local?.variables },
-      // take the groupId if defined
-      groupId: local?.groupId ?? this.#local?.groupId,
-      // preserve current timestamp if exists or initialize new one.
-      now: this.#local?.now ?? local?.now ?? Date.now()
+      variables: { ...this.#locals?.variables, ...locals?.variables }
     });
     return this;
   }
 
-  getOptions() {
-    return Object.freeze({
-      ...this.#options,
-      context: Context.from(this.#options.context)
-    }) as Options;
-  }
-
   get root() {
-    return this.#root;
+    return this.#locals.root;
   }
   get local() {
-    return this.#local;
+    return this.#locals;
   }
   get idKey() {
-    return this.#options.idKey;
+    return this.options.idKey;
   }
   get collation() {
-    return this.#options?.collation;
+    return this.options?.collation;
   }
   get processingMode() {
-    return this.#options?.processingMode || ProcessingMode.CLONE_OFF;
+    return this.options?.processingMode;
   }
   get useStrictMode() {
-    return this.#options?.useStrictMode;
+    return this.options?.useStrictMode;
   }
   get scriptEnabled() {
-    return this.#options?.scriptEnabled;
+    return this.options?.scriptEnabled;
   }
   get useGlobalContext() {
-    return this.#options?.useGlobalContext;
+    return this.options?.useGlobalContext;
   }
   get hashFunction() {
-    return this.#options?.hashFunction;
+    return this.options?.hashFunction;
   }
   get collectionResolver() {
-    return this.#options?.collectionResolver;
+    return this.options?.collectionResolver;
   }
   get jsonSchemaValidator() {
-    return this.#options?.jsonSchemaValidator;
+    return this.options?.jsonSchemaValidator;
   }
   get variables() {
-    return this.#options?.variables;
+    return this.options?.variables;
   }
   get context() {
-    return this.#options?.context;
+    return this.options?.context;
   }
-}
-
-/**
- * Creates an Option from another where required keys are initialized.
- * @param options Options
- */
-export function initOptions(options?: Partial<Options>): Options {
-  return options instanceof ComputeOptions
-    ? options.getOptions()
-    : Object.freeze({
-        idKey: "_id",
-        scriptEnabled: true,
-        useStrictMode: true,
-        useGlobalContext: true,
-        processingMode: ProcessingMode.CLONE_OFF,
-        ...options,
-        context: Context.from(options?.context ?? Context.init())
-      });
 }
 
 /**
@@ -463,9 +438,14 @@ export function computeValue(
   obj: Any,
   expr: Any,
   operator: string | null,
-  options?: Options
+  options: Options
 ): Any {
-  const copts = ComputeOptions.init(options, obj);
+  // only intialize compute opts when necessary.
+  const copts =
+    !(options instanceof ComputeOptions) || isNil(options.root)
+      ? ComputeOptions.init(options).update({ root: obj })
+      : options;
+
   // ensure valid options exist on first invocation
   return !!operator && isOperator(operator)
     ? computeOperator(obj, expr, operator, copts)
@@ -484,7 +464,8 @@ function computeExpression(obj: Any, expr: Any, options: ComputeOptions): Any {
   // if expr begins only a single "$", then it is a path to a field on the object.
   if (isString(expr) && expr.length > 0 && expr[0] === "$") {
     // we return redact variables as literals
-    if (REDACT_ACTIONS.includes(expr as RedactAction)) return expr;
+    if (expr === "$$KEEP" || expr === "$$PRUNE" || expr === "$$DESCEND")
+      return expr;
 
     // default to root for resolving path.
     let ctx = options.root;
@@ -587,59 +568,4 @@ function computeOperator(
 
   // accumulator must override the root accordingly. we pass the full context as is.
   return callAccumulator(obj as Any[], expr, options);
-}
-
-const REDACT_ACTIONS = ["$$KEEP", "$$PRUNE", "$$DESCEND"] as const;
-type RedactAction = (typeof REDACT_ACTIONS)[number];
-
-/**
- * Redact an object
- * @param  {Object} obj The object to redact
- * @param  {*} expr The redact expression
- * @param  {*} options  Options for value
- * @return {*} returns the result of the redacted object
- */
-export function redact(
-  obj: AnyObject,
-  expr: Any,
-  options: ComputeOptions
-): Any {
-  const action = computeValue(obj, expr, null, options) as RedactAction;
-  switch (action) {
-    case "$$KEEP":
-      return obj;
-    case "$$PRUNE":
-      return undefined;
-    case "$$DESCEND": {
-      // traverse nested documents iff there is a $cond
-      if (!has(expr as AnyObject, "$cond")) return obj;
-
-      const output = {};
-
-      for (const [key, value] of Object.entries(obj)) {
-        if (isArray(value)) {
-          const res = new Array<Any>();
-          for (let elem of value) {
-            if (isObject(elem)) {
-              elem = redact(elem as AnyObject, expr, options.update(elem));
-            }
-            if (!isNil(elem)) res.push(elem);
-          }
-          output[key] = res;
-        } else if (isObject(value)) {
-          const res = redact(
-            value as AnyObject,
-            expr,
-            options.update(value)
-          ) as ArrayOrObject;
-          if (!isNil(res)) output[key] = res;
-        } else {
-          output[key] = value;
-        }
-      }
-      return output;
-    }
-    default:
-      return action;
-  }
 }

@@ -82,7 +82,9 @@ function createHandler(
       }
     } else if (isArray(subExpr)) {
       handlers[key] = (o: AnyObject) =>
-        subExpr.map(v => computeValue(o, v, null, options.update(o)) ?? null);
+        subExpr.map(
+          v => computeValue(o, v, null, options.update({ root: o })) ?? null
+        );
     } else if (isObject(subExpr)) {
       const subExprKeys = Object.keys(subExpr);
       const operator = subExprKeys.length == 1 ? subExprKeys[0] : "";
@@ -98,10 +100,10 @@ function createHandler(
         const foundSlice = operator === "$slice";
         if (foundSlice && !ensureArray(subExpr[operator]).every(isNumber)) {
           handlers[key] = (o: AnyObject) =>
-            computeValue(o, subExpr, key, options.update(o));
+            computeValue(o, subExpr, key, options.update({ root: o }));
         } else {
           handlers[key] = (o: AnyObject) =>
-            projectFn(o, subExpr[operator], key, options.update(o));
+            projectFn(o, subExpr[operator], key, options.update({ root: o }));
         }
       } else if (isOperator(operator)) {
         // pipeline projection
@@ -113,7 +115,7 @@ function createHandler(
         assert(subExprKeys.length > 0, `Invalid empty sub-projection: ${key}`);
         handlers[key] = (o: AnyObject) => {
           // ensure that the root object is passed down.
-          if (isRoot) options.update(o);
+          if (isRoot) options.update({ root: o });
           const target = resolve(o, key);
           const fn = createHandler(subExpr as AnyObject, options, false);
           if (isArray(target)) return target.map(fn);

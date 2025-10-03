@@ -1,5 +1,5 @@
 import { AggregatorImpl } from "../src/aggregator/_internal";
-import { Context, initOptions, Options, UpdateOptions } from "../src/core";
+import { ComputeOptions, Context, Options, UpdateOptions } from "../src/core";
 import { Cursor } from "../src/cursor";
 import fullContext from "../src/init/context";
 import { Source } from "../src/lazy";
@@ -11,8 +11,14 @@ export { Context, ProcessingMode } from "../src/core";
 
 const context = fullContext();
 const makeOpts = (options?: Partial<Options>) => {
-  const opts = initOptions(options);
-  return { ...opts, context: Context.merge(context, opts.context) };
+  return ComputeOptions.init(
+    options?.context
+      ? {
+          ...options,
+          context: Context.merge(context, options.context)
+        }
+      : options
+  );
 };
 
 export class Query extends QueryImpl {

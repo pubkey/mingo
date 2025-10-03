@@ -27,7 +27,7 @@ export const $maxN: AccumulatorOperator = (
   expr: InputExpr,
   options: Options
 ): Any[] => {
-  const copts = ComputeOptions.init(options);
+  const copts = options as ComputeOptions;
   const m = collection.length;
   const n = computeValue(copts?.local?.groupId, expr.n, null, copts) as number;
   const arr = $push(collection, expr.input, options).filter(o => !isNil(o));
