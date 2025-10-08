@@ -2,12 +2,12 @@ import "../../src/init/system";
 
 import { ProcessingMode } from "../../src/core";
 import { Any, AnyObject } from "../../src/types";
-import { find, ObjectId, personData } from "../support";
+import { find, ObjectId, personData, testPath } from "../support";
 
 const idStr = "123456789abe";
 const obj = Object.assign({}, personData, { _id: ObjectId(idStr) });
 
-describe("operators/projection", () => {
+describe(testPath(__filename), () => {
   const data = [
     {
       _id: 1,
@@ -274,6 +274,163 @@ describe("operators/projection", () => {
           expect(find(input, {}, projectB).all()).toEqual(output);
         }
       );
+    });
+  });
+
+  describe("positional '$' operator", () => {
+    const students = [
+      { _id: 1, semester: 1, grades: [70, 87, 90] },
+      { _id: 2, semester: 1, grades: [90, 88, 92] },
+      { _id: 3, semester: 1, grades: [85, 100, 90] },
+      { _id: 4, semester: 2, grades: [79, 85, 80] },
+      { _id: 5, semester: 2, grades: [88, 88, 92] },
+      { _id: 6, semester: 2, grades: [95, 90, 96] }
+    ];
+
+    const grades = [
+      {
+        _id: 7,
+        semester: 3,
+        grades: [
+          { grade: 80, mean: 75, std: 8 },
+          { grade: 85, mean: 90, std: 5 },
+          { grade: 90, mean: 85, std: 3 }
+        ]
+      },
+
+      {
+        _id: 8,
+        semester: 3,
+        grades: [
+          { grade: 92, mean: 88, std: 8 },
+          { grade: 78, mean: 90, std: 5 },
+          { grade: 88, mean: 85, std: 3 }
+        ]
+      }
+    ];
+
+    it("project array values", () => {
+      const result = find(
+        students,
+        { semester: 1, grades: { $gte: 85 } },
+        { "grades.$": 1 }
+      ).all();
+      expect(result).toEqual([
+        { _id: 1, grades: [87] },
+        { _id: 2, grades: [90] },
+        { _id: 3, grades: [85] }
+      ]);
+    });
+
+    it("project array documents", () => {
+      const result = find(
+        grades,
+        { "grades.mean": { $gt: 70 } },
+        { "grades.$": 1 }
+      ).all();
+      expect(result).toEqual([
+        { _id: 7, grades: [{ grade: 80, mean: 75, std: 8 }] },
+        { _id: 8, grades: [{ grade: 92, mean: 88, std: 8 }] }
+      ]);
+    });
+
+    it("project array of documents within compound operator", () => {
+      const result = find(
+        grades,
+        {
+          $and: [{ "grades.mean": { $gt: 70 } }, { semester: 3 }]
+        },
+        { "grades.$": 1 }
+      ).all();
+      expect(result).toEqual([
+        { _id: 7, grades: [{ grade: 80, mean: 75, std: 8 }] },
+        { _id: 8, grades: [{ grade: 92, mean: 88, std: 8 }] }
+      ]);
+    });
+
+    it("fails when a condition in a compound query is false", () => {
+      const result = find(
+        grades,
+        {
+          $and: [{ "grades.mean": { $gt: 70 } }, { semester: 2 }]
+        },
+        { "grades.$": 1 }
+      ).all();
+      expect(result).toEqual([]);
+    });
+
+    it("project array of documents with multiple compound operators ($and, $or)", () => {
+      const result = find(
+        grades,
+        {
+          $and: [{ "grades.grade": { $gt: 80 } }],
+          $or: [{ "grades.std": 5 }, { "grades.std": 3 }]
+        },
+        {
+          "grades.$": 1
+        }
+      ).all();
+      expect(result).toEqual([
+        { _id: 7, grades: [{ grade: 85, mean: 90, std: 5 }] },
+        { _id: 8, grades: [{ grade: 88, mean: 85, std: 3 }] }
+      ]);
+    });
+
+    it("project array of documents with multiple compound operators ($and, $nor)", () => {
+      const result = find(
+        grades,
+        {
+          $and: [{ "grades.grade": { $gt: 80 } }],
+          $nor: [{ "grades.std": 10 }, { "grades.std": 10 }]
+        },
+        {
+          "grades.$": 1
+        }
+      ).all();
+      expect(result).toEqual([
+        { _id: 7, grades: [{ grade: 85, mean: 90, std: 5 }] },
+        { _id: 8, grades: [{ grade: 92, mean: 88, std: 8 }] }
+      ]);
+    });
+
+    it("project array documents from nested values", () => {
+      const result = find(
+        grades,
+        { "grades.mean": { $gt: 80 } },
+        { "grades.mean.$": 1 }
+      ).all();
+      expect(result).toEqual([
+        { _id: 7, grades: [{ mean: 90 }] },
+        { _id: 8, grades: [{ mean: 88 }] }
+      ]);
+    });
+
+    it("project positional item on $elemMatch", () => {
+      const result = find(
+        grades,
+        {
+          grades: {
+            $elemMatch: {
+              mean: { $gt: 70 },
+              grade: { $gt: 90 }
+            }
+          }
+        },
+        { "grades.$": 1 }
+      ).all();
+
+      expect(result).toEqual([
+        {
+          _id: 8,
+          grades: [
+            {
+              grade: 92,
+              mean: 88,
+              std: 8
+            }
+          ]
+        }
+      ]);
     });
   });
 });

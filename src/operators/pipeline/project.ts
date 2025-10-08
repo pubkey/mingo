@@ -5,15 +5,17 @@ import {
   Options,
   OpType,
   PipelineOperator,
-  ProjectionOperator
+  ProjectionOperator,
+  QueryOperator
 } from "../../core";
 import { Iterator } from "../../lazy";
-import { Any, AnyObject } from "../../types";
+import { Any, AnyObject, Callback, Predicate } from "../../types";
 import {
   assert,
   ensureArray,
   filterMissing,
   has,
+  intersection,
   isArray,
   isBoolean,
   isEmpty,
@@ -22,10 +24,12 @@ import {
   isOperator,
   isString,
   merge,
+  normalize,
   removeValue,
   resolve,
   resolveGraph,
-  setValue
+  setValue,
+  unique
 } from "../../util";
 
 /**
@@ -45,7 +49,7 @@ export const $project: PipelineOperator = (
   options: Options
 ): Iterator => {
   if (isEmpty(expr)) return collection;
-  validateExpression(expr, options);
+  checkExpression(expr, options);
   return collection.map(createHandler(expr, ComputeOptions.init(options)));
 };
 
@@ -68,6 +72,7 @@ function createHandler(
   const excludedKeys = new Array<string>();
   const includedKeys = new Array<string>();
   const handlers: Record<string, Handler> = {};
+  const positional: Record<string, Callback<void>> = {};
 
   for (const key of expressionKeys) {
     // get expression associated with key
@@ -76,7 +81,20 @@ function createHandler(
     if (isNumber(subExpr) || isBoolean(subExpr)) {
       // positive number or true
       if (subExpr) {
-        includedKeys.push(key);
+        // get predicate for field if used as a positional projection "<array-selector>.$".
+        if (isRoot && key.endsWith(".$")) {
+          // ensure there is query condition
+          const condition = options?.local?.condition;
+          assert(
+            condition,
+            "positional operator '.$' couldn't find matching element in the array."
+          );
+          const field = key.slice(0, -2);
+          positional[field] = getPositionalFilter(field, condition, options);
+          includedKeys.push(field);
+        } else {
+          includedKeys.push(key);
+        }
       } else {
         excludedKeys.push(key);
       }
@@ -156,6 +174,10 @@ function createHandler(
       const pathObj = resolveGraph(o, k, opts) ?? {};
       // add the value at the path
       merge(newObj, pathObj);
+      // handle positional projection fields.
+      if (has(positional, k)) {
+        positional[k](newObj);
+      }
     }
 
     // filter out all missing values preserved to support correct merging
@@ -193,15 +215,18 @@ function createHandler(
   };
 }
 
-function validateExpression(expr: AnyObject, options: Options): void {
+function checkExpression(expr: AnyObject, options: Options): void {
   let exclusions = false;
   let inclusions = false;
+  let positional = 0;
   for (const [k, v] of Object.entries(expr)) {
     assert(!k.startsWith("$"), "Field names may not start with '$'.");
-    assert(
-      !k.endsWith(".$"),
-      "Positional projection operator '$' is not supported."
-    );
+    if (k.endsWith(".$")) {
+      assert(
+        ++positional < 2,
+        "Cannot specify more than one positional projection per query."
+      );
+    }
     if (k === options?.idKey) continue;
     if (v === 0 || v === false) {
       exclusions = true;
@@ -213,4 +238,101 @@ function validateExpression(expr: AnyObject, options: Options): void {
       "Projection cannot have a mix of inclusion and exclusion."
     );
   }
+}
+
+const findMatches = (
+  o: AnyObject,
+  key: string,
+  leaf: string,
+  pred: Predicate
+) => {
+  let arr = resolve(o, key) as Any[];
+  if (!isArray(arr)) arr = resolve(arr, leaf) as AnyObject[];
+  assert(isArray(arr), "must resolve to array");
+  const matches: number[] = [];
+  // note: each value is passed in as an arry to support $elemMatch operator.
+  arr.forEach((e, i) => pred({ [leaf]: [e] }) && matches.push(i));
+  return matches;
+};
+
+const complement = (p: Predicate) => (e: AnyObject) => !p(e);
+
+const COMPOUND_OPS = { $and: 1, $or: 1, $nor: 1 } as const;
+
+/**
+ * Returns a callback that updates an object to select the first matching value.
+ *
+ * @param field The positional field from the projection expression excluding ".$" suffix.
+ * @param condition The query condition expression in which to check for the 'field'.
+ * @returns
+ */
+function getPositionalFilter(
+  field: string,
+  condition: AnyObject,
+  options: ComputeOptions
+): Callback<void> {
+  // we must handle two cases of nested fields. e.g. "a.b.c" can be.
+  //  1. {a:{b:[{c:1},{c:2}...]}}
+  //  2. {a:{b:{c:[...]}}}
+  // we split the selector into the (parent, leaf) eg. "a.b.c" -> ["a.b", "c"].
+  // then we use the 'leaf' as the selector to the compiled predicate for the case of nested objects in array paths.
+  // since we always need to send an object to the predicate, for non-objects we wrap in an object with the 'leaf' as the key.
+  const stack: [string, Any, string?][] = [...Object.entries(condition)];
+  const selectors: Partial<
+    Record<"$and" | "$or", [string, Predicate, string][]>
+  > = { $and: [], $or: [] };
+  for (let i = 0; i < stack.length; i++) {
+    const [key, val, op] = stack[i] as [string, Any, string];
+    if (key === field || key.startsWith(field + ".")) {
+      const [operator, expr] = Object.entries(normalize(val)).pop() as [
+        string,
+        Any
+      ];
+      const fn = getOperator(OpType.QUERY, operator, options) as QueryOperator;
+      const leaf = key.substring(key.lastIndexOf(".") + 1);
+      const pred = fn(leaf, expr, options);
+      if (!op || op === "$and") {
+        // default for all query criteria
+        selectors["$and"].push([key, pred, leaf]);
+      } else if (op === "$nor") {
+        // handle $nor by inverting predicate for conjunction evaluation.
+        selectors["$and"].push([key, complement(pred), leaf]);
+      } else if (op === "$or") {
+        // must check these as a group to identify all matching indices
+        selectors["$or"].push([key, pred, leaf]);
+      }
+    } else if (isOperator(key)) {
+      assert(COMPOUND_OPS[key], `${key} is not allowed in this context`);
+      for (const item of val as AnyObject[]) {
+        Object.entries(item).forEach(([k, v]) => stack.push([k, v, key]));
+      }
+    }
+  }
+
+  const sep = field.lastIndexOf(".");
+  const parent = field.substring(0, sep) || field;
+  const leaf = field.substring(sep + 1);
+
+  return (o: AnyObject) => {
+    const matches: number[][] = [];
+    for (const [key, pred, leaf] of selectors["$and"]) {
+      matches.push(findMatches(o, key, leaf, pred));
+    }
+
+    if (selectors["$or"].length) {
+      const orMatches: number[] = [];
+      for (const [key, pred, leaf] of selectors["$or"]) {
+        orMatches.push(...findMatches(o, key, leaf, pred));
+      }
+      matches.push(unique(orMatches, (n: number) => n));
+    }
+
+    // matching index has passed all conditions
+    const i = intersection(matches).sort()[0];
+    let first = (resolve(o, field) as Any[])[i];
+    if (parent != leaf && !isObject(first)) {
+      first = { [leaf]: first };
+    }
+    setValue(o, parent, [first]);
+  };
 }

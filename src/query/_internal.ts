@@ -25,8 +25,8 @@ export class QueryImpl {
     );
 
     const whereOperator: { field?: string; expr?: Any } = {};
-
-    for (const [field, expr] of Object.entries(this.#condition)) {
+    const conditions = Object.entries(this.#condition);
+    for (const [field, expr] of conditions) {
       if ("$where" === field) {
         assert(
           this.#options.scriptEnabled,

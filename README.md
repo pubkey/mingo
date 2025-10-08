@@ -356,7 +356,7 @@ Below is a description of how this library differs from the full MongoDB query e
 1. Does not support server specific operators. E.g. `$collStat`, `$planCacheStats`, `$listSessions`.
 1. Does not support geometry query operators.
 1. Does not support query operators dependent on persistent storage; `$comment`, `$meta`, `$text`.
-1. Does not support positional query or update operator `$`.
+1. Does not support positional update operator `$`.
 1. Does not support server specific expression operators; `$toObjectId`, `$binarySize`, `bsonSize`.
 1. Aggregation pipeline operator `$merge` enforces unique constraint on the lookup field during input processing.
 1. Custom function evaluation operators; `$where`, `$function`, and `$accumulator`, do not accept strings as the function body.

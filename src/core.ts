@@ -102,6 +102,8 @@ interface Locals {
   readonly now?: number;
   /** Depth of field selector in Query condition. */
   readonly depth?: number;
+  /** Query condition */
+  readonly condition?: AnyObject;
 }
 
 export class ComputeOptions implements Options {

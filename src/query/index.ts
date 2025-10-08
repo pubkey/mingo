@@ -25,7 +25,7 @@ export class Query extends QueryImpl {
    * @param options - Optional configuration settings to customize the query behavior.
    */
   constructor(condition: AnyObject, options?: Partial<Options>) {
-    const opts = ComputeOptions.init(options);
+    const opts = ComputeOptions.init(options).update({ condition });
     opts.context
       .addExpressionOps(booleanOperators)
       .addExpressionOps(comparisonOperators)

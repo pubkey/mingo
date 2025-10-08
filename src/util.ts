@@ -312,11 +312,14 @@ export function merge(target: Any, input: Any): Any {
  * @param  {Function} hashFunc Custom function to hash values, default the hashCode method
  * @return {Array} Array of intersecting values.
  */
-export function intersection(
-  input: Any[][],
+export function intersection<T = Any>(
+  input: T[][],
   hashFunc: HashFunction = DEFAULT_HASH_FUNCTION
-): Any[] {
-  const vmaps = [HashMap.init(hashFunc), HashMap.init(hashFunc)];
+): T[] {
+  const vmaps = [
+    HashMap.init<T, boolean>(hashFunc),
+    HashMap.init<T, boolean>(hashFunc)
+  ];
   if (input.length === 0) return [];
   if (input.some(arr => arr.length === 0)) return [];
   if (input.length === 1) return [...input[0]];
@@ -422,11 +425,11 @@ export function isEqual(a: Any, b: Any): boolean {
  * @param  {Array} input The input collection
  * @return {Array}
  */
-export function unique(
-  input: Any[],
+export function unique<T = Any>(
+  input: T[],
   hashFunc: HashFunction = DEFAULT_HASH_FUNCTION
-): Any[] {
-  const m = HashMap.init(hashFunc);
+): T[] {
+  const m = HashMap.init<T, boolean>(hashFunc);
   input.forEach(v => m.set(v, true));
   return Array.from(m.keys());
 }
