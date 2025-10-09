@@ -1,15 +1,13 @@
-import "../../../src/init/system";
-
 /* eslint-disable no-restricted-imports */
 import Ajv, { Schema } from "ajv";
 
-import { aggregate, find } from "../../../src";
 import { JsonSchemaValidator } from "../../../src/core";
 import { Any, AnyObject } from "../../../src/types";
+import { aggregate, find, testPath } from "../../support";
 
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
-describe("operators/query/evaluation", () => {
+describe(testPath(__filename), () => {
   describe("$where", () => {
     const data = [
       {

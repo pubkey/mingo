@@ -1,13 +1,12 @@
-import "../../../src/init/system";
-
 import { find, Query } from "../../../src";
 import { Any, AnyObject } from "../../../src/types";
+import { testPath } from "../../support";
 
 interface UserResult {
   user: { username: string };
 }
 
-describe("operators/query/array", () => {
+describe(testPath(__filename), () => {
   const data: AnyObject[] = [
     {
       _id: "5234ccb7687ea597eabee677",

@@ -1,5 +1,3 @@
-import "../../src/init/system";
-
 import { ProcessingMode } from "../../src/core";
 import { Any, AnyObject } from "../../src/types";
 import { find, ObjectId, personData, testPath } from "../support";

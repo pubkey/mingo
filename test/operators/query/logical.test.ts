@@ -1,13 +1,11 @@
-import "../../../src/init/system";
-
 import { Query } from "../../../src";
 import { Any } from "../../../src/types";
-import { ObjectId, personData } from "../../support";
+import { ObjectId, personData, testPath } from "../../support";
 
 const idStr = "123456789abe";
 const obj = Object.assign({}, personData, { _id: ObjectId(idStr) });
 
-describe("operators/query/logical", () => {
+describe(testPath(__filename), () => {
   const fixtures: Record<string, Array<Any[]>> = {
     $and: [
       [

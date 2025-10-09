@@ -1,13 +1,11 @@
-import "../../../src/init/system";
-
-import { aggregate, find } from "../../../src";
+import { aggregate, find } from "../../support";
 
 describe("operators/expression/variable", () => {
   it("can apply $let operator", () => {
     const result = aggregate(
       [
         { _id: 1, price: 10, tax: 0.5, applyDiscount: true },
-        { _id: 2, price: 10, tax: 0.25, applyDiscount: false },
+        { _id: 2, price: 10, tax: 0.25, applyDiscount: false }
       ],
       [
         {
@@ -17,14 +15,14 @@ describe("operators/expression/variable", () => {
                 vars: {
                   total: { $add: ["$price", "$tax"] },
                   discounted: {
-                    $cond: { if: "$applyDiscount", then: 0.9, else: 1 },
-                  },
+                    $cond: { if: "$applyDiscount", then: 0.9, else: 1 }
+                  }
                 },
-                in: { $multiply: ["$$total", "$$discounted"] },
-              },
-            },
-          },
-        },
+                in: { $multiply: ["$$total", "$$discounted"] }
+              }
+            }
+          }
+        }
       ]
     ) as Array<{ finalTotal: number }>;
 
@@ -43,26 +41,26 @@ describe("operators/expression/variable", () => {
             "descriptor",
             {
               format: "longDate",
-              id: "1",
-            },
+              id: "1"
+            }
           ],
           "string2",
           [
             "descriptor",
             {
               format: "longDate",
-              id: "2",
-            },
+              id: "2"
+            }
           ],
           "string3",
           [
             "descriptor",
             {
               format: "longDate",
-              id: "3",
-            },
-          ],
-        ],
+              id: "3"
+            }
+          ]
+        ]
       },
       {
         _id: "document2",
@@ -72,27 +70,27 @@ describe("operators/expression/variable", () => {
             "descriptor",
             {
               format: "longDate",
-              id: "4",
-            },
+              id: "4"
+            }
           ],
           "string2",
           [
             "descriptor",
             {
               format: "longDate",
-              id: "5",
-            },
+              id: "5"
+            }
           ],
           "string3",
           [
             "descriptor",
             {
               format: "longDate",
-              id: "6",
-            },
-          ],
-        ],
-      },
+              id: "6"
+            }
+          ]
+        ]
+      }
     ];
 
     const results = find(docs, {
@@ -106,28 +104,28 @@ describe("operators/expression/variable", () => {
                 cond: {
                   $and: [
                     {
-                      $isArray: ["$$p"],
+                      $isArray: ["$$p"]
                     },
                     {
                       $let: {
                         vars: {
                           e: {
-                            $arrayElemAt: ["$$p", 1],
-                          },
+                            $arrayElemAt: ["$$p", 1]
+                          }
                         },
                         in: {
-                          $eq: ["$$e.id", "1"],
-                        },
-                      },
-                    },
-                  ],
-                },
-              },
-            },
+                          $eq: ["$$e.id", "1"]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
           },
-          0,
-        ],
-      },
+          0
+        ]
+      }
     }).all();
 
     expect(results).toEqual([
@@ -139,27 +137,27 @@ describe("operators/expression/variable", () => {
             "descriptor",
             {
               format: "longDate",
-              id: "1",
-            },
+              id: "1"
+            }
           ],
           "string2",
           [
             "descriptor",
             {
               format: "longDate",
-              id: "2",
-            },
+              id: "2"
+            }
           ],
           "string3",
           [
             "descriptor",
             {
               format: "longDate",
-              id: "3",
-            },
-          ],
-        ],
-      },
+              id: "3"
+            }
+          ]
+        ]
+      }
     ]);
   });
 });

@@ -1,11 +1,9 @@
-import "../../../src/init/system";
-
 import { Query } from "../../../src";
 import { $exists } from "../../../src/operators/query";
 import { AnyObject } from "../../../src/types";
-import { COMPUTE_OPTS } from "../../support";
+import { COMPUTE_OPTS, testPath } from "../../support";
 
-describe("operators/query/element", () => {
+describe(testPath(__filename), () => {
   const obj = {
     double: 12323.4,
     string: "me",

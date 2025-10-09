@@ -1,18 +1,15 @@
-import "./../../../../src/init/system";
+import { aggregate, runTest, testPath } from "../../../support";
 
-import { aggregate } from "../../../../src";
-import * as support from "../../../support";
-
-support.runTest(support.testPath(__filename), {
+runTest(testPath(__filename), {
   $reduce: [
     [{ input: null }, null],
     [
       {
         input: ["a", "b", "c"],
         initialValue: "",
-        in: { $concat: ["$$value", "$$this"] },
+        in: { $concat: ["$$value", "$$this"] }
       },
-      "abc",
+      "abc"
     ],
     [
       {
@@ -20,26 +17,26 @@ support.runTest(support.testPath(__filename), {
         initialValue: { sum: 5, product: 2 },
         in: {
           sum: { $add: ["$$value.sum", "$$this"] },
-          product: { $multiply: ["$$value.product", "$$this"] },
-        },
+          product: { $multiply: ["$$value.product", "$$this"] }
+        }
       },
-      { sum: 15, product: 48 },
+      { sum: 15, product: 48 }
     ],
     [
       {
         input: [
           [3, 4],
-          [5, 6],
+          [5, 6]
         ],
         initialValue: [1, 2],
-        in: { $concatArrays: ["$$value", "$$this"] },
+        in: { $concatArrays: ["$$value", "$$this"] }
       },
-      [1, 2, 3, 4, 5, 6],
-    ],
-  ],
+      [1, 2, 3, 4, 5, 6]
+    ]
+  ]
 });
 
-describe(`${support.testPath(__filename)}: More tests`, () => {
+describe(`${testPath(__filename)}: More tests`, () => {
   it("should resolve fields with both variables and current object", () => {
     const result = aggregate(
       [
@@ -51,28 +48,28 @@ describe(`${support.testPath(__filename)}: More tests`, () => {
                 categories: {
                   data: [
                     {
-                      name: "Healthcare",
-                    },
-                  ],
-                },
+                      name: "Healthcare"
+                    }
+                  ]
+                }
               },
               {
                 name: "Phlebotomy",
                 categories: {
                   data: [
                     {
-                      name: "Skills (N-R) - DNU for Postings",
+                      name: "Skills (N-R) - DNU for Postings"
                     },
                     {
-                      name: "Healthcare",
-                    },
-                  ],
-                },
-              },
-            ],
+                      name: "Healthcare"
+                    }
+                  ]
+                }
+              }
+            ]
           },
-          location: "abcd",
-        },
+          location: "abcd"
+        }
       ],
       [
         {
@@ -90,17 +87,17 @@ describe(`${support.testPath(__filename)}: More tests`, () => {
                         as: "category",
                         in: {
                           skill: "$$this.name",
-                          category: "$$category.name",
-                        },
-                      },
-                    },
-                  ],
-                },
-              },
+                          category: "$$category.name"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
             },
-            location: "$location",
-          },
-        },
+            location: "$location"
+          }
+        }
       ]
     );
 
@@ -109,19 +106,19 @@ describe(`${support.testPath(__filename)}: More tests`, () => {
         specialties: [
           {
             skill: "Respiratory Therapst",
-            category: "Healthcare",
+            category: "Healthcare"
           },
           {
             skill: "Phlebotomy",
-            category: "Skills (N-R) - DNU for Postings",
+            category: "Skills (N-R) - DNU for Postings"
           },
           {
             skill: "Phlebotomy",
-            category: "Healthcare",
-          },
+            category: "Healthcare"
+          }
         ],
-        location: "abcd",
-      },
+        location: "abcd"
+      }
     ]);
   });
 });

@@ -1,10 +1,9 @@
-import "../src/init/system";
-
 /* eslint-disable-next-line */
 import { performance } from "perf_hooks";
 
-import { aggregate, Aggregator } from "../src";
+import { aggregate } from "./support";
 import { AnyObject, Callback } from "../src/types";
+import { Aggregator } from "../src";
 
 /* eslint-disable no-console */
 
