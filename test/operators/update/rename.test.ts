@@ -1,5 +1,3 @@
-import "../../support";
-
 import { $rename } from "../../../src/operators/update";
 
 describe("operators/update/rename", () => {

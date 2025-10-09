@@ -1,8 +1,7 @@
-import "../../support";
-
 import { $inc } from "../../../src/operators/update";
+import { testPath, update } from "../../support";
 
-describe("operators/update/inc", () => {
+describe(testPath(__filename), () => {
   it("should set field to current date", () => {
     const state = {
       _id: 1,
@@ -164,6 +163,122 @@ describe("operators/update/inc", () => {
         }
       },
       name: "Celsoppe"
+    });
+  });
+
+  describe("Nested Arrays", () => {
+    it("Update All Elements in an Array", () => {
+      const students = [
+        { _id: 1, grades: [85, 82, 80] },
+        { _id: 2, grades: [88, 90, 92] },
+        { _id: 3, grades: [85, 100, 90] }
+      ];
+
+      students.forEach(obj => {
+        update(obj, { $inc: { "grades.$[]": 10 } });
+      });
+
+      expect(students).toEqual([
+        { _id: 1, grades: [95, 92, 90] },
+        { _id: 2, grades: [98, 100, 102] },
+        { _id: 3, grades: [95, 110, 100] }
+      ]);
+    });
+
+    it("Update All Documents in an Array", () => {
+      const students = [
+        {
+          _id: 1,
+          grades: [
+            { grade: 80, mean: 75, std: 8 },
+            { grade: 85, mean: 90, std: 6 },
+            { grade: 85, mean: 85, std: 8 }
+          ]
+        },
+        {
+          _id: 2,
+          grades: [
+            { grade: 90, mean: 75, std: 8 },
+            { grade: 87, mean: 90, std: 5 },
+            { grade: 85, mean: 85, std: 6 }
+          ]
+        }
+      ];
+
+      students.forEach(obj => {
+        update(obj, { $inc: { "grades.$[].std": -2 } });
+      });
+
+      expect(students).toEqual([
+        {
+          _id: 1,
+          grades: [
+            { grade: 80, mean: 75, std: 6 },
+            { grade: 85, mean: 90, std: 4 },
+            { grade: 85, mean: 85, std: 6 }
+          ]
+        },
+        {
+          _id: 2,
+          grades: [
+            { grade: 90, mean: 75, std: 6 },
+            { grade: 87, mean: 90, std: 3 },
+            { grade: 85, mean: 85, std: 4 }
+          ]
+        }
+      ]);
+    });
+
+    it("Update Arrays Specified Using a Negation Query Operator", () => {
+      const data = [
+        { _id: 1, grades: [85, 82, 80] },
+        { _id: 2, grades: [88, 90, 92] },
+        { _id: 3, grades: [85, 100, 90] }
+      ];
+
+      data.forEach(obj => {
+        update(obj, { $inc: { "grades.$[]": 10 } }, null, {
+          grades: { $ne: 100 }
+        });
+      });
+
+      expect(data).toEqual([
+        { _id: 1, grades: [95, 92, 90] },
+        { _id: 2, grades: [98, 100, 102] },
+        { _id: 3, grades: [85, 100, 90] }
+      ]);
+    });
+
+    it("Update Nested Arrays in Conjunction with $[<identifier>]", () => {
+      const data = [
+        {
+          _id: 1,
+          grades: [
+            { type: "quiz", questions: [10, 8, 5] },
+            { type: "quiz", questions: [8, 9, 6] },
+            { type: "hw", questions: [5, 4, 3] },
+            { type: "exam", questions: [25, 10, 23, 0] }
+          ]
+        }
+      ];
+
+      data.forEach(obj => {
+        update(obj, { $inc: { "grades.$[].questions.$[score]": 2 } }, [
+          { score: { $gte: 8 } }
+        ]);
+      });
+
+      expect(data).toEqual([
+        {
+          _id: 1,
+          grades: [
+            { type: "quiz", questions: [12, 10, 5] },
+            { type: "quiz", questions: [10, 11, 6] },
+            { type: "hw", questions: [5, 4, 3] },
+            { type: "exam", questions: [27, 12, 25, 0] }
+          ]
+        }
+      ]);
     });
   });
 });

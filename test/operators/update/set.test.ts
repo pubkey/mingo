@@ -1,5 +1,3 @@
-import "../../support";
-
 import { $set } from "../../../src/operators/update";
 
 describe("operators/update/set", () => {

@@ -1,4 +1,4 @@
-import { UpdateOperator, UpdateOptions } from "./core";
+import { ComputeOptions, UpdateOperator, UpdateOptions } from "./core";
 import * as UPDATE_OPERATORS from "./operators/update";
 import { UPDATE_OPTIONS } from "./operators/update/_internal";
 import { Query } from "./query";
@@ -55,13 +55,16 @@ export function createUpdater(defaultOptions?: UpdateOptions): Updater {
     );
     /*eslint import/namespace: ['error', { allowComputed: true }]*/
     const mutate = UPDATE_OPERATORS[op] as UpdateOperator;
+    const copts = ComputeOptions.init(options.queryOptions);
     // validate condition
     if (Object.keys(condition).length) {
       const q = new Query(condition, options.queryOptions);
       if (!q.test(obj)) return [] as string[];
+      // set the condtion on the options
+      copts.update({ condition });
     }
     // apply updates
-    return mutate(obj, args, arrayFilters, options);
+    return mutate(obj, args, arrayFilters, { ...options, queryOptions: copts });
   };
 }
 

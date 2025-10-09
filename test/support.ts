@@ -1,4 +1,8 @@
-import { aggregate as srcAggregate, find as srcFind } from "../src";
+import {
+  aggregate as srcAggregate,
+  find as srcFind,
+  update as srcUpdate
+} from "../src";
 import {
   ComputeOptions,
   computeValue,
@@ -8,6 +12,7 @@ import {
 import fullContext from "../src/init/context";
 import { Source } from "../src/lazy";
 import { Any, AnyObject, Callback } from "../src/types";
+import { UpdateExpression } from "../src/updater";
 import complexGrades from "./data/grades_complex";
 import simpleGrades from "./data/grades_simple";
 import person from "./data/person";
@@ -57,6 +62,13 @@ export const find = (
   projection?: AnyObject,
   options?: Partial<Options>
 ) => srcFind(collection, condition, projection ?? {}, options ?? DEFAULT_OPTS);
+
+export const update = (
+  obj: AnyObject,
+  expr: UpdateExpression,
+  arrayFilters?: AnyObject[],
+  condition?: AnyObject
+) => srcUpdate(obj, expr, arrayFilters, condition);
 
 export function runTest(
   description: string,

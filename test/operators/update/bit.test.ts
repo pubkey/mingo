@@ -1,5 +1,3 @@
-import "../../support";
-
 import { $bit } from "../../../src/operators/update";
 
 describe("operators/update/bit", () => {

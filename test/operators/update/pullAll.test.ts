@@ -1,5 +1,3 @@
-import "../../support";
-
 import { $pullAll } from "../../../src/operators/update";
 
 describe("operators/update/pullAll", () => {
