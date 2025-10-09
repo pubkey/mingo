@@ -4,7 +4,7 @@ import { compare } from "../../util";
 import {
   Action,
   applyUpdate,
-  UPDATE_OPTIONS,
+  DEFAULT_OPTIONS,
   walkExpression
 } from "./_internal";
 
@@ -13,7 +13,7 @@ export const $max = (
   obj: AnyObject,
   expr: AnyObject,
   arrayFilters: AnyObject[] = [],
-  options: UpdateOptions = UPDATE_OPTIONS
+  options: UpdateOptions = DEFAULT_OPTIONS
 ) => {
   return walkExpression(expr, arrayFilters, options, ((val, node, queries) => {
     // If the field does not exist, the $max operator sets the field to the specified value.

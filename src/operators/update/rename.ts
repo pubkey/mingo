@@ -4,7 +4,7 @@ import { has } from "../../util";
 import {
   Action,
   applyUpdate,
-  UPDATE_OPTIONS,
+  DEFAULT_OPTIONS,
   walkExpression
 } from "./_internal";
 import { $set } from "./set";
@@ -14,7 +14,7 @@ export const $rename = (
   obj: AnyObject,
   expr: Record<string, string>,
   arrayFilters: AnyObject[] = [],
-  options: UpdateOptions = UPDATE_OPTIONS
+  options: UpdateOptions = DEFAULT_OPTIONS
 ) => {
   const res: string[] = [];
   const changed = walkExpression(expr, arrayFilters, options, ((

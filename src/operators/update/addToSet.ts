@@ -4,7 +4,7 @@ import { has, intersection, isObject, unique } from "../../util";
 import {
   applyUpdate,
   clone,
-  UPDATE_OPTIONS,
+  DEFAULT_OPTIONS,
   walkExpression
 } from "./_internal";
 
@@ -13,7 +13,7 @@ export const $addToSet = (
   obj: AnyObject,
   expr: AnyObject,
   arrayFilters: AnyObject[] = [],
-  options: UpdateOptions = UPDATE_OPTIONS
+  options: UpdateOptions = DEFAULT_OPTIONS
 ) => {
   return walkExpression(expr, arrayFilters, options, (val, node, queries) => {
     const args = { $each: [val] };

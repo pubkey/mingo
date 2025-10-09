@@ -1,6 +1,8 @@
-import { ComputeOptions, UpdateOperator, UpdateOptions } from "./core";
+import { ComputeOptions, Options, UpdateOperator, UpdateOptions } from "./core";
+import * as booleanOperators from "./operators/expression/boolean";
+import * as comparisonOperators from "./operators/expression/comparison";
+import * as queryOperators from "./operators/query";
 import * as UPDATE_OPERATORS from "./operators/update";
-import { UPDATE_OPTIONS } from "./operators/update/_internal";
 import { Query } from "./query";
 import { AnyObject } from "./types";
 import { assert, has } from "./util";
@@ -16,13 +18,19 @@ type OneKey<K extends keyof any, V, KK extends keyof any = K> = {
 
 export type UpdateExpression = OneKey<keyof typeof UPDATE_OPERATORS, AnyObject>;
 
+type DefaultOptions = Partial<
+  Omit<UpdateOptions, "queryOptions"> & {
+    queryOptions: Partial<Options>;
+  }
+>;
+
 /** A function to process an update expression and modify the object. */
 export type Updater = (
   obj: AnyObject,
   expr: UpdateExpression,
   arrayFilters?: AnyObject[],
   condition?: AnyObject,
-  options?: UpdateOptions
+  options?: DefaultOptions
 ) => string[];
 
 /**
@@ -30,17 +38,36 @@ export type Updater = (
  * @param defaultOptions The default options. Defaults to no cloning with strict mode off for queries.
  * @returns {Updater}
  */
-export function createUpdater(defaultOptions?: UpdateOptions): Updater {
+export function createUpdater(defaultOptions?: DefaultOptions): Updater {
   // automatically load basic query options for update operators
-  defaultOptions = defaultOptions ?? UPDATE_OPTIONS;
+  const mainOptions = {
+    cloneMode: "copy",
+    ...defaultOptions,
+    queryOptions: ComputeOptions.init(defaultOptions?.queryOptions)
+  } as UpdateOptions;
+
+  mainOptions.queryOptions.context
+    .addQueryOps(queryOperators)
+    .addExpressionOps(booleanOperators)
+    .addExpressionOps(comparisonOperators);
 
   return (
     obj: AnyObject,
     expr: UpdateExpression,
     arrayFilters: AnyObject[] = [],
     condition: AnyObject = {},
-    options: UpdateOptions = defaultOptions
+    options?: DefaultOptions
   ): string[] => {
+    // apply options overrides
+    const opts = mainOptions;
+    if (options) {
+      Object.assign(opts, { ...options });
+      if (!(opts.queryOptions instanceof ComputeOptions))
+        Object.assign(opts, {
+          queryOptions: ComputeOptions.init(opts.queryOptions)
+        });
+    }
+
     const entry = Object.entries(expr);
     // check for single entry
     assert(
@@ -53,18 +80,23 @@ export function createUpdater(defaultOptions?: UpdateOptions): Updater {
       has(UPDATE_OPERATORS, op),
       `Update operator '${op}' is not supported.`
     );
+
     /*eslint import/namespace: ['error', { allowComputed: true }]*/
-    const mutate = UPDATE_OPERATORS[op] as UpdateOperator;
-    const copts = ComputeOptions.init(options.queryOptions);
-    // validate condition
+    const queryOptions = ComputeOptions.init(opts.queryOptions).update({
+      root: obj
+    });
+
+    // validate condition.
     if (Object.keys(condition).length) {
-      const q = new Query(condition, options.queryOptions);
+      const q = new Query(condition, queryOptions);
       if (!q.test(obj)) return [] as string[];
       // set the condtion on the options
-      copts.update({ condition });
+      queryOptions.update({ condition });
     }
+
     // apply updates
-    return mutate(obj, args, arrayFilters, { ...options, queryOptions: copts });
+    const mutate = UPDATE_OPERATORS[op] as UpdateOperator;
+    return mutate(obj, args, arrayFilters, { ...opts, queryOptions });
   };
 }
 

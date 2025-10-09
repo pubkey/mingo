@@ -4,7 +4,7 @@ import { assert, isNumber } from "../../util";
 import {
   Action,
   applyUpdate,
-  UPDATE_OPTIONS,
+  DEFAULT_OPTIONS,
   walkExpression
 } from "./_internal";
 
@@ -15,7 +15,7 @@ export const $bit = (
   obj: AnyObject,
   expr: AnyObject,
   arrayFilters: AnyObject[] = [],
-  options: UpdateOptions = UPDATE_OPTIONS
+  options: UpdateOptions = DEFAULT_OPTIONS
 ) => {
   return walkExpression(expr, arrayFilters, options, ((val, node, queries) => {
     const op = Object.keys(val);

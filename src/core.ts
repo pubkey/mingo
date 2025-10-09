@@ -190,9 +190,9 @@ export type CloneMode = "deep" | "copy" | "none";
 
 export interface UpdateOptions {
   /** Specifies whether to deep clone values to persist in the internal store. @default "copy". */
-  readonly cloneMode?: CloneMode;
+  readonly cloneMode: CloneMode;
   /** Options to use for processing queries. Unless overriden 'useStrictMode' is false.  */
-  readonly queryOptions?: Partial<Options>;
+  readonly queryOptions: Options;
 }
 
 /**

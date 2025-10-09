@@ -16,7 +16,7 @@ import {
   WalkOptions
 } from "../../util";
 
-export const UPDATE_OPTIONS: UpdateOptions = {
+export const DEFAULT_OPTIONS: UpdateOptions = {
   cloneMode: "copy",
   queryOptions: ComputeOptions.init({
     context: Context.init()
