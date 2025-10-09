@@ -1,7 +1,6 @@
 import {
   AccumulatorOperator,
   ComputeOptions,
-  getOperator,
   Options,
   OpType,
   PipelineOperator,
@@ -72,9 +71,10 @@ export const $setWindowFields: PipelineOperator = (
   for (const outputExpr of Object.values(expr.output)) {
     const keys = Object.keys(outputExpr);
     const op = keys.find(isOperator);
+    const context = options.context;
     assert(
-      !!getOperator(OpType.WINDOW, op, options) ||
-        !!getOperator(OpType.ACCUMULATOR, op, options),
+      !!context.getOperator(OpType.WINDOW, op) ||
+        !!context.getOperator(OpType.ACCUMULATOR, op),
       `'${op}' is not a valid window operator`
     );
 
@@ -129,12 +129,14 @@ export const $setWindowFields: PipelineOperator = (
       const config = {
         operatorName: op,
         func: {
-          left: getOperator(
+          left: options.context.getOperator(
             OpType.ACCUMULATOR,
-            op,
-            options
+            op
           ) as AccumulatorOperator,
-          right: getOperator(OpType.WINDOW, op, options) as WindowOperator
+          right: options.context.getOperator(
+            OpType.WINDOW,
+            op
+          ) as WindowOperator
         },
         args: outputExpr[op],
         field: field,

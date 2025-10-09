@@ -1,10 +1,4 @@
-import {
-  getOperator,
-  Options,
-  OpType,
-  PipelineOperator,
-  ProcessingMode
-} from "../core";
+import { Options, OpType, PipelineOperator, ProcessingMode } from "../core";
 import { Iterator, Lazy, Source } from "../lazy";
 import { Any, AnyObject } from "../types";
 import { assert, cloneDeep } from "../util";
@@ -66,7 +60,10 @@ export class AggregatorImpl {
           name !== "$documents" || i == 0,
           "$documents must be first stage in pipeline."
         );
-        const op = getOperator(OpType.PIPELINE, name, opts) as PipelineOperator;
+        const op = opts.context.getOperator(
+          OpType.PIPELINE,
+          name
+        ) as PipelineOperator;
         assert(!!op, `unregistered pipeline operator ${name}.`);
         return [op, stage[name]];
       })

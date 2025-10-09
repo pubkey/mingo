@@ -12,7 +12,6 @@ import {
   assert,
   has,
   isArray,
-  isFunction,
   isNil,
   isObject,
   isOperator,
@@ -74,11 +73,6 @@ export interface Options {
   readonly useStrictMode: boolean;
   /** Enable or disable custom script execution using `$where`, `$accumulator`, and `$function` operators. @default true. */
   readonly scriptEnabled: boolean;
-  /**
-   * Enable or disable falling back to the global context for operators. @default true.
-   * @deprecated Will be removed in 7.0.0.
-   */
-  readonly useGlobalContext: boolean;
   /** Hash function to replace the Effective Java default implementation. */
   readonly hashFunction?: HashFunction;
   /** Function to resolve strings to arrays for use with operators that reference other collections such as; `$lookup`, `$out` and `$merge`. */
@@ -130,7 +124,6 @@ export class ComputeOptions implements Options {
           idKey: "_id",
           scriptEnabled: true,
           useStrictMode: true,
-          useGlobalContext: true,
           processingMode: ProcessingMode.CLONE_OFF,
           ...options,
           context: options?.context
@@ -169,9 +162,6 @@ export class ComputeOptions implements Options {
   }
   get scriptEnabled() {
     return this.options?.scriptEnabled;
-  }
-  get useGlobalContext() {
-    return this.options?.useGlobalContext;
   }
   get hashFunction() {
     return this.options?.hashFunction;
@@ -360,73 +350,6 @@ export class Context {
   }
 }
 
-type RegistryFunc = Callback<void, Record<string, Operator>>;
-// global context
-const CONTEXT = Context.init();
-const REGISTRY: Record<OpType, RegistryFunc> = {
-  [OpType.ACCUMULATOR]: CONTEXT.addAccumulatorOps.bind(CONTEXT) as RegistryFunc,
-  [OpType.EXPRESSION]: CONTEXT.addExpressionOps.bind(CONTEXT) as RegistryFunc,
-  [OpType.PIPELINE]: CONTEXT.addPipelineOps.bind(CONTEXT) as RegistryFunc,
-  [OpType.PROJECTION]: CONTEXT.addProjectionOps.bind(CONTEXT) as RegistryFunc,
-  [OpType.QUERY]: CONTEXT.addQueryOps.bind(CONTEXT) as RegistryFunc,
-  [OpType.WINDOW]: CONTEXT.addWindowOps.bind(CONTEXT) as RegistryFunc
-};
-
-/**
- * Registers a set of operators for a specific operator type.
- *
- * This function validates the provided operators to ensure that each operator
- * name is valid and its corresponding function is a valid operator function.
- * It also ensures that an operator cannot be redefined once it has been registered.
- *
- * @param type - The type of operators to register (e.g., aggregation, query, etc.).
- * @param operators - A record of operator names and their corresponding functions.
- *
- * @throws Will throw an error if:
- * - An operator name is invalid.
- * - An operator function is not valid.
- * - An operator with the same name is already registered for the given type
- *   and the function differs from the existing one.
- *
- * @deprecated use {@link Context} to manage new operators. Will be removed in 7.0.0.
- */
-export function useOperators(
-  type: OpType,
-  operators: Record<string, Operator>
-): void {
-  for (const [name, fn] of Object.entries(operators)) {
-    assert(
-      isFunction(fn) && isOperator(name),
-      `'${name}' is not a valid operator`
-    );
-    const currentFn = getOperator(type, name, null);
-    assert(
-      !currentFn || fn === currentFn,
-      `${name} already exists for '${type}' operators. Cannot change operator function once registered.`
-    );
-  }
-  // add to registry
-  REGISTRY[type](operators);
-}
-
-/**
- * Returns the operator function or undefined if it is not found
- * @param type Type of operator
- * @param name Name of the operator
- * @param options
- * @deprecated use {@link Context.getOperator} instead. Will be removed in 7.0.0.
- */
-export function getOperator(
-  type: OpType,
-  name: string,
-  options: Pick<Options, "useGlobalContext" | "context">
-): Operator {
-  if (!isOperator(name)) return null;
-  const { context: ctx, useGlobalContext: fallback } = options || {};
-  const fn = ctx ? (ctx.getOperator(type, name) as Operator) : null;
-  return !fn && fallback ? CONTEXT.getOperator(type, name) : fn;
-}
-
 /**
  * Computes the value of the expression on the object for the given operator
  *
@@ -542,19 +465,18 @@ function computeOperator(
   operator: string,
   options: ComputeOptions
 ): Any {
+  const context = options.context;
   // if the field of the object is a valid operator
-  const callExpression = getOperator(
+  const callExpression = context.getOperator(
     OpType.EXPRESSION,
-    operator,
-    options
+    operator
   ) as ExpressionOperator;
   if (callExpression) return callExpression(obj as AnyObject, expr, options);
 
   // handle accumulators
-  const callAccumulator = getOperator(
+  const callAccumulator = context.getOperator(
     OpType.ACCUMULATOR,
-    operator,
-    options
+    operator
   ) as AccumulatorOperator;
 
   // operator was not found

@@ -1,4 +1,4 @@
-import { getOperator, Options, OpType, QueryOperator } from "../core";
+import { Options, OpType, QueryOperator } from "../core";
 import { Cursor } from "../cursor";
 import { Source } from "../lazy";
 import { Any, AnyObject, Predicate } from "../types";
@@ -56,10 +56,9 @@ export class QueryImpl {
   }
 
   private processOperator(field: string, operator: string, value: Any): void {
-    const call = getOperator(
+    const call = this.#options.context.getOperator(
       OpType.QUERY,
-      operator,
-      this.#options
+      operator
     ) as QueryOperator;
     assert(!!call, `unknown query operator ${operator}`);
     this.#compiled.push(call(field, value, this.#options));

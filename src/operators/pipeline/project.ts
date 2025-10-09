@@ -1,7 +1,6 @@
 import {
   ComputeOptions,
   computeValue,
-  getOperator,
   Options,
   OpType,
   PipelineOperator,
@@ -107,10 +106,9 @@ function createHandler(
       const subExprKeys = Object.keys(subExpr);
       const operator = subExprKeys.length == 1 ? subExprKeys[0] : "";
       // first try projection operator as used in Query.find() queries
-      const projectFn = getOperator(
+      const projectFn = options.context.getOperator(
         OpType.PROJECTION,
-        operator,
-        options
+        operator
       ) as ProjectionOperator;
       if (projectFn) {
         // check if this $slice operator is used with $expr instead of Query.find()
@@ -288,7 +286,10 @@ function getPositionalFilter(
         string,
         Any
       ];
-      const fn = getOperator(OpType.QUERY, operator, options) as QueryOperator;
+      const fn = options.context.getOperator(
+        OpType.QUERY,
+        operator
+      ) as QueryOperator;
       const leaf = key.substring(key.lastIndexOf(".") + 1);
       const pred = fn(leaf, expr, options);
       if (!op || op === "$and") {

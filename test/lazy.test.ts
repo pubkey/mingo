@@ -18,7 +18,8 @@ describe("lazy", () => {
     };
 
     const res = Lazy(stream).reduce<number>(
-      (acc, n) => (acc as number) + (n as number)
+      (acc, n) => (acc as number) + (n as number),
+      0
     );
     expect(res).toBe(45);
     expect(i).toBe(max);

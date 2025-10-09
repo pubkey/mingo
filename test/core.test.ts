@@ -2,17 +2,13 @@ import {
   ComputeOptions,
   computeValue,
   Context,
-  Options,
   OpType,
-  ProcessingMode,
-  useOperators
+  ProcessingMode
 } from "../src/core";
 import { Iterator } from "../src/lazy";
 import { $toString } from "../src/operators/expression";
 import { $match } from "../src/operators/pipeline/match";
-import { Any, AnyObject } from "../src/types";
-import { resolve } from "../src/util";
-import { COMPUTE_OPTS, DEFAULT_OPTS, find } from "./support";
+import { COMPUTE_OPTS, DEFAULT_OPTS } from "./support";
 
 const copts = ComputeOptions.init(DEFAULT_OPTS);
 
@@ -122,30 +118,6 @@ describe("core", () => {
       copts.update(local);
       expect(copts.local?.groupId).toEqual(5);
       expect(copts.local?.now).toEqual(now);
-    });
-  });
-
-  describe("useOperators", () => {
-    it("should register custom query operator globally", () => {
-      function $between(selector: string, rhs: Any, _options?: Options) {
-        const args = rhs as number[];
-        // const value = lhs as number;
-        return (obj: AnyObject): boolean => {
-          const value = resolve(obj, selector, { unwrapArray: true }) as number;
-          return value >= args[0] && value <= args[1];
-        };
-      }
-
-      useOperators(OpType.QUERY, { $between });
-
-      const coll = [
-        { a: 1, b: 1 },
-        { a: 7, b: 1 },
-        { a: 10, b: 6 },
-        { a: 20, b: 10 }
-      ];
-      const result = find(coll, { a: { $between: [5, 10] } }).all();
-      expect(result.length).toBe(2);
     });
   });
 
