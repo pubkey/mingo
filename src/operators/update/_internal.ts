@@ -42,39 +42,54 @@ export const clone = (mode: CloneMode, val: Any): Any => {
   }
 };
 
-const FILTER_IDENT_RE = /^[a-z]+[a-zA-Z0-9]*$/;
-
 export type PathNode = {
-  selector: string;
   parent: string;
-  child?: string;
+  child?: string; // special chars: ('*' -> '$[]'), ('?' -> '$')
   next?: PathNode;
 };
 
 /**
  * Tokenize a selector path to extract parts for the root, arrayFilter, and child
- * @param selector The path to tokenize
- * @returns {parent:string, elem:string, child:string}
  */
 export function tokenizePath(selector: string): [PathNode, string[]] {
-  if (!selector.includes(".$")) {
-    return [{ parent: selector, selector }, []];
+  // no positional operator found
+  if (!selector.includes("$")) {
+    return [{ parent: selector }, []];
   }
-  const begin = selector.indexOf(".$");
-  const end = selector.indexOf("]");
-  const parent = selector.substring(0, begin);
-  // using "$" wildcard to represent every element.
-  const child = selector.substring(begin + 3, end);
-  assert(
-    child === "" || FILTER_IDENT_RE.test(child),
-    "The filter <identifier> must begin with a lowercase letter and contain only alphanumeric characters."
-  );
-  const rest = selector.substring(end + 2);
-  const [next, elems] = rest ? tokenizePath(rest) : [];
-  return [
-    { selector, parent, child: child || "$", next },
-    [child, ...(elems || [])].filter(Boolean)
-  ];
+
+  const nodes: PathNode[] = [];
+  const idents: string[] = [];
+  let i = 0;
+
+  for (const field of selector.split(".")) {
+    // setup current node
+    if (i === nodes.length) {
+      nodes.push({ parent: undefined });
+      // point to new node
+      if (i > 0) nodes[i - 1].next = nodes[i];
+    }
+    // build path with selectors
+    if (field[0] !== "$") {
+      if (!nodes[i].parent) nodes[i].parent = field;
+      else nodes[i].parent += "." + field;
+    } else if (field === "$") {
+      // positional first
+      nodes[i++].child = "?";
+    } else if (field === "$[]") {
+      // positional array-wide
+      nodes[i++].child = "*";
+    } else if (field.startsWith("$[") && field.endsWith("]")) {
+      // filtered positional
+      const child = field.slice(2, -1);
+      assert(
+        /^[a-z]+[a-zA-Z0-9]*$/.test(child),
+        "The filter <identifier> must begin with a lowercase letter and contain only alphanumeric characters."
+      );
+      idents.push(child);
+      nodes[i++].child = child;
+    }
+  }
+  return [nodes[0], idents];
 }
 
 /**
