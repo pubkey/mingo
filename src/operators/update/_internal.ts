@@ -118,11 +118,20 @@ export const applyUpdate = (
   const t = resolve(o, parent) as Any[];
   // do nothing if we don't get correct type.
   if (!isArray(t)) return false;
+
+  if (c === "$") {
+    // TODO: assert that the parent selector is specified in the conditions.
+    assert(
+      true,
+      "You must include the array field as part of the query document."
+    );
+  }
+
   // apply update to matching items.
   return t
     .map((e: AnyObject, i) => {
       // filter if applicable.
-      if (q[c] && !q[c].test({ [c]: e })) return false;
+      if (c !== "*" && q[c] && !q[c].test({ [c]: e })) return false;
       // apply update.
       return next ? applyUpdate(e as ArrayOrObject, next, q, f, opts) : f(t, i);
     })
@@ -150,32 +159,33 @@ export function walkExpression<T>(
   options: UpdateOptions,
   callback: Action<T>
 ): string[] {
-  const res: string[] = [];
+  const args: [Any, PathNode, Record<string, Query>?][] = [];
+  arrayFilter ||= [];
+  const filterIndexMap = Object.fromEntries(
+    arrayFilter.map((o, i) => [Object.entries(o).pop()[0].split(".")[0], i])
+  );
   for (const [selector, val] of Object.entries(expr)) {
-    const [node, vars] = tokenizePath(selector);
-    if (!vars.length) {
-      if (callback(val as T, node, {})) res.push(node.parent);
-    } else {
+    const [node, identifiers] = tokenizePath(selector);
+    const queries: Record<string, Query> = {};
+    if (identifiers.length) {
       // extract conditions for each identifier
       const conditions: Record<string, AnyObject> = {};
-      arrayFilter.forEach(o => {
-        Object.keys(o).forEach(k => {
-          vars.forEach(w => {
-            if (k === w || k.startsWith(w + ".")) {
-              conditions[w] = conditions[w] || {};
-              Object.assign(conditions[w], { [k]: o[k] });
-            }
-          });
-        });
+      identifiers.forEach(v => {
+        conditions[v] = arrayFilter[filterIndexMap[v]];
       });
-      // create queries for each identifier
-      const queries: Record<string, Query> = {};
+      // create query for each filter
       for (const [k, condition] of Object.entries(conditions)) {
         queries[k] = new Query(condition, options.queryOptions);
       }
-
-      if (callback(val as T, node, queries)) res.push(node.parent);
     }
+    // save arguments for evaluation
+    args.push([val, node, queries]);
   }
-  return res;
+  const modified: string[] = [];
+  args.forEach(
+    ([val, node, queries]) =>
+      callback(val as T, node, queries) && modified.push(node.parent)
+  );
+
+  return modified;
 }
