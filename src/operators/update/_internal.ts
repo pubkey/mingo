@@ -2,7 +2,8 @@ import { CloneMode, ComputeOptions, Context, UpdateOptions } from "../../core";
 import * as booleanOperators from "../../operators/expression/boolean";
 import * as comparisonOperators from "../../operators/expression/comparison";
 import * as queryOperators from "../../operators/query";
-import { Query } from "../../query";
+import type { Query } from "../../query";
+import { QueryImpl } from "../../query/_internal";
 import { Any, AnyObject, ArrayOrObject, Callback } from "../../types";
 import {
   assert,
@@ -43,18 +44,23 @@ export const clone = (mode: CloneMode, val: Any): Any => {
 };
 
 export type PathNode = {
-  parent: string;
-  child?: string; // special chars: ('*' -> '$[]'), ('?' -> '$')
+  selector: string;
+  position?: string;
   next?: PathNode;
 };
 
+// positional array specifier for first matching item.
+const FIRST_ONLY = "$";
+// positional array-wide specifier for all items in matching array.
+const ARRAY_WIDE = "$[]";
+
 /**
- * Tokenize a selector path to extract parts for the root, arrayFilter, and child
+ * Tokenize a selector path to extract parts for the {@link PathNode} and arrayFilter keys
  */
 export function tokenizePath(selector: string): [PathNode, string[]] {
   // no positional operator found
   if (!selector.includes("$")) {
-    return [{ parent: selector }, []];
+    return [{ selector }, []];
   }
 
   const nodes: PathNode[] = [];
@@ -64,29 +70,29 @@ export function tokenizePath(selector: string): [PathNode, string[]] {
   for (const field of selector.split(".")) {
     // setup current node
     if (i === nodes.length) {
-      nodes.push({ parent: undefined });
+      nodes.push({ selector: undefined });
       // point to new node
       if (i > 0) nodes[i - 1].next = nodes[i];
     }
     // build path with selectors
-    if (field[0] !== "$") {
-      if (!nodes[i].parent) nodes[i].parent = field;
-      else nodes[i].parent += "." + field;
-    } else if (field === "$") {
-      // positional first
-      nodes[i++].child = "?";
-    } else if (field === "$[]") {
-      // positional array-wide
-      nodes[i++].child = "*";
-    } else if (field.startsWith("$[") && field.endsWith("]")) {
-      // filtered positional
-      const child = field.slice(2, -1);
+    if (field[0] !== FIRST_ONLY) {
+      if (!nodes[i].selector) nodes[i].selector = field;
+      else nodes[i].selector += "." + field;
+    } else if (field === FIRST_ONLY || field === ARRAY_WIDE) {
+      nodes[i++].position = field;
+    } else {
       assert(
-        /^[a-z]+[a-zA-Z0-9]*$/.test(child),
+        field.startsWith("$[") && field.endsWith("]"),
+        "invalid filtered positional array selector"
+      );
+      // filtered positional
+      const position = field.slice(2, -1);
+      assert(
+        /^[a-z]+[a-zA-Z0-9]*$/.test(position),
         "The filter <identifier> must begin with a lowercase letter and contain only alphanumeric characters."
       );
-      idents.push(child);
-      nodes[i++].child = child;
+      idents.push(position);
+      nodes[i++].position = position;
     }
   }
   return [nodes[0], idents];
@@ -103,37 +109,39 @@ export function tokenizePath(selector: string): [PathNode, string[]] {
 export const applyUpdate = (
   o: ArrayOrObject,
   n: PathNode,
-  q: Record<string, Query>,
+  q: Record<string, QueryImpl>,
   f: Callback<boolean>,
   opts?: WalkOptions
 ): boolean => {
-  const { parent, child: c, next } = n;
+  const { selector, position: c, next } = n;
   if (!c) {
     // wrapper to collect status
     let b = false;
     const g: Callback<void> = (u, k) => (b = Boolean(f(u, k)) || b);
-    walk(o, parent, g, opts);
+    walk(o, selector, g, opts);
     return b;
   }
-  const t = resolve(o, parent) as Any[];
+  const arr = resolve(o, selector) as Any[];
   // do nothing if we don't get correct type.
-  if (!isArray(t)) return false;
+  if (!isArray(arr) || !arr.length) return false;
 
-  if (c === "$") {
-    // TODO: assert that the parent selector is specified in the conditions.
-    assert(
-      true,
-      "You must include the array field as part of the query document."
-    );
+  if (c === FIRST_ONLY) {
+    const i = arr.findIndex(e => q[selector].test({ [selector]: [e] }));
+    if (i === -1) return false;
+    return next
+      ? applyUpdate(arr[i] as AnyObject, next, q, f, opts)
+      : f(arr, i);
   }
 
   // apply update to matching items.
-  return t
+  return arr
     .map((e: AnyObject, i) => {
       // filter if applicable.
-      if (c !== "*" && q[c] && !q[c].test({ [c]: e })) return false;
+      if (c !== ARRAY_WIDE && q[c] && !q[c].test({ [c]: [e] })) return false;
       // apply update.
-      return next ? applyUpdate(e as ArrayOrObject, next, q, f, opts) : f(t, i);
+      return next
+        ? applyUpdate(e as ArrayOrObject, next, q, f, opts)
+        : f(arr, i);
     })
     .some(Boolean);
 };
@@ -143,6 +151,9 @@ export type Action<T = Any> = (
   pathNode: PathNode,
   queries: Record<string, Query>
 ) => boolean;
+
+const ERR_MISSING_FIELD =
+  "You must include the array field for '.$' as part of the query document.";
 
 /**
  * Walks the expression and apply the given action for each key-value pair.
@@ -164,27 +175,43 @@ export function walkExpression<T>(
   const filterIndexMap = Object.fromEntries(
     arrayFilter.map((o, i) => [Object.entries(o).pop()[0].split(".")[0], i])
   );
+  const opts = ComputeOptions.init(options.queryOptions);
+  const queryKeys = opts.local.condition && Object.keys(opts.local.condition);
+
   for (const [selector, val] of Object.entries(expr)) {
     const [node, identifiers] = tokenizePath(selector);
     const queries: Record<string, Query> = {};
     if (identifiers.length) {
-      // extract conditions for each identifier
-      const conditions: Record<string, AnyObject> = {};
+      // extract filters for each identifier
+      const filters: Record<string, AnyObject> = {};
       identifiers.forEach(v => {
-        conditions[v] = arrayFilter[filterIndexMap[v]];
+        filters[v] = arrayFilter[filterIndexMap[v]];
       });
       // create query for each filter
-      for (const [k, condition] of Object.entries(conditions)) {
-        queries[k] = new Query(condition, options.queryOptions);
+      for (const [k, condition] of Object.entries(filters)) {
+        queries[k] = new QueryImpl(condition, opts);
       }
     }
+
+    if (node.position === FIRST_ONLY) {
+      const field = node.selector;
+      assert(queryKeys && queryKeys.length, ERR_MISSING_FIELD);
+      const matches = queryKeys.filter(
+        k => k === field || k.startsWith(field + ".")
+      );
+      assert(matches.length === 1, ERR_MISSING_FIELD);
+      const k = matches[0];
+      // add query for matching condition.
+      queries[field] = new QueryImpl({ [k]: opts.local.condition[k] }, opts);
+    }
+
     // save arguments for evaluation
     args.push([val, node, queries]);
   }
   const modified: string[] = [];
   args.forEach(
     ([val, node, queries]) =>
-      callback(val as T, node, queries) && modified.push(node.parent)
+      callback(val as T, node, queries) && modified.push(node.selector)
   );
 
   return modified;

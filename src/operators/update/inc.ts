@@ -11,8 +11,8 @@ export const $inc = (
   options: UpdateOptions = DEFAULT_OPTIONS
 ) => {
   return walkExpression(expr, arrayFilters, options, (val, node, queries) => {
-    if (!node.child) {
-      const n = resolve(obj, node.parent);
+    if (!node.position) {
+      const n = resolve(obj, node.selector);
       assert(
         n === undefined || isNumber(n),
         `cannot apply $inc to a value of non-numeric type`
