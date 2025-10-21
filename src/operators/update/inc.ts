@@ -1,4 +1,4 @@
-import { UpdateOptions } from "../../core";
+import { Options } from "../../core";
 import { AnyObject, ArrayOrObject } from "../../types";
 import { assert, isNumber, resolve } from "../../util";
 import { applyUpdate, DEFAULT_OPTIONS, walkExpression } from "./_internal";
@@ -8,7 +8,7 @@ export const $inc = (
   obj: AnyObject,
   expr: Record<string, number>,
   arrayFilters: AnyObject[] = [],
-  options: UpdateOptions = DEFAULT_OPTIONS
+  options: Options = DEFAULT_OPTIONS
 ) => {
   return walkExpression(expr, arrayFilters, options, (val, node, queries) => {
     if (!node.position) {

@@ -1,4 +1,5 @@
 import { Iterator } from "./lazy";
+import type { UpdateParams } from "./operators/update/_internal";
 import type { WindowOperatorInput } from "./operators/window/_internal";
 import {
   Any,
@@ -83,6 +84,11 @@ export interface Options {
   readonly variables?: Readonly<AnyObject>;
   /** Extra references to operators to be used for processing. */
   readonly context: Context;
+  /** configurations for update */
+  readonly updateConfig?: {
+    cloneMode: CloneMode;
+    sort?: AnyObject;
+  };
 }
 
 interface Locals {
@@ -98,6 +104,8 @@ interface Locals {
   readonly depth?: number;
   /** Query condition */
   readonly condition?: AnyObject;
+  /** compiled information about update selectors */
+  readonly updateParams?: UpdateParams;
 }
 
 export class ComputeOptions implements Options {
@@ -125,6 +133,7 @@ export class ComputeOptions implements Options {
           scriptEnabled: true,
           useStrictMode: true,
           processingMode: ProcessingMode.CLONE_OFF,
+          updateConfig: { cloneMode: "copy", ...options?.updateConfig },
           ...options,
           context: options?.context
             ? Context.from(options?.context)
@@ -178,22 +187,18 @@ export class ComputeOptions implements Options {
   get context() {
     return this.options?.context;
   }
+  get updateConfig() {
+    return this.options?.updateConfig;
+  }
 }
 
 /**
  * Supported cloning modes.
  * - "deep": Performs a recursive deep clone of the object.
- * - "copy": Performs a shallow copy of the object.
- * - "none": No cloning. Uses the value as given.
+ * - "copy": Performs a shallow copy of the object. @default
+ * - "none": No cloning. Uses the value as given. NOT RECOMMENDED.
  */
 export type CloneMode = "deep" | "copy" | "none";
-
-export interface UpdateOptions {
-  /** Specifies whether to deep clone values to persist in the internal store. @default "copy". */
-  readonly cloneMode: CloneMode;
-  /** Options to use for processing queries. Unless overriden 'useStrictMode' is false.  */
-  readonly queryOptions: Options;
-}
 
 /**
  * The different groups of operators
@@ -247,14 +252,6 @@ export type WindowOperator = (
   expr: WindowOperatorInput,
   options: Options
 ) => Any;
-
-/** Interface for update operators */
-export type UpdateOperator = (
-  obj: AnyObject,
-  expr: AnyObject,
-  arrayFilters: AnyObject[],
-  options: UpdateOptions
-) => string[];
 
 type Operator =
   | AccumulatorOperator

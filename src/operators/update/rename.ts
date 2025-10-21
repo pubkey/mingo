@@ -1,4 +1,4 @@
-import { UpdateOptions } from "../../core";
+import { Options } from "../../core";
 import { AnyObject, ArrayOrObject } from "../../types";
 import { has } from "../../util";
 import {
@@ -14,7 +14,7 @@ export const $rename = (
   obj: AnyObject,
   expr: Record<string, string>,
   arrayFilters: AnyObject[] = [],
-  options: UpdateOptions = DEFAULT_OPTIONS
+  options: Options = DEFAULT_OPTIONS
 ) => {
   const res: string[] = [];
   const changed = walkExpression(expr, arrayFilters, options, ((

@@ -1,4 +1,4 @@
-import { UpdateOptions } from "../../core";
+import { Options } from "../../core";
 import { Any, AnyObject } from "../../types";
 import { DEFAULT_OPTIONS } from "./_internal";
 import { $pull } from "./pull";
@@ -8,7 +8,7 @@ export const $pullAll = (
   obj: AnyObject,
   expr: Record<string, Any[]>,
   arrayFilters: AnyObject[] = [],
-  options: UpdateOptions = DEFAULT_OPTIONS
+  options: Options = DEFAULT_OPTIONS
 ) => {
   const pullExpr: Record<string, AnyObject> = {};
   Object.entries(expr).forEach(([k, v]) => {

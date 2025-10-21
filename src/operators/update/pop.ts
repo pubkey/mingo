@@ -1,4 +1,4 @@
-import { UpdateOptions } from "../../core";
+import { Options } from "../../core";
 import { Any, AnyObject, ArrayOrObject } from "../../types";
 import { assert, isArray } from "../../util";
 import {
@@ -13,7 +13,7 @@ export const $pop = (
   obj: AnyObject,
   expr: Record<string, 1 | -1>,
   arrayFilters: AnyObject[] = [],
-  options: UpdateOptions = DEFAULT_OPTIONS
+  options: Options = DEFAULT_OPTIONS
 ) => {
   return walkExpression(expr, arrayFilters, options, ((val, node, queries) => {
     return applyUpdate(obj, node, queries, (o: ArrayOrObject, k: string) => {

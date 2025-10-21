@@ -1,4 +1,4 @@
-import { UpdateOptions } from "../../core";
+import { Options } from "../../core";
 import { Any, AnyObject, ArrayOrObject } from "../../types";
 import { isEqual } from "../../util";
 import {
@@ -13,8 +13,9 @@ export const $set = (
   obj: AnyObject,
   expr: Record<string, Any>,
   arrayFilters: AnyObject[] = [],
-  options: UpdateOptions = DEFAULT_OPTIONS
+  options: Options = DEFAULT_OPTIONS
 ) => {
+  const { cloneMode: mode } = options.updateConfig;
   return walkExpression(expr, arrayFilters, options, (val, node, queries) => {
     return applyUpdate(
       obj,
@@ -22,7 +23,7 @@ export const $set = (
       queries,
       (o: ArrayOrObject, k: string) => {
         if (isEqual(o[k], val)) return false;
-        o[k] = clone(options.cloneMode, val);
+        o[k] = clone(mode, val);
         return true;
       },
       { buildGraph: true }

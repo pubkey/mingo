@@ -1,4 +1,4 @@
-import { UpdateOptions } from "../../core";
+import { Options } from "../../core";
 import { AnyObject, ArrayOrObject } from "../../types";
 import { has, isArray } from "../../util";
 import { applyUpdate, DEFAULT_OPTIONS, walkExpression } from "./_internal";
@@ -8,7 +8,7 @@ export const $unset = (
   obj: AnyObject,
   expr: Record<string, "">,
   arrayFilters: AnyObject[] = [],
-  options: UpdateOptions = DEFAULT_OPTIONS
+  options: Options = DEFAULT_OPTIONS
 ): string[] => {
   return walkExpression(expr, arrayFilters, options, (_, node, queries) => {
     return applyUpdate(obj, node, queries, (o: ArrayOrObject, k: string) => {

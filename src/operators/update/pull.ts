@@ -1,4 +1,4 @@
-import { UpdateOptions } from "../../core";
+import { Options } from "../../core";
 import { Query } from "../../query";
 import { Any, AnyObject, ArrayOrObject } from "../../types";
 import { isObject, isOperator } from "../../util";
@@ -14,15 +14,12 @@ export const $pull = (
   obj: AnyObject,
   expr: AnyObject,
   arrayFilters: AnyObject[] = [],
-  options: UpdateOptions = DEFAULT_OPTIONS
+  options: Options = DEFAULT_OPTIONS
 ) => {
   return walkExpression(expr, arrayFilters, options, ((val, node, queries) => {
     // wrap simple values or condition objects
     const wrap = !isObject(val) || Object.keys(val).some(isOperator);
-    const query = new Query(
-      wrap ? { k: val } : (val as AnyObject),
-      options.queryOptions
-    );
+    const query = new Query(wrap ? { k: val } : (val as AnyObject), options);
     const pred = wrap
       ? (v: Any) => query.test({ k: v })
       : (v: Any) => query.test(v);

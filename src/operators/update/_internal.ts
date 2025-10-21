@@ -1,9 +1,8 @@
-import { CloneMode, ComputeOptions, Context, UpdateOptions } from "../../core";
+import { CloneMode, ComputeOptions, Context, Options } from "../../core";
 import * as booleanOperators from "../../operators/expression/boolean";
 import * as comparisonOperators from "../../operators/expression/comparison";
 import * as queryOperators from "../../operators/query";
-import type { Query } from "../../query";
-import { QueryImpl } from "../../query/_internal";
+import { Query } from "../../query";
 import { Any, AnyObject, ArrayOrObject, Callback } from "../../types";
 import {
   assert,
@@ -17,15 +16,13 @@ import {
   WalkOptions
 } from "../../util";
 
-export const DEFAULT_OPTIONS: UpdateOptions = {
-  cloneMode: "copy",
-  queryOptions: ComputeOptions.init({
-    context: Context.init()
-      .addQueryOps(queryOperators)
-      .addExpressionOps(booleanOperators)
-      .addExpressionOps(comparisonOperators)
-  })
-};
+export const DEFAULT_OPTIONS: Options = ComputeOptions.init({
+  context: Context.init()
+    .addQueryOps(queryOperators)
+    .addExpressionOps(booleanOperators)
+    .addExpressionOps(comparisonOperators),
+  updateConfig: { cloneMode: "copy" }
+});
 
 export const clone = (mode: CloneMode, val: Any): Any => {
   switch (mode) {
@@ -55,50 +52,6 @@ const FIRST_ONLY = "$";
 const ARRAY_WIDE = "$[]";
 
 /**
- * Tokenize a selector path to extract parts for the {@link PathNode} and arrayFilter keys
- */
-export function tokenizePath(selector: string): [PathNode, string[]] {
-  // no positional operator found
-  if (!selector.includes("$")) {
-    return [{ selector }, []];
-  }
-
-  const nodes: PathNode[] = [];
-  const idents: string[] = [];
-  let i = 0;
-
-  for (const field of selector.split(".")) {
-    // setup current node
-    if (i === nodes.length) {
-      nodes.push({ selector: undefined });
-      // point to new node
-      if (i > 0) nodes[i - 1].next = nodes[i];
-    }
-    // build path with selectors
-    if (field[0] !== FIRST_ONLY) {
-      if (!nodes[i].selector) nodes[i].selector = field;
-      else nodes[i].selector += "." + field;
-    } else if (field === FIRST_ONLY || field === ARRAY_WIDE) {
-      nodes[i++].position = field;
-    } else {
-      assert(
-        field.startsWith("$[") && field.endsWith("]"),
-        "invalid filtered positional array selector"
-      );
-      // filtered positional
-      const position = field.slice(2, -1);
-      assert(
-        /^[a-z]+[a-zA-Z0-9]*$/.test(position),
-        "The filter <identifier> must begin with a lowercase letter and contain only alphanumeric characters."
-      );
-      idents.push(position);
-      nodes[i++].position = position;
-    }
-  }
-  return [nodes[0], idents];
-}
-
-/**
  * Applies an update function to a value to produce a new value to modify an object in-place.
  * @param o The object or array to modify.
  * @param n The path node of the update selector.
@@ -109,7 +62,7 @@ export function tokenizePath(selector: string): [PathNode, string[]] {
 export const applyUpdate = (
   o: ArrayOrObject,
   n: PathNode,
-  q: Record<string, QueryImpl>,
+  q: Record<string, Query>,
   f: Callback<boolean>,
   opts?: WalkOptions
 ): boolean => {
@@ -122,7 +75,7 @@ export const applyUpdate = (
     return b;
   }
   const arr = resolve(o, selector) as Any[];
-  // do nothing if we don't get correct type.
+  // no update applied if we do not get correct type.
   if (!isArray(arr) || !arr.length) return false;
 
   if (c === FIRST_ONLY) {
@@ -159,60 +112,165 @@ const ERR_MISSING_FIELD =
  * Walks the expression and apply the given action for each key-value pair.
  *
  * @param expr The expression for the update operator.
- * @param arrayFilter Filter conditions passed to the operator.
+ * @param arrayFilters Filter conditions passed to the operator.
  * @param options The options provided by the caller.
  * @param callback The action to apply for a given path and value.
  * @returns {Any[]<string>}
  */
 export function walkExpression<T>(
   expr: AnyObject,
-  arrayFilter: AnyObject[],
-  options: UpdateOptions,
+  arrayFilters: AnyObject[],
+  options: Options,
   callback: Action<T>
 ): string[] {
-  const args: [Any, PathNode, Record<string, Query>?][] = [];
-  arrayFilter ||= [];
-  const filterIndexMap = Object.fromEntries(
-    arrayFilter.map((o, i) => [Object.entries(o).pop()[0].split(".")[0], i])
-  );
-  const opts = ComputeOptions.init(options.queryOptions);
-  const queryKeys = opts.local.condition && Object.keys(opts.local.condition);
+  const opts =
+    options instanceof ComputeOptions ? options : ComputeOptions.init(options);
+  const params =
+    opts.local.updateParams ?? buildParams([expr], arrayFilters, opts);
 
-  for (const [selector, val] of Object.entries(expr)) {
-    const [node, identifiers] = tokenizePath(selector);
-    const queries: Record<string, Query> = {};
-    if (identifiers.length) {
-      // extract filters for each identifier
-      const filters: Record<string, AnyObject> = {};
-      identifiers.forEach(v => {
-        filters[v] = arrayFilter[filterIndexMap[v]];
-      });
-      // create query for each filter
-      for (const [k, condition] of Object.entries(filters)) {
-        queries[k] = new QueryImpl(condition, opts);
-      }
-    }
-
-    if (node.position === FIRST_ONLY) {
-      const field = node.selector;
-      assert(queryKeys && queryKeys.length, ERR_MISSING_FIELD);
-      const matches = queryKeys.filter(
-        k => k === field || k.startsWith(field + ".")
-      );
-      assert(matches.length === 1, ERR_MISSING_FIELD);
-      const k = matches[0];
-      // add query for matching condition.
-      queries[field] = new QueryImpl({ [k]: opts.local.condition[k] }, opts);
-    }
-
-    // save arguments for evaluation
-    args.push([val, node, queries]);
-  }
   const modified: string[] = [];
-  args.forEach(
-    ([val, node, queries]) =>
-      callback(val as T, node, queries) && modified.push(node.selector)
-  );
+  for (const [key, val] of Object.entries(expr)) {
+    const { node, queries } = params[key];
+    if (callback(val as T, node, queries)) modified.push(node.selector);
+  }
 
   return modified;
+}
+
+/**
+ * Builds a map of parameters for update operations, where each parameter is associated
+ * with its corresponding path node and query conditions. Conflicting selectors are detected.
+ */
+export function buildParams(
+  exprList: AnyObject[],
+  arrayFilters: AnyObject[],
+  options: ComputeOptions
+): Record<string, { node: PathNode; queries: Record<string, Query> }> {
+  // map of (selector -> { node, queries})
+  const params: ReturnType<typeof buildParams> = {};
+
+  arrayFilters ||= [];
+  const filterIndexMap = Object.fromEntries(
+    arrayFilters.map((o, i) => [Object.entries(o).pop()[0].split(".")[0], i])
+  );
+  const { condition } = options.local;
+  const queryKeys = condition && Object.keys(condition);
+  const conflictDetector = new Trie();
+
+  for (const expr of exprList) {
+    for (const selector of Object.keys(expr)) {
+      const identifiers: string[] = [];
+      const node: PathNode = selector.includes("$")
+        ? { selector: undefined }
+        : { selector };
+
+      if (!node.selector) {
+        selector.split(".").reduce((n, v) => {
+          if (v === FIRST_ONLY || v === ARRAY_WIDE) {
+            n.position = v;
+          } else if (v.startsWith("$[") && v.endsWith("]")) {
+            const id = v.slice(2, -1);
+            assert(
+              /^[a-z]+\w*$/.test(id),
+              `The filter <identifier> must begin with a lowercase letter and contain only alphanumeric characters. '${v}' is invalid.`
+            );
+            identifiers.push(id);
+            n.position = id;
+          } else if (!n.selector) {
+            n.selector = v;
+          } else if (!n.position) {
+            n.selector += "." + v;
+          } else {
+            n.next = { selector: v };
+            return n.next;
+          }
+
+          return n;
+        }, node);
+      }
+
+      const queries: Record<string, Query> = {};
+      if (identifiers.length) {
+        // extract filters for each identifier
+        const filters: Record<string, AnyObject> = {};
+        identifiers.forEach(v => {
+          filters[v] = arrayFilters[filterIndexMap[v]];
+        });
+        // create query for each filter
+        for (const [k, c] of Object.entries(filters)) {
+          queries[k] = new Query(c, options);
+        }
+      }
+
+      if (node.position === FIRST_ONLY) {
+        const field = node.selector;
+        assert(queryKeys && queryKeys.length, ERR_MISSING_FIELD);
+        const matches = queryKeys.filter(
+          k => k === field || k.startsWith(field + ".")
+        );
+        assert(matches.length === 1, ERR_MISSING_FIELD);
+        const k = matches[0];
+        // add query for matching condition.
+        queries[field] = new Query({ [k]: condition[k] }, options);
+      }
+
+      // assert there are no conflicting selectors
+      assert(
+        conflictDetector.add(node.selector),
+        `updating the path '${node.selector}' would create a conflict at '${node.selector}'`
+      );
+
+      // save arguments for evaluation
+      params[selector] = { node, queries };
+    }
+  }
+
+  return params;
+}
+
+export type UpdateParams = ReturnType<typeof buildParams>;
+
+export type UpdateOperator = (
+  obj: AnyObject,
+  expr: Any,
+  arrayFilters: AnyObject[],
+  options: Options
+) => string[];
+
+interface TrieNode {
+  children: Map<string, TrieNode>;
+  isTerminal: boolean;
+}
+
+/** Simple to trie for validating path conflicts */
+export class Trie {
+  private root: TrieNode;
+
+  constructor() {
+    this.root = {
+      children: new Map<string, TrieNode>(),
+      isTerminal: false
+    };
+  }
+
+  add(selector: string): boolean {
+    const parts = selector.split(".");
+    let current = this.root;
+
+    for (const part of parts) {
+      if (current.isTerminal) return false;
+
+      if (!current.children.has(part)) {
+        current.children.set(part, {
+          children: new Map<string, TrieNode>(),
+          isTerminal: false
+        });
+      }
+
+      current = current.children.get(part);
+    }
+    // selector path already exists (i.e. either terminal or has children)
+    if (current.isTerminal || current.children.size) return false;
+    return (current.isTerminal = true);
+  }
 }
