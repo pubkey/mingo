@@ -6,7 +6,7 @@ import {
   PipelineOperator,
   ProjectionOperator,
   QueryOperator
-} from "../../core";
+} from "../../core/_internal";
 import { Iterator } from "../../lazy";
 import { Any, AnyObject, Callback, Predicate } from "../../types";
 import {
@@ -127,7 +127,7 @@ function createHandler(
           computeValue(o, subExpr[operator], operator, options);
       } else {
         // repeat for nested expression
-        validateExpression(subExpr as AnyObject, options);
+        checkExpression(subExpr as AnyObject, options);
         assert(subExprKeys.length > 0, `Invalid empty sub-projection: ${key}`);
         handlers[key] = (o: AnyObject) => {
           // ensure that the root object is passed down.

@@ -1,4 +1,4 @@
-import { ComputeOptions, Options } from "../core";
+import { ComputeOptions, Options } from "../core/_internal";
 import * as booleanOperators from "../operators/expression/boolean";
 import * as comparisonOperators from "../operators/expression/comparison";
 import * as projectionOperators from "../operators/projection";

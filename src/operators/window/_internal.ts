@@ -1,4 +1,4 @@
-import type { Options } from "../../core";
+import type { Options } from "../../core/_internal";
 import type { Any, AnyObject, Callback, TimeUnit } from "../../types";
 import { groupBy } from "../../util";
 import { $push } from "../accumulator/push";

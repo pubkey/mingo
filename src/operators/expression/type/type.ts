@@ -1,4 +1,8 @@
-import { computeValue, ExpressionOperator, Options } from "../../../core";
+import {
+  computeValue,
+  ExpressionOperator,
+  Options
+} from "../../../core/_internal";
 import { Any, AnyObject } from "../../../types";
 import { isNumber, isRegExp, typeOf } from "../../../util";
 import { MAX_INT, MIN_INT } from "./_internal";

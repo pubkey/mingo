@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-imports */
 import Ajv, { Schema } from "ajv";
 
-import { JsonSchemaValidator } from "../../../src/core";
+import { JsonSchemaValidator } from "../../../src/core/_internal";
 import { Any, AnyObject } from "../../../src/types";
 import { aggregate, find, testPath } from "../../support";
 

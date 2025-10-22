@@ -1,4 +1,4 @@
-import { ComputeOptions, Options } from "../core";
+import { ComputeOptions, Options } from "../core/_internal";
 import { $match } from "../operators/pipeline/match";
 import { $project } from "../operators/pipeline/project";
 import { $sort } from "../operators/pipeline/sort";

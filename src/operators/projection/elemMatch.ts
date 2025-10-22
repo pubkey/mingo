@@ -1,4 +1,4 @@
-import { Options, ProjectionOperator } from "../../core";
+import { Options, ProjectionOperator } from "../../core/_internal";
 import { QueryImpl } from "../../query/_internal";
 import { Any, AnyObject } from "../../types";
 import { assert, isArray, resolve } from "../../util";

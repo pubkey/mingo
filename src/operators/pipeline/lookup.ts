@@ -4,7 +4,7 @@ import {
   computeValue,
   Options,
   PipelineOperator
-} from "../../core";
+} from "../../core/_internal";
 import { Iterator } from "../../lazy";
 import { Any, AnyObject } from "../../types";
 import {

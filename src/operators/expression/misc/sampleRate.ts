@@ -1,6 +1,10 @@
 // Miscellaneous Operators: https://docs.mongodb.com/manual/reference/operator/aggregation/#miscellaneous-operators
 
-import { computeValue, ExpressionOperator, Options } from "../../../core";
+import {
+  computeValue,
+  ExpressionOperator,
+  Options
+} from "../../../core/_internal";
 import { AnyObject } from "../../../types";
 
 /**

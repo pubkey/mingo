@@ -1,4 +1,4 @@
-import { computeValue, Options } from "../../../core";
+import { computeValue, Options } from "../../../core/_internal";
 import { Any, Callback } from "../../../types";
 import { truthy } from "../../../util";
 

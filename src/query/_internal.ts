@@ -1,4 +1,4 @@
-import { Options, OpType, QueryOperator } from "../core";
+import { Options, OpType, QueryOperator } from "../core/_internal";
 import { Cursor } from "../cursor";
 import { Source } from "../lazy";
 import { Any, AnyObject, Predicate } from "../types";

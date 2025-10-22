@@ -3,7 +3,7 @@ import {
   Options,
   PipelineOperator,
   ProcessingMode
-} from "../../core";
+} from "../../core/_internal";
 import { Iterator, Lazy } from "../../lazy";
 import { Any } from "../../types";
 import { assert, cloneDeep, isArray } from "../../util";
@@ -27,5 +27,5 @@ export const $documents: PipelineOperator = (
   assert(isArray(docs), "$documents: expression must resolve to an array.");
   const iter = Lazy(docs as Any[]);
   const mode = options.processingMode;
-  return mode & ProcessingMode.CLONE_ALL ? iter.map(cloneDeep) : iter;
+  return mode & ProcessingMode.CLONE_ALL ? iter.map(o => cloneDeep(o)) : iter;
 };

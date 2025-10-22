@@ -1,4 +1,8 @@
-import { computeValue, ExpressionOperator, Options } from "../../../core";
+import {
+  computeValue,
+  ExpressionOperator,
+  Options
+} from "../../../core/_internal";
 import { Any, AnyObject } from "../../../types";
 import { assert, flatten, isArray, isNil } from "../../../util";
 import { $last as __last } from "../../accumulator/last";

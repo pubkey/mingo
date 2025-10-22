@@ -1,4 +1,4 @@
-import { computeValue, Options, PipelineOperator } from "../../core";
+import { computeValue, Options, PipelineOperator } from "../../core/_internal";
 import { Iterator, Lazy } from "../../lazy";
 import { Any, AnyObject, Callback } from "../../types";
 import {

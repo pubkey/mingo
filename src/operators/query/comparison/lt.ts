@@ -1,4 +1,4 @@
-import { Options, QueryOperator } from "../../../core";
+import { Options, QueryOperator } from "../../../core/_internal";
 import { Any } from "../../../types";
 import { $lt as __lt, processQuery } from "../../_predicates";
 

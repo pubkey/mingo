@@ -1,4 +1,4 @@
-import { Options, QueryOperator } from "../../../core";
+import { Options, QueryOperator } from "../../../core/_internal";
 import { Any } from "../../../types";
 import { $nin as __nin, processQuery } from "../../_predicates";
 

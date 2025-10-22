@@ -1,4 +1,4 @@
-import { Any, AnyObject, Callback, Predicate } from "./types";
+import { Any, AnyObject, Callback } from "./types";
 import { assert } from "./util";
 
 /**
@@ -128,7 +128,7 @@ export class Iterator {
    * Transform each item in the sequence to a new value
    * @param {Function} f
    */
-  map<T = Any>(f: Callback<T>): Iterator {
+  map<T = Any, R = Any>(f: (o: T, n: number) => R): Iterator {
     return this.push("map", f);
   }
 
@@ -136,7 +136,7 @@ export class Iterator {
    * Select only items matching the given predicate
    * @param {Function} f
    */
-  filter<T = Any>(f: Predicate<T>): Iterator {
+  filter<T = Any>(f: (o: T, n: number) => boolean): Iterator {
     return this.push("filter", f as Callback<T>);
   }
 

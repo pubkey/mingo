@@ -3,7 +3,7 @@ import {
   ComputeOptions,
   computeValue,
   Options
-} from "../../core";
+} from "../../core/_internal";
 import { Any, AnyObject, Callback } from "../../types";
 import { assert } from "../../util";
 

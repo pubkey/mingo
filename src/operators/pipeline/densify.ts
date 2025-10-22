@@ -1,4 +1,4 @@
-import { Options, PipelineOperator } from "../../core";
+import { Options, PipelineOperator } from "../../core/_internal";
 import { concat, Iterator, IteratorResult, Lazy } from "../../lazy";
 import { AnyObject, TIME_UNITS, TimeUnit } from "../../types";
 import {

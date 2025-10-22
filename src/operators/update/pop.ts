@@ -1,4 +1,4 @@
-import { Options } from "../../core";
+import { Options } from "../../core/_internal";
 import { Any, AnyObject, ArrayOrObject } from "../../types";
 import { assert, isArray } from "../../util";
 import {

@@ -4,7 +4,7 @@ import {
   Options,
   PipelineOperator,
   ProcessingMode
-} from "../../core";
+} from "../../core/_internal";
 import { Iterator } from "../../lazy";
 import { AnyObject, Callback } from "../../types";
 /**

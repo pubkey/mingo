@@ -1,4 +1,4 @@
-import { ProcessingMode } from "../../../src/core";
+import { ProcessingMode } from "../../../src/core/_internal";
 import { aggregate, testPath } from "../../support";
 
 const options = {

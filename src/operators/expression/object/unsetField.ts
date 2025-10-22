@@ -1,4 +1,4 @@
-import { ExpressionOperator, Options } from "../../../core";
+import { ExpressionOperator, Options } from "../../../core/_internal";
 import { Any, AnyObject } from "../../../types";
 import { $setField } from "./setField";
 

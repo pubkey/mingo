@@ -2,7 +2,11 @@
 
  */
 
-import { computeValue, ExpressionOperator, Options } from "../../../core";
+import {
+  computeValue,
+  ExpressionOperator,
+  Options
+} from "../../../core/_internal";
 import { Any, AnyObject } from "../../../types";
 import { isNil } from "../../../util";
 

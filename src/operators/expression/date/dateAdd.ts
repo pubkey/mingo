@@ -1,4 +1,8 @@
-import { computeValue, ExpressionOperator, Options } from "../../../core";
+import {
+  computeValue,
+  ExpressionOperator,
+  Options
+} from "../../../core/_internal";
 import { Any, AnyObject, TimeUnit } from "../../../types";
 import { dateAdd } from "./_internal";
 

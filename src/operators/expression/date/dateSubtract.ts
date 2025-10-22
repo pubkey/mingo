@@ -1,4 +1,8 @@
-import { computeValue, ExpressionOperator, Options } from "../../../core";
+import {
+  computeValue,
+  ExpressionOperator,
+  Options
+} from "../../../core/_internal";
 import { AnyObject } from "../../../types";
 import { $dateAdd } from "./dateAdd";
 

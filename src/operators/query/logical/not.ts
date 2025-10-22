@@ -1,4 +1,4 @@
-import { Options, QueryOperator } from "../../../core";
+import { Options, QueryOperator } from "../../../core/_internal";
 import { QueryImpl } from "../../../query/_internal";
 import { Any, AnyObject, Callback } from "../../../types";
 import { normalize } from "../../../util";

@@ -3,7 +3,7 @@ import {
   Options,
   PipelineOperator,
   ProcessingMode
-} from "./core";
+} from "./core/_internal";
 import { concat, Iterator, Lazy, Source } from "./lazy";
 import { $limit } from "./operators/pipeline/limit";
 import { $project } from "./operators/pipeline/project";
@@ -61,7 +61,7 @@ export class Cursor<T> {
     const mode = this.#options.processingMode;
 
     // handle processing flag.
-    if (mode & ProcessingMode.CLONE_INPUT) this.#result.map(cloneDeep);
+    if (mode & ProcessingMode.CLONE_INPUT) this.#result.map(o => cloneDeep(o));
 
     // apply cursor operators
     for (const op of ["$sort", "$skip", "$limit"]) {
@@ -78,7 +78,7 @@ export class Cursor<T> {
       this.#result = $project(this.#result, this.#projection, this.#options);
     }
 
-    if (mode & ProcessingMode.CLONE_OUTPUT) this.#result.map(cloneDeep);
+    if (mode & ProcessingMode.CLONE_OUTPUT) this.#result.map(o => cloneDeep(o));
 
     return this.#result;
   }

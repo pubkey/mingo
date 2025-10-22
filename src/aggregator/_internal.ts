@@ -1,4 +1,9 @@
-import { Options, OpType, PipelineOperator, ProcessingMode } from "../core";
+import {
+  Options,
+  OpType,
+  PipelineOperator,
+  ProcessingMode
+} from "../core/_internal";
 import { Iterator, Lazy, Source } from "../lazy";
 import { Any, AnyObject } from "../types";
 import { assert, cloneDeep } from "../util";
@@ -44,7 +49,7 @@ export class AggregatorImpl {
     const mode = opts.processingMode;
 
     // clone the input collection if requested.
-    if (mode & ProcessingMode.CLONE_INPUT) iter.map(cloneDeep);
+    if (mode & ProcessingMode.CLONE_INPUT) iter.map(o => cloneDeep(o));
 
     // validate and build pipeline
     iter = this.#pipeline
@@ -70,7 +75,7 @@ export class AggregatorImpl {
       .reduce((acc, [op, expr]) => op(acc, expr, opts), iter);
 
     // operators that may share object graphs of inputs.
-    if (mode & ProcessingMode.CLONE_OUTPUT) iter.map(cloneDeep);
+    if (mode & ProcessingMode.CLONE_OUTPUT) iter.map(o => cloneDeep(o));
 
     return iter;
   }

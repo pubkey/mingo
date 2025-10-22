@@ -1,4 +1,4 @@
-import { Options } from "../../core";
+import { Options } from "../../core/_internal";
 import { AnyObject, ArrayOrObject } from "../../types";
 import { assert, isNumber, resolve } from "../../util";
 import { applyUpdate, DEFAULT_OPTIONS, walkExpression } from "./_internal";

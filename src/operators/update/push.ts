@@ -1,4 +1,4 @@
-import { Options } from "../../core";
+import { Options } from "../../core/_internal";
 import { Any, AnyObject, ArrayOrObject } from "../../types";
 import { compare, has, isEqual, isNumber, isObject, resolve } from "../../util";
 import {
@@ -18,7 +18,6 @@ export const $push = (
   arrayFilters: AnyObject[] = [],
   options: Options = DEFAULT_OPTIONS
 ) => {
-  const { cloneMode: mode } = options.updateConfig;
   return walkExpression(expr, arrayFilters, options, ((val, node, queries) => {
     const args: {
       $each: Any[];
@@ -45,7 +44,7 @@ export const $push = (
         const pos = isNumber(args.$position) ? args.$position : arr.length;
 
         // insert new items
-        arr.splice(pos, 0, ...(clone(mode, args.$each) as Any[]));
+        arr.splice(pos, 0, ...(clone(args.$each, options) as Any[]));
 
         if (args.$sort) {
           /* eslint-disable @typescript-eslint/no-unsafe-assignment */

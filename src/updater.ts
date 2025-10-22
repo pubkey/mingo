@@ -1,4 +1,4 @@
-import { ComputeOptions, Options } from "./core";
+import { CloneMode, ComputeOptions, Options } from "./core/_internal";
 import { Lazy } from "./lazy";
 import * as booleanOperators from "./operators/expression/boolean";
 import * as comparisonOperators from "./operators/expression/comparison";
@@ -7,6 +7,7 @@ import { $project } from "./operators/pipeline/project";
 import { $replaceRoot } from "./operators/pipeline/replaceRoot";
 import { $replaceWith } from "./operators/pipeline/replaceWith";
 import { $set } from "./operators/pipeline/set";
+import { $sort } from "./operators/pipeline/sort";
 import { $unset } from "./operators/pipeline/unset";
 import * as queryOperators from "./operators/query";
 import * as UPDATE_OPERATORS from "./operators/update";
@@ -37,6 +38,12 @@ export type UpdateExpression =
   | Partial<Record<keyof typeof UPDATE_OPERATORS, AnyObject>>
   | OneKey<keyof typeof PIPELINE_OPERATORS, Any>[];
 
+export interface UpdateConfig {
+  arrayFilters?: AnyObject[];
+  cloneMode?: CloneMode;
+  sort?: Record<string, 1 | -1>;
+}
+
 /** A function to process an update expression and modify the object. */
 export type Updater = (
   obj: AnyObject,
@@ -45,13 +52,6 @@ export type Updater = (
   condition?: AnyObject,
   options?: Partial<Options>
 ) => string[];
-
-export type BatchUpdater = (
-  documents: AnyObject[],
-  condition: AnyObject,
-  updateExpr: UpdateExpression,
-  arrayFilters?: AnyObject[]
-) => { matchedCount: number; modifiedCount: number };
 
 /**
  * Creates a new updater function with default options.
@@ -124,13 +124,14 @@ function updateDocuments(
   documents: AnyObject[],
   condition: AnyObject,
   updateExpr: UpdateExpression,
-  arrayFilters: AnyObject[] = [],
+  updateConfig: UpdateConfig = {},
   options?: Partial<Options> & { firstOnly?: boolean }
 ): { matchedCount: number; modifiedCount: number } {
   // apply options overrides
   const firstOnly = options?.firstOnly ?? false;
   const opts = ComputeOptions.init(options).update({
-    condition: condition || {}
+    condition,
+    updateConfig: { cloneMode: "copy", ...updateConfig }
   });
   opts.context
     .addExpressionOps(booleanOperators)
@@ -138,52 +139,74 @@ function updateDocuments(
     .addQueryOps(queryOperators)
     .addPipelineOps(PIPELINE_OPERATORS);
 
-  const q = new Query(condition || {}, options);
+  const filterExists = Object.keys(condition).length > 0;
+  const matchedDocs = new Map<AnyObject, number>();
+  let docsIter = Lazy(documents);
 
-  // update matching docs
-  if (isArray(updateExpr)) {
-    const indexes: number[] = [];
-    let foundDocs: AnyObject[] = [];
-
-    if (Object.keys(condition).length) {
-      // find matching documents
-      const addValidDoc = (o: AnyObject, i: number) => {
-        if (q.test(o)) {
-          indexes.push(i);
-          foundDocs.push(o);
-          return true;
-        }
-        return false;
-      };
-      if (firstOnly) documents.find(addValidDoc);
-      else documents.forEach(addValidDoc);
-
-      // no documents matched
-      if (indexes.length === 0) {
-        return { matchedCount: 0, modifiedCount: 0 };
+  if (filterExists) {
+    const query = new Query(condition, opts);
+    // find matching documents
+    docsIter = docsIter.filter<AnyObject>((o, i) => {
+      if (query.test(o)) {
+        matchedDocs.set(o, i);
+        return true;
       }
-    }
+      return false;
+    });
+  }
 
-    // no condition was spedified OR all documents matched.
-    if (indexes.length === 0 || indexes.length === documents.length) {
-      foundDocs = documents;
+  // apply first only and sort if specified
+  if (firstOnly) {
+    if (updateConfig.sort) {
+      docsIter = $sort(docsIter, updateConfig.sort, opts);
     }
-    // handle as aggregation pipeline
-    const hash = foundDocs.map(o => hashCode(o));
-    let iter = Lazy(foundDocs);
+    docsIter = docsIter.take(1);
+  }
+
+  // docs to update
+  const foundDocs = docsIter.value<AnyObject>();
+
+  if (foundDocs.length === 0) {
+    return { matchedCount: 0, modifiedCount: 0 };
+  }
+
+  // use pipeline expression
+  if (isArray(updateExpr)) {
+    // indexes of documents to be updated. when indexes is empty, all documents are checked for update.
+    const indexes = firstOnly
+      ? [matchedDocs.get(foundDocs[0]) ?? documents.indexOf(foundDocs[0])] // check in map first, then fallback to scan for index
+      : Array.from(matchedDocs.values()); // empty if no filter was applied
+
+    // use hashing to detect changes.
+    // if we have indexes, only track those documents in the index otherwise track all found documents.
+    // this optimizes for the case where only a subset of documents are updated (e.g. firstOnly = true)
+    const hashes = indexes.length
+      ? indexes.map(i => hashCode(documents[i]))
+      : foundDocs.map(o => hashCode(o));
+
+    // the number of documents hashed equals the number of matched documents.
+    const matchedCount = hashes.length;
+
+    // apply pipeline stages
+    let resultIter = Lazy(foundDocs);
     for (const stage of updateExpr) {
       const [op, expr] = Object.entries(stage)[0];
       const pipelineOp =
         PIPELINE_OPERATORS[op as keyof typeof PIPELINE_OPERATORS];
-      iter = pipelineOp(iter, expr, opts);
+      resultIter = pipelineOp(resultIter, expr, opts);
     }
 
-    const result = iter.value<AnyObject>();
+    const result = resultIter.value<AnyObject>();
     let modifiedCount = 0;
+
     // update only modified indexes if documents were filtered
     if (indexes.length) {
+      assert(
+        indexes.length === result.length,
+        "bug: indexes and result size must match."
+      );
       for (let i = 0; i < indexes.length; i++) {
-        if (hashCode(result[i]) !== hash[i]) {
+        if (hashCode(result[i]) !== hashes[i]) {
           documents[indexes[i]] = result[i];
           modifiedCount++;
         }
@@ -191,47 +214,34 @@ function updateDocuments(
     } else {
       // update all documents where changes occurred
       for (let i = 0; i < documents.length; i++) {
-        if (hashCode(result[i]) !== hash[i]) {
+        if (hashCode(result[i]) !== hashes[i]) {
           documents[i] = result[i];
           modifiedCount++;
         }
       }
     }
 
-    return {
-      modifiedCount,
-      matchedCount: foundDocs.length
-    };
+    return { modifiedCount, matchedCount };
   }
 
   // validate operators
   const unknownOp = Object.keys(updateExpr).find(op => !UPDATE_OPERATORS[op]);
   assert(!unknownOp, `unknown update operator '${unknownOp}'`);
 
-  // build parameters
-  const params = buildParams(Object.values(updateExpr), arrayFilters, opts);
-  opts.update({ updateParams: params });
+  const arrayFilters = updateConfig?.arrayFilters ?? [];
 
-  let foundDocs: AnyObject[] = [];
-  if (Object.keys(condition).length) {
-    if (firstOnly) {
-      const firstDoc = documents.find(o => q.test(o));
-      if (firstDoc) foundDocs.push(firstDoc);
-    } else {
-      foundDocs = documents.filter(o => q.test(o));
-    }
-  } else {
-    // no condition was spedified
-    if (firstOnly) foundDocs.push(documents[0]);
-    else foundDocs = documents;
-  }
+  // build parameters and add to locals
+  opts.update({
+    updateParams: buildParams(Object.values(updateExpr), arrayFilters, opts)
+  });
 
   let modifiedCount = 0;
+
   for (const doc of foundDocs) {
     let modified = false;
     for (const [op, expr] of Object.entries(updateExpr)) {
       const mutate = UPDATE_OPERATORS[op] as UpdateOperator;
-      const res = mutate(doc, expr, [] /*arrayFilters*/, opts);
+      const res = mutate(doc, expr, arrayFilters, opts);
       if (!modified && res.length) modified = true;
     }
     modifiedCount += +modified;
@@ -249,7 +259,7 @@ function updateDocuments(
  * @param documents - The array of documents to update.
  * @param condition - The query condition to match documents.
  * @param updateExpr - The update expression or aggregation pipeline stages.
- * @param arrayFilters - Optional array filters for update operators.
+ * @param updateConfig - Optional update config parameters.
  * @param options - Optional settings to control update behavior.
  * @returns An object containing `matchedCount` and `modifiedCount`.
  */
@@ -257,14 +267,14 @@ export function updateMany(
   documents: AnyObject[],
   condition: AnyObject,
   updateExpr: UpdateExpression,
-  arrayFilters: AnyObject[] = [],
+  updateConfig: UpdateConfig = {},
   options?: Partial<Options>
 ) {
   return updateDocuments(
     documents,
     condition,
     updateExpr,
-    arrayFilters,
+    updateConfig,
     options
   );
 }
@@ -279,7 +289,7 @@ export function updateMany(
  * @param documents - The array of documents to update.
  * @param condition - The query condition to match documents.
  * @param updateExpr - The update expression or aggregation pipeline stages.
- * @param arrayFilters - Optional array filters for update operators.
+ * @param updateConfig - Optional update config parameters.
  * @param options - Optional settings to control update behavior.
  * @returns An object containing `matchedCount` and `modifiedCount`.
  */
@@ -287,10 +297,10 @@ export function updateOne(
   documents: AnyObject[],
   condition: AnyObject,
   updateExpr: UpdateExpression,
-  arrayFilters: AnyObject[] = [],
+  updateConfig: UpdateConfig = {},
   options?: Partial<Options>
 ) {
-  return updateDocuments(documents, condition, updateExpr, arrayFilters, {
+  return updateDocuments(documents, condition, updateExpr, updateConfig, {
     ...options,
     firstOnly: true
   });

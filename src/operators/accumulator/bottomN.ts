@@ -3,7 +3,7 @@ import {
   ComputeOptions,
   computeValue,
   Options
-} from "../../core";
+} from "../../core/_internal";
 import { Lazy } from "../../lazy";
 import { Any, AnyObject } from "../../types";
 import { $sort } from "../pipeline/sort";

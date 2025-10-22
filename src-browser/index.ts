@@ -1,11 +1,11 @@
 import { AggregatorImpl } from "../src/aggregator/_internal";
-import { ComputeOptions, Context, Options, UpdateOptions } from "../src/core";
+import { ComputeOptions, Context, Options } from "../src/core/_internal";
 import { Cursor } from "../src/cursor";
 import fullContext from "../src/init/context";
 import { Source } from "../src/lazy";
 import { QueryImpl } from "../src/query/_internal";
 import { AnyObject } from "../src/types";
-import { createUpdater as createUpdaterInternal } from "../src/updater";
+import { createUpdater } from "../src/updater";
 
 export { Context, ProcessingMode } from "../src/core";
 
@@ -32,12 +32,6 @@ export class Aggregator extends AggregatorImpl {
     super(pipeline, makeOpts(options));
   }
 }
-
-export const createUpdater = (defaultOptions?: UpdateOptions) =>
-  createUpdaterInternal({
-    ...defaultOptions,
-    queryOptions: makeOpts(defaultOptions?.queryOptions)
-  });
 
 export const update = createUpdater();
 

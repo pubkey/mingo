@@ -1,4 +1,4 @@
-import { Options } from "../../../core";
+import { Options } from "../../../core/_internal";
 import { Any, AnyObject } from "../../../types";
 import { isArray, resolve, resolveGraph } from "../../../util";
 

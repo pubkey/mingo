@@ -1,5 +1,5 @@
 import { AggregatorImpl } from "../../aggregator/_internal";
-import { Options, PipelineOperator } from "../../core";
+import { Options, PipelineOperator } from "../../core/_internal";
 import { concat, Iterator, Lazy } from "../../lazy";
 import { AnyObject } from "../../types";
 import { assert, isArray, isString } from "../../util";

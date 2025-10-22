@@ -1,4 +1,4 @@
-import { Context } from "../core";
+import { Context } from "../core/_internal";
 import * as accumulatorOperators from "../operators/accumulator";
 import * as expressionOperators from "../operators/expression";
 import * as pipelineOperators from "../operators/pipeline";

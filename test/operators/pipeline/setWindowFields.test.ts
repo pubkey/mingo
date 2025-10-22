@@ -1,4 +1,4 @@
-import { ProcessingMode } from "../../../src/core";
+import { ProcessingMode } from "../../../src/core/_internal";
 import { aggregate, ISODate, testPath } from "../../support";
 
 describe(testPath(__filename), () => {

@@ -1,4 +1,4 @@
-import { Options, PipelineOperator } from "../../core";
+import { Options, PipelineOperator } from "../../core/_internal";
 import { Iterator } from "../../lazy";
 import { AnyObject } from "../../types";
 import { assert, cloneDeep, isArray, isString } from "../../util";
@@ -29,7 +29,7 @@ export const $out: PipelineOperator = (
   assert(isArray(outputColl), `expression must resolve to an array`);
 
   return collection.map((o: AnyObject) => {
-    outputColl.push(cloneDeep(o) as AnyObject);
+    outputColl.push(cloneDeep(o));
     return o; // passthrough
   });
 };

@@ -1,6 +1,6 @@
 // $sample operator -  https://docs.mongodb.com/manual/reference/operator/aggregation/sample/
 
-import { Options, PipelineOperator } from "../../core";
+import { Options, PipelineOperator } from "../../core/_internal";
 import { Iterator } from "../../lazy";
 import { Any } from "../../types";
 

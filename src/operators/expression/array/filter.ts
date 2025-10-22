@@ -3,7 +3,7 @@ import {
   computeValue,
   ExpressionOperator,
   Options
-} from "../../../core";
+} from "../../../core/_internal";
 import { Any, AnyObject } from "../../../types";
 import { assert, isArray, isNil, truthy } from "../../../util";
 

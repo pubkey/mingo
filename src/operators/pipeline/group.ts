@@ -3,7 +3,7 @@ import {
   computeValue,
   Options,
   PipelineOperator
-} from "../../core";
+} from "../../core/_internal";
 import { Iterator, Source } from "../../lazy";
 import { Any, AnyObject, Callback } from "../../types";
 import { assert, groupBy, has } from "../../util";

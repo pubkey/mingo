@@ -1,4 +1,4 @@
-import { ProcessingMode } from "../../src/core";
+import { ProcessingMode } from "../../src/core/_internal";
 import { Any, AnyObject } from "../../src/types";
 import { find, ObjectId, personData, testPath } from "../support";
 

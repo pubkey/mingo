@@ -1,5 +1,5 @@
 import { Aggregator } from "./aggregator";
-import { Context, Options, ProcessingMode } from "./core";
+import { Context, Options, ProcessingMode } from "./core/_internal";
 import { Cursor } from "./cursor";
 import { Source } from "./lazy";
 import { Query } from "./query";
@@ -7,7 +7,7 @@ import { AnyObject } from "./types";
 import { createUpdater, update } from "./updater";
 
 export { Aggregator } from "./aggregator";
-export { Context, ProcessingMode } from "./core";
+export { Context, ProcessingMode } from "./core/_internal";
 export { Query } from "./query";
 export { createUpdater, update } from "./updater";
 

@@ -1,4 +1,4 @@
-import { ExpressionOperator, Options } from "../../../core";
+import { ExpressionOperator, Options } from "../../../core/_internal";
 import { Any, AnyObject } from "../../../types";
 import { $nin as __nin, processExpression } from "../../_predicates";
 

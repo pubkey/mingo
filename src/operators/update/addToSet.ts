@@ -1,4 +1,4 @@
-import { Options } from "../../core";
+import { Options } from "../../core/_internal";
 import { Any, AnyObject, ArrayOrObject } from "../../types";
 import { has, intersection, isObject, unique } from "../../util";
 import {
@@ -28,10 +28,7 @@ export const $addToSet = (
         const prev = (o[k] ||= []) as Any[];
         const common = intersection([prev, args.$each]);
         if (common.length === args.$each.length) return false;
-        o[k] = clone(
-          options.updateConfig.cloneMode,
-          unique(prev.concat(args.$each))
-        );
+        o[k] = clone(unique(prev.concat(args.$each)), options);
         return true;
       },
       { buildGraph: true }

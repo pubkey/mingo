@@ -1,5 +1,6 @@
+import { ComputeOptions } from "../src/core/_internal";
 import { clone, Trie } from "../src/operators/update/_internal";
-import { update, updateMany } from "../src/updater";
+import { update, updateMany, updateOne } from "../src/updater";
 import { isArray } from "../src/util";
 import { DEFAULT_OPTS, find, ISODate } from "./support";
 
@@ -101,12 +102,16 @@ describe("updater", () => {
       expect(obj).toEqual({ name: "Fred", age: 30 });
     });
 
+    const opts = ComputeOptions.init({});
     it.each([{ a: 1 }, [{ a: 1 }], new Date("2022-02-01")])(
       "should apply clone mode: %p",
       val => {
-        const a = clone("deep", val);
-        const b = clone("copy", val);
-        const c = clone("none", val);
+        opts.update({ updateConfig: { cloneMode: "deep" } });
+        const a = clone(val, opts);
+        opts.update({ updateConfig: { cloneMode: "copy" } });
+        const b = clone(val, opts);
+        opts.update({ updateConfig: { cloneMode: "none" } });
+        const c = clone(val, opts);
 
         expect(val).toEqual(a);
         expect(val).toEqual(b);
@@ -217,13 +222,13 @@ describe("updater", () => {
               $set: {
                 status: "Modified", // missing in MongoDB docs
                 comments: ["$commentsSemester1", "$commentsSemester2"],
-                lastUpdate: "$$NOW"
+                lastUpdate: "$$now"
               }
             },
             { $unset: ["commentsSemester1", "commentsSemester2"] }
           ],
-          [],
-          { variables: { NOW: now } }
+          {},
+          { variables: { now } }
         )
       ).toEqual({ matchedCount: 2, modifiedCount: 2 });
 
@@ -274,7 +279,7 @@ describe("updater", () => {
           {
             $set: {
               average: { $trunc: [{ $avg: "$tests" }, 0] },
-              lastUpdate: "$$NOW"
+              lastUpdate: "$$now"
             }
           },
           {
@@ -293,8 +298,8 @@ describe("updater", () => {
             }
           }
         ],
-        [],
-        { ...DEFAULT_OPTS, variables: { NOW: now } }
+        {},
+        { ...DEFAULT_OPTS, variables: { now } }
       );
 
       expect(res).toEqual({ matchedCount: 3, modifiedCount: 3 });
@@ -313,6 +318,326 @@ describe("updater", () => {
           lastUpdate: now,
           average: 90,
           grade: "A"
+        },
+        {
+          _id: 3,
+          tests: [70, 75, 82],
+          lastUpdate: now,
+          average: 75,
+          grade: "C"
+        }
+      ]);
+    });
+  });
+
+  describe("updateOne() with expressions", () => {
+    it("should update single document", () => {
+      const restaurants = [
+        { _id: 1, name: "Central Perk Cafe", Borough: "Manhattan" },
+        {
+          _id: 2,
+          name: "Rock A Feller Bar and Grill",
+          Borough: "Queens",
+          violations: 2
+        },
+        { _id: 3, name: "Empire State Pub", Borough: "Brooklyn", violations: 0 }
+      ];
+
+      expect(
+        updateOne(
+          restaurants,
+          { name: "Central Perk Cafe" },
+          { $set: { violations: 3 } }
+        )
+      ).toEqual({ matchedCount: 1, modifiedCount: 1 });
+
+      expect(restaurants).toEqual([
+        {
+          _id: 1,
+          name: "Central Perk Cafe",
+          Borough: "Manhattan",
+          violations: 3
+        },
+        {
+          _id: 2,
+          name: "Rock A Feller Bar and Grill",
+          Borough: "Queens",
+          violations: 2
+        },
+        { _id: 3, name: "Empire State Pub", Borough: "Brooklyn", violations: 0 }
+      ]);
+    });
+
+    it("should update with sort", () => {
+      const people = [
+        { name: "Alice", state: "active", rating: 5 },
+        { name: "Bob", state: "active", rating: 3 },
+        { name: "Charlie", state: "active", rating: 4 },
+        { name: "Diana", state: "inactive", rating: 2 },
+        { name: "Eve", state: "active", rating: 1 },
+        { name: "Frank", state: "inactive", rating: 6 }
+      ];
+
+      expect(
+        updateOne(
+          people,
+          { state: "active" },
+          { $set: { state: "inactive" } },
+          { sort: { rating: 1 } }
+        )
+      ).toEqual({ matchedCount: 1, modifiedCount: 1 });
+
+      expect(people).toEqual([
+        { name: "Alice", state: "active", rating: 5 },
+        { name: "Bob", state: "active", rating: 3 },
+        { name: "Charlie", state: "active", rating: 4 },
+        { name: "Diana", state: "inactive", rating: 2 },
+        { name: "Eve", state: "inactive", rating: 1 },
+        { name: "Frank", state: "inactive", rating: 6 }
+      ]);
+    });
+
+    it("should update with collation", () => {
+      const items = [
+        { _id: 1, category: "café", status: "A" },
+        { _id: 2, category: "cafe", status: "a" },
+        { _id: 3, category: "cafE", status: "a" }
+      ];
+
+      expect(
+        updateOne(
+          items,
+          { category: "cafe" },
+          { $set: { status: "Updated" } },
+          {},
+          { collation: { locale: "fr", strength: 1 } }
+        )
+      ).toEqual({ matchedCount: 1, modifiedCount: 1 });
+
+      expect(items).toEqual([
+        {
+          _id: 1,
+          category: "café",
+          status: "A"
+        },
+        {
+          _id: 2,
+          category: "cafe",
+          status: "Updated"
+        },
+        {
+          _id: 3,
+          category: "cafE",
+          status: "a"
+        }
+      ]);
+    });
+
+    it("should Update Elements Match arrayFilters Criteria", () => {
+      const students = [
+        { _id: 1, grades: [95, 92, 90] },
+        { _id: 2, grades: [98, 100, 102] },
+        { _id: 3, grades: [95, 110, 100] }
+      ];
+
+      expect(
+        updateOne(
+          students,
+          { grades: { $gte: 100 } },
+          { $set: { "grades.$[element]": 100 } },
+          { arrayFilters: [{ element: { $gte: 100 } }] }
+        )
+      ).toEqual({ matchedCount: 1, modifiedCount: 1 });
+
+      expect(students).toEqual([
+        { _id: 1, grades: [95, 92, 90] },
+        { _id: 2, grades: [98, 100, 100] },
+        { _id: 3, grades: [95, 110, 100] }
+      ]);
+    });
+
+    it("should Update Specific Elements of an Array of Documents", () => {
+      const students = [
+        {
+          _id: 1,
+          grades: [
+            { grade: 80, mean: 75, std: 6 },
+            { grade: 85, mean: 90, std: 4 },
+            { grade: 85, mean: 85, std: 6 }
+          ]
+        },
+        {
+          _id: 2,
+          grades: [
+            { grade: 90, mean: 75, std: 6 },
+            { grade: 87, mean: 90, std: 3 },
+            { grade: 85, mean: 85, std: 4 }
+          ]
+        }
+      ];
+
+      expect(
+        updateOne(
+          students,
+          {},
+          { $set: { "grades.$[elem].mean": 100 } },
+          { arrayFilters: [{ "elem.grade": { $gte: 85 } }] }
+        )
+      ).toEqual({ matchedCount: 1, modifiedCount: 1 });
+
+      expect(students).toEqual([
+        {
+          _id: 1,
+          grades: [
+            { grade: 80, mean: 75, std: 6 },
+            { grade: 85, mean: 100, std: 4 },
+            { grade: 85, mean: 100, std: 6 }
+          ]
+        },
+        {
+          _id: 2,
+          grades: [
+            { grade: 90, mean: 75, std: 6 },
+            { grade: 87, mean: 90, std: 3 },
+            { grade: 85, mean: 85, std: 4 }
+          ]
+        }
+      ]);
+    });
+  });
+
+  describe("updateOne() with pipeline", () => {
+    it("Update with Aggregation Pipeline", () => {
+      const students = [
+        {
+          _id: 1,
+          student: "Skye",
+          points: 75,
+          commentsSemester1: "great at math",
+          commentsSemester2: "loses temper",
+          lastUpdate: ISODate("2019-01-01T00:00:00Z")
+        },
+        {
+          _id: 2,
+          student: "Elizabeth",
+          points: 60,
+          commentsSemester1: "well behaved",
+          commentsSemester2: "needs improvement",
+          lastUpdate: ISODate("2019-01-01T00:00:00Z")
+        }
+      ];
+
+      const now = new Date();
+
+      expect(
+        updateOne(
+          students,
+          { _id: 1 },
+          [
+            {
+              $set: {
+                status: "Modified",
+                comments: ["$commentsSemester1", "$commentsSemester2"],
+                lastUpdate: "$$now"
+              }
+            },
+            { $unset: ["commentsSemester1", "commentsSemester2"] }
+          ],
+          {},
+          { variables: { now } }
+        )
+      ).toEqual({ matchedCount: 1, modifiedCount: 1 });
+
+      expect(students).toEqual([
+        {
+          _id: 1,
+          student: "Skye",
+          status: "Modified",
+          points: 75,
+          lastUpdate: now,
+          comments: ["great at math", "loses temper"]
+        },
+        {
+          _id: 2,
+          student: "Elizabeth",
+          points: 60,
+          commentsSemester1: "well behaved",
+          commentsSemester2: "needs improvement",
+          lastUpdate: ISODate("2019-01-01T00:00:00Z")
+        }
+      ]);
+    });
+
+    it("Update with Aggregation Pipeline Using Existing Fields Conditionally", () => {
+      const students = [
+        {
+          _id: 1,
+          tests: [95, 92, 90],
+          average: 92,
+          grade: "A",
+          lastUpdate: ISODate("2020-01-23T05:18:40.013Z")
+        },
+        {
+          _id: 2,
+          tests: [94, 88, 90],
+          average: 91,
+          grade: "A",
+          lastUpdate: ISODate("2020-01-23T05:18:40.013Z")
+        },
+        {
+          _id: 3,
+          tests: [70, 75, 82],
+          lastUpdate: ISODate("2019-01-01T00:00:00Z")
+        }
+      ];
+
+      const now = new Date();
+      const res = updateOne(
+        students,
+        { _id: 3 },
+        [
+          {
+            $set: {
+              average: { $trunc: [{ $avg: "$tests" }, 0] },
+              lastUpdate: "$$now"
+            }
+          },
+          {
+            $set: {
+              grade: {
+                $switch: {
+                  branches: [
+                    { case: { $gte: ["$average", 90] }, then: "A" },
+                    { case: { $gte: ["$average", 80] }, then: "B" },
+                    { case: { $gte: ["$average", 70] }, then: "C" },
+                    { case: { $gte: ["$average", 60] }, then: "D" }
+                  ],
+                  default: "F"
+                }
+              }
+            }
+          }
+        ],
+        {},
+        { ...DEFAULT_OPTS, variables: { now } }
+      );
+
+      expect(res).toEqual({ matchedCount: 1, modifiedCount: 1 });
+
+      expect(students).toEqual([
+        {
+          _id: 1,
+          tests: [95, 92, 90],
+          average: 92,
+          grade: "A",
+          lastUpdate: ISODate("2020-01-23T05:18:40.013Z")
+        },
+        {
+          _id: 2,
+          tests: [94, 88, 90],
+          average: 91,
+          grade: "A",
+          lastUpdate: ISODate("2020-01-23T05:18:40.013Z")
         },
         {
           _id: 3,

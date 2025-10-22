@@ -1,4 +1,4 @@
-import { Options, WindowOperator } from "../../core";
+import { Options, WindowOperator } from "../../core/_internal";
 import { Any, AnyObject } from "../../types";
 import { rank, WindowOperatorInput } from "./_internal";
 

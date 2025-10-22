@@ -1,14 +1,15 @@
-import { Iterator } from "./lazy";
-import type { UpdateParams } from "./operators/update/_internal";
-import type { WindowOperatorInput } from "./operators/window/_internal";
-import {
+import type { Iterator } from "../lazy";
+import type { UpdateParams } from "../operators/update/_internal";
+import type { WindowOperatorInput } from "../operators/window/_internal";
+import type {
   Any,
   AnyObject,
   ArrayOrObject,
   Callback,
   HashFunction,
   Predicate
-} from "./types";
+} from "../types";
+import type { UpdateConfig } from "../updater";
 import {
   assert,
   has,
@@ -18,7 +19,7 @@ import {
   isOperator,
   isString,
   resolve
-} from "./util";
+} from "../util";
 
 /**
  * Resolves the given string to a Collection.
@@ -84,11 +85,6 @@ export interface Options {
   readonly variables?: Readonly<AnyObject>;
   /** Extra references to operators to be used for processing. */
   readonly context: Context;
-  /** configurations for update */
-  readonly updateConfig?: {
-    cloneMode: CloneMode;
-    sort?: AnyObject;
-  };
 }
 
 interface Locals {
@@ -106,6 +102,8 @@ interface Locals {
   readonly condition?: AnyObject;
   /** compiled information about update selectors */
   readonly updateParams?: UpdateParams;
+  /** update configuration */
+  readonly updateConfig?: UpdateConfig;
 }
 
 export class ComputeOptions implements Options {
@@ -133,7 +131,6 @@ export class ComputeOptions implements Options {
           scriptEnabled: true,
           useStrictMode: true,
           processingMode: ProcessingMode.CLONE_OFF,
-          updateConfig: { cloneMode: "copy", ...options?.updateConfig },
           ...options,
           context: options?.context
             ? Context.from(options?.context)
@@ -151,9 +148,6 @@ export class ComputeOptions implements Options {
     return this;
   }
 
-  get root() {
-    return this.#locals.root;
-  }
   get local() {
     return this.#locals;
   }
@@ -187,9 +181,6 @@ export class ComputeOptions implements Options {
   get context() {
     return this.options?.context;
   }
-  get updateConfig() {
-    return this.options?.updateConfig;
-  }
 }
 
 /**
@@ -211,9 +202,6 @@ export enum OpType {
   QUERY = "query",
   WINDOW = "window"
 }
-
-/** @deprecated use {@link OpType} */
-export type OperatorType = OpType;
 
 export type AccumulatorOperator<R = Any> = (
   collection: Any[],
@@ -364,7 +352,7 @@ export function computeValue(
 ): Any {
   // only intialize compute opts when necessary.
   const copts =
-    !(options instanceof ComputeOptions) || isNil(options.root)
+    !(options instanceof ComputeOptions) || isNil(options.local.root)
       ? ComputeOptions.init(options).update({ root: obj })
       : options;
 
@@ -390,7 +378,7 @@ function computeExpression(obj: Any, expr: Any, options: ComputeOptions): Any {
       return expr;
 
     // default to root for resolving path.
-    let ctx = options.root;
+    let ctx = options.local.root;
 
     // handle selectors with explicit prefix
     const arr = expr.split(".");

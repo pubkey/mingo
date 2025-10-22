@@ -4,7 +4,7 @@ import {
   Context,
   OpType,
   ProcessingMode
-} from "../src/core";
+} from "../src/core/_internal";
 import { Iterator } from "../src/lazy";
 import { $toString } from "../src/operators/expression";
 import { $match } from "../src/operators/pipeline/match";
@@ -75,10 +75,10 @@ describe("core", () => {
 
   describe("ComputeOptions", () => {
     it("should preserve 'root' on init if defined", () => {
-      expect(copts.root).toBeUndefined();
+      expect(copts.local.root).toBeUndefined();
       copts.update({ root: false });
-      expect(copts.root).toEqual(false);
-      expect(ComputeOptions.init(copts).root).toEqual(false);
+      expect(copts.local.root).toEqual(false);
+      expect(ComputeOptions.init(copts).local.root).toEqual(false);
     });
 
     it("should preserve 'local' on init if defined", () => {
@@ -101,7 +101,7 @@ describe("core", () => {
       expect(copts.jsonSchemaValidator).toBeUndefined();
       expect(copts.variables).toBeUndefined();
       expect(copts.local?.variables).toEqual({ x: 10 });
-      expect(copts.root).toEqual(true);
+      expect(copts.local.root).toEqual(true);
     });
 
     it("should merge new variables on update when non-empty", () => {

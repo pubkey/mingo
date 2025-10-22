@@ -1,4 +1,4 @@
-import { Options, QueryOperator } from "../../../core";
+import { Options, QueryOperator } from "../../../core/_internal";
 import { Any, AnyObject, Callback } from "../../../types";
 import { assert, isArray } from "../../../util";
 import { $or } from "./or";

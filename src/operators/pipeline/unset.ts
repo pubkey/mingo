@@ -1,4 +1,4 @@
-import { ComputeOptions, PipelineOperator } from "../../core";
+import { ComputeOptions, PipelineOperator } from "../../core/_internal";
 import { Iterator } from "../../lazy";
 import { ensureArray } from "../../util";
 import { $project } from "./project";

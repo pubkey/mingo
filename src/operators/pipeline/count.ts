@@ -1,4 +1,4 @@
-import { Options, PipelineOperator } from "../../core";
+import { Options, PipelineOperator } from "../../core/_internal";
 import { Iterator, Lazy } from "../../lazy";
 import { assert, isEmpty, isString } from "../../util";
 

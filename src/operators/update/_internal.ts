@@ -1,4 +1,4 @@
-import { CloneMode, ComputeOptions, Context, Options } from "../../core";
+import { ComputeOptions, Context, Options } from "../../core/_internal";
 import * as booleanOperators from "../../operators/expression/boolean";
 import * as comparisonOperators from "../../operators/expression/comparison";
 import * as queryOperators from "../../operators/query";
@@ -20,18 +20,19 @@ export const DEFAULT_OPTIONS: Options = ComputeOptions.init({
   context: Context.init()
     .addQueryOps(queryOperators)
     .addExpressionOps(booleanOperators)
-    .addExpressionOps(comparisonOperators),
-  updateConfig: { cloneMode: "copy" }
-});
+    .addExpressionOps(comparisonOperators)
+}).update({ updateConfig: { cloneMode: "copy" } });
 
-export const clone = (mode: CloneMode, val: Any): Any => {
+export const clone = (val: Any, opts: Options): Any => {
+  const mode =
+    (opts as ComputeOptions)?.local?.updateConfig?.cloneMode ?? "copy";
   switch (mode) {
     case "deep":
       return cloneDeep(val);
     case "copy": {
       if (isDate(val)) return new Date(val);
-      if (isArray(val)) return [...(val as Any[])];
-      if (isObject(val)) return { ...val };
+      if (isArray(val)) return (val as Any[]).slice();
+      if (isObject(val)) return Object.assign({}, val);
       if (isRegExp(val)) return new RegExp(val);
       return val;
     }

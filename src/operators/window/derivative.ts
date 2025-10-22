@@ -1,4 +1,4 @@
-import { Options, WindowOperator } from "../../core";
+import { Options, WindowOperator } from "../../core/_internal";
 import { Any, AnyObject, Callback } from "../../types";
 import { isNumber } from "../../util";
 import { $push } from "../accumulator/push";

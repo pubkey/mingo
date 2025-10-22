@@ -1,4 +1,4 @@
-import { CollationSpec, Options, PipelineOperator } from "../../core";
+import { CollationSpec, Options, PipelineOperator } from "../../core/_internal";
 import { Iterator } from "../../lazy";
 import { Any, AnyObject, Comparator } from "../../types";
 import {

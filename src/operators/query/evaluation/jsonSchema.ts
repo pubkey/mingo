@@ -1,4 +1,4 @@
-import { Options } from "../../../core";
+import { Options } from "../../../core/_internal";
 import { Any, AnyObject, Predicate } from "../../../types";
 import { assert } from "../../../util";
 

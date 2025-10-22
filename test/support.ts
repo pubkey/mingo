@@ -8,7 +8,7 @@ import {
   computeValue,
   Options,
   ProcessingMode
-} from "../src/core";
+} from "../src/core/_internal";
 import fullContext from "../src/init/context";
 import { Source } from "../src/lazy";
 import { Any, AnyObject, Callback } from "../src/types";

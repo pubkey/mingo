@@ -1,4 +1,4 @@
-import { AccumulatorOperator, Options } from "../../core";
+import { AccumulatorOperator, Options } from "../../core/_internal";
 import { Any, AnyObject } from "../../types";
 import { assert, findInsertIndex, isNumber } from "../../util";
 import { $push } from "./push";

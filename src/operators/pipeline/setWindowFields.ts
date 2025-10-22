@@ -5,7 +5,7 @@ import {
   OpType,
   PipelineOperator,
   WindowOperator
-} from "../../core";
+} from "../../core/_internal";
 import { concat, Iterator, Lazy } from "../../lazy";
 import { Any, AnyObject, Callback } from "../../types";
 import { assert, isNumber, isOperator, isString } from "../../util";

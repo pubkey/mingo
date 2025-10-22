@@ -1,4 +1,4 @@
-import { computeValue, Options } from "../../../core";
+import { computeValue, Options } from "../../../core/_internal";
 import { Any, AnyObject } from "../../../types";
 import { assert, isArray, isNil, isNumber } from "../../../util";
 

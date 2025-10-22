@@ -1,4 +1,4 @@
-import { ComputeOptions, ProcessingMode } from "../../../src/core";
+import { ComputeOptions, ProcessingMode } from "../../../src/core/_internal";
 import { $percentile } from "../../../src/operators/accumulator";
 import { aggregate, COMPUTE_OPTS, testPath } from "../../support";
 

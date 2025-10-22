@@ -2,7 +2,7 @@
  * Predicates used for Query and Expression operators.
  */
 
-import { ComputeOptions, computeValue, Options } from "../core";
+import { ComputeOptions, computeValue, Options } from "../core/_internal";
 import { QueryImpl } from "../query/_internal";
 import {
   Any,

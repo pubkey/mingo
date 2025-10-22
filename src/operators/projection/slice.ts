@@ -1,4 +1,4 @@
-import { Options, ProjectionOperator } from "../../core";
+import { Options, ProjectionOperator } from "../../core/_internal";
 import { Any, AnyObject } from "../../types";
 import { isArray, resolve } from "../../util";
 import { $slice as __slice } from "../expression/array/slice";

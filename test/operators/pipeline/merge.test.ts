@@ -1,4 +1,4 @@
-import { ComputeOptions, ProcessingMode } from "../../../src/core";
+import { ComputeOptions, ProcessingMode } from "../../../src/core/_internal";
 import { Any, AnyObject } from "../../../src/types";
 import { aggregate } from "../../support";
 
