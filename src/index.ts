@@ -4,12 +4,12 @@ import { Cursor } from "./cursor";
 import { Source } from "./lazy";
 import { Query } from "./query";
 import { AnyObject } from "./types";
-import { createUpdater, update } from "./updater";
+import { update, updateMany, updateOne } from "./updater";
 
 export { Aggregator } from "./aggregator";
 export { Context, ProcessingMode } from "./core/_internal";
 export { Query } from "./query";
-export { createUpdater, update } from "./updater";
+export { update, updateMany, updateOne } from "./updater";
 
 /**
  * Finds documents in a collection that match the specified criteria.
@@ -53,7 +53,8 @@ export default {
   ProcessingMode,
   Query,
   aggregate,
-  createUpdater,
   find,
-  update
+  update,
+  updateMany,
+  updateOne
 };

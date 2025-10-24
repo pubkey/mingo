@@ -7,15 +7,17 @@ import {
 import { Lazy } from "./lazy";
 import * as booleanOperators from "./operators/expression/boolean";
 import * as comparisonOperators from "./operators/expression/comparison";
-import { $addFields } from "./operators/pipeline/addFields";
-import { $project } from "./operators/pipeline/project";
-import { $replaceRoot } from "./operators/pipeline/replaceRoot";
-import { $replaceWith } from "./operators/pipeline/replaceWith";
-import { $set } from "./operators/pipeline/set";
-import { $sort } from "./operators/pipeline/sort";
-import { $unset } from "./operators/pipeline/unset";
+import {
+  $addFields,
+  $project,
+  $replaceRoot,
+  $replaceWith,
+  $set,
+  $sort,
+  $unset
+} from "./operators/pipeline";
 import * as queryOperators from "./operators/query";
-import * as UPDATE_OPERATORS from "./operators/update";
+import * as updateOperators from "./operators/update";
 import {
   buildParams,
   Trie,
@@ -33,14 +35,9 @@ import {
   resolve
 } from "./util";
 
-// https://stackoverflow.com/questions/60872063/enforce-typescript-object-has-exactly-one-key-from-a-set
-/** Define maps to enforce a single key from a union. */
-// eslint-disable-next-line
-type OneKey<K extends keyof any, V, KK extends keyof any = K> = {
-  [P in K]: { [Q in P]: V } & { [Q in Exclude<KK, P>]?: never } extends infer O
-    ? { [Q in keyof O]: O[Q] }
-    : never;
-}[K];
+// using const assignment to get around eslint 'import/namespace' error.
+const UPDATE_OPERATORS = updateOperators;
+type UpdateOp = keyof typeof UPDATE_OPERATORS;
 
 const PIPELINE_OPERATORS = {
   $addFields,
@@ -52,14 +49,6 @@ const PIPELINE_OPERATORS = {
 } as const;
 
 type StageName = keyof typeof PIPELINE_OPERATORS;
-// enum Stage {
-//   $addFields,
-//   $set,
-//   $project,
-//   $unset,
-//   $replaceRoot,
-//   $replaceWith,
-// }
 
 type PipelineStage =
   | { $addFields: AnyObject }
@@ -70,7 +59,7 @@ type PipelineStage =
   | { $replaceWith: AnyObject };
 
 export type UpdateExpression =
-  | Partial<Record<keyof typeof UPDATE_OPERATORS, AnyObject>>
+  | Partial<Record<UpdateOp, AnyObject>>
   | PipelineStage[];
 
 export interface UpdateConfig {
@@ -86,70 +75,6 @@ export interface UpdateConfig {
   let?: AnyObject;
 }
 
-/** A function to process an update expression and modify the object. */
-export type Updater = (
-  obj: AnyObject,
-  updateExpr: UpdateExpression,
-  arrayFilters?: AnyObject[],
-  condition?: AnyObject,
-  options?: Partial<Options>
-) => string[];
-
-/**
- * Creates a new updater function with default options.
- * @param defaultOptions The default options. Defaults to no cloning with strict mode off for queries.
- * @returns {Updater}
- */
-export function createUpdater(defaultOptions?: Partial<Options>): Updater {
-  // automatically load basic query options for update operators
-  // const mainOptions = ComputeOptions.init(defaultOptions);
-  // mainOptions.context
-  //   .addQueryOps(queryOperators)
-  //   .addExpressionOps(booleanOperators)
-  //   .addExpressionOps(comparisonOperators);
-
-  return (
-    obj: AnyObject,
-    updateExpr: UpdateExpression,
-    arrayFilters: AnyObject[] = [],
-    condition: AnyObject = {},
-    options?: Partial<Options>
-  ): string[] => {
-    // apply options overrides
-    const opts = ComputeOptions.init({
-      ...defaultOptions,
-      ...options
-    });
-
-    opts.context
-      .addQueryOps(queryOperators)
-      .addExpressionOps(booleanOperators)
-      .addExpressionOps(comparisonOperators);
-
-    const entry = Object.entries(updateExpr);
-    const [op, args] = entry[0];
-    // check operator exists
-    assert(UPDATE_OPERATORS[op], `Update operator '${op}' is not supported.`);
-
-    /*eslint import/namespace: ['error', { allowComputed: true }]*/
-    opts.update({
-      root: obj
-    });
-
-    // validate condition.
-    if (Object.keys(condition).length) {
-      const q = new Query(condition, opts);
-      if (!q.test(obj)) return [] as string[];
-      // set the condtion on the options
-      opts.update({ condition });
-    }
-
-    // apply updates
-    const mutate = UPDATE_OPERATORS[op] as UpdateOperator;
-    return mutate(obj, args, arrayFilters, opts);
-  };
-}
-
 /**
  * Updates the given object with the expression.
  *
@@ -160,7 +85,24 @@ export function createUpdater(defaultOptions?: Partial<Options>): Updater {
  * @param options Update options to override defaults.
  * @returns {string[]} A list of modified field paths in the object.
  */
-export const update = createUpdater();
+export function update(
+  obj: AnyObject,
+  updateExpr: Partial<Record<UpdateOp, AnyObject>>,
+  arrayFilters?: AnyObject[],
+  condition?: AnyObject,
+  options?: Partial<Options>
+): string[] {
+  // NOTE: pipeline operators are not supported for this function since they may replace the entire object within the collection.
+  const docs = [obj];
+  const res = updateOne(
+    docs,
+    condition || {},
+    updateExpr,
+    { arrayFilters },
+    options
+  );
+  return res.fields ?? [];
+}
 
 /**
  * Updates all documents that match the specified filter for a collection.

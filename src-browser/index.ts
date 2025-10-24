@@ -5,9 +5,9 @@ import fullContext from "../src/init/context";
 import { Source } from "../src/lazy";
 import { QueryImpl } from "../src/query/_internal";
 import { AnyObject } from "../src/types";
-import { createUpdater } from "../src/updater";
 
 export { Context, ProcessingMode } from "../src/core";
+export { update, updateMany, updateOne } from "../src/updater";
 
 const context = fullContext();
 const makeOpts = (options?: Partial<Options>) => {
@@ -32,8 +32,6 @@ export class Aggregator extends AggregatorImpl {
     super(pipeline, makeOpts(options));
   }
 }
-
-export const update = createUpdater();
 
 export const aggregate = (
   collection: Source,

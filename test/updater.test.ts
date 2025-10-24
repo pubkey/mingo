@@ -69,7 +69,7 @@ describe("updater", () => {
       expr["$cos"] = { age: 2 };
       delete expr["$set" as string];
       expect(() => update(obj, expr)).toThrow(
-        /operator '\$cos' is not supported/
+        /unknown update operator '\$cos'/
       );
     });
 
