@@ -90,7 +90,10 @@ export function update(
   updateExpr: Partial<Record<UpdateOp, AnyObject>>,
   arrayFilters?: AnyObject[],
   condition?: AnyObject,
-  options?: Partial<Options>
+  options?: {
+    cloneMode?: CloneMode;
+    queryOptions?: Partial<Options>;
+  }
 ): string[] {
   // NOTE: pipeline operators are not supported for this function since they may replace the entire object within the collection.
   const docs = [obj];
@@ -98,8 +101,8 @@ export function update(
     docs,
     condition || {},
     updateExpr,
-    { arrayFilters },
-    options
+    { arrayFilters, cloneMode: options?.cloneMode ?? "copy" },
+    options?.queryOptions
   );
   return res.fields ?? [];
 }
