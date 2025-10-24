@@ -69,7 +69,7 @@ describe("updater", () => {
       expr["$cos"] = { age: 2 };
       delete expr["$set" as string];
       expect(() => update(obj, expr)).toThrow(
-        /unknown update operator '\$cos'/
+        /Unknown update operator: '\$cos'/
       );
     });
 
@@ -368,7 +368,7 @@ describe("updater", () => {
       ]);
     });
 
-    it("should update with sort", () => {
+    it("should update with sort with filter specified", () => {
       const people = [
         { name: "Alice", state: "active", rating: 5 },
         { name: "Bob", state: "active", rating: 3 },
@@ -394,6 +394,35 @@ describe("updater", () => {
         { name: "Diana", state: "inactive", rating: 2 },
         { name: "Eve", state: "inactive", rating: 1 },
         { name: "Frank", state: "inactive", rating: 6 }
+      ]);
+    });
+
+    it("should update with sort with empty filter specified", () => {
+      const people = [
+        { name: "Alice", state: "active", rating: 5 },
+        { name: "Bob", state: "active", rating: 3 },
+        { name: "Charlie", state: "active", rating: 4 },
+        { name: "Diana", state: "inactive", rating: 2 },
+        { name: "Eve", state: "active", rating: 1 },
+        { name: "Frank", state: "inactive", rating: 6 }
+      ];
+
+      expect(
+        updateOne(
+          people,
+          {},
+          { $set: { state: "active" } },
+          { sort: { rating: -1 } }
+        )
+      ).toEqual({ matchedCount: 1, modifiedCount: 1, fields: ["state"] });
+
+      expect(people).toEqual([
+        { name: "Alice", state: "active", rating: 5 },
+        { name: "Bob", state: "active", rating: 3 },
+        { name: "Charlie", state: "active", rating: 4 },
+        { name: "Diana", state: "inactive", rating: 2 },
+        { name: "Eve", state: "active", rating: 1 },
+        { name: "Frank", state: "active", rating: 6 }
       ]);
     });
 
@@ -660,6 +689,32 @@ describe("updater", () => {
           average: 75,
           grade: "C"
         }
+      ]);
+    });
+
+    it("should update only first document when no filter is provided", () => {
+      const people = [
+        { name: "Alice", state: "active", rating: 5 },
+        { name: "Bob", state: "active", rating: 3 },
+        { name: "Charlie", state: "active", rating: 4 },
+        { name: "Diana", state: "inactive", rating: 2 },
+        { name: "Eve", state: "active", rating: 1 },
+        { name: "Frank", state: "inactive", rating: 6 }
+      ];
+
+      expect(updateOne(people, {}, [{ $set: { state: "inactive" } }])).toEqual({
+        matchedCount: 1,
+        modifiedCount: 1,
+        fields: ["state"]
+      });
+
+      expect(people).toEqual([
+        { name: "Alice", state: "inactive", rating: 5 },
+        { name: "Bob", state: "active", rating: 3 },
+        { name: "Charlie", state: "active", rating: 4 },
+        { name: "Diana", state: "inactive", rating: 2 },
+        { name: "Eve", state: "active", rating: 1 },
+        { name: "Frank", state: "inactive", rating: 6 }
       ]);
     });
   });

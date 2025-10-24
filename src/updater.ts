@@ -201,27 +201,38 @@ function updateDocuments(
     });
   }
 
+  // stores the index of the firstOnly document.
+  let firstOnlyIndex = -1;
+
   // apply first only and sort if specified
   if (firstOnly) {
+    const indexes = new Map<AnyObject, number>();
     if (updateConfig.sort) {
+      // sorting will mess up the index order which will require a scan to find the position to update.
+      // apply minor optimization to get index of first document when no filter is specified.
+      if (!filterExists) {
+        docsIter = docsIter.map<AnyObject>((o, i) => {
+          indexes.set(o, i);
+          return o;
+        });
+      }
       docsIter = $sort(docsIter, updateConfig.sort, opts);
     }
     docsIter = docsIter.take(1);
+    const m = filterExists ? matchedDocs : indexes;
+    firstOnlyIndex = m.get(docsIter.value<AnyObject>()[0]) ?? 0;
   }
 
   // docs to update
   const foundDocs = docsIter.value<AnyObject>();
+  if (foundDocs.length === 0) return { matchedCount: 0, modifiedCount: 0 };
 
-  if (foundDocs.length === 0) {
-    return { matchedCount: 0, modifiedCount: 0 };
-  }
-
-  // use pipeline expression
+  // USING AGGREGATION PIPELINE OPERATORS
   if (isArray(updateExpr)) {
     // indexes of documents to be updated. when indexes is empty, all documents are checked for update.
     const indexes = firstOnly
-      ? [matchedDocs.get(foundDocs[0]) ?? documents.indexOf(foundDocs[0])] // check in map first, then fallback to scan for index
-      : Array.from(matchedDocs.values()); // empty if no filter was applied
+      ? [firstOnlyIndex]
+      : Array.from(matchedDocs.values()); // empty when no filters applied
 
     // use hashing to detect changes.
     // if we have indexes, only track those documents in the index otherwise track all found documents.
@@ -243,6 +254,7 @@ function updateDocuments(
       const [op, expr] = Object.entries(stage)[0] as [string, Any];
       const pipelineOp =
         PIPELINE_OPERATORS[op as keyof typeof PIPELINE_OPERATORS];
+      assert(pipelineOp, `Unknown pipeline operator: '${op}'.`);
       resultIter = pipelineOp(resultIter, expr, opts);
     }
 
@@ -294,9 +306,11 @@ function updateDocuments(
     };
   }
 
-  // validate operators
+  // USING UPDATE OPERATORS
+
+  // validated operators
   const unknownOp = Object.keys(updateExpr).find(op => !UPDATE_OPERATORS[op]);
-  assert(!unknownOp, `unknown update operator '${unknownOp}'`);
+  assert(!unknownOp, `Unknown update operator: '${unknownOp}'.`);
 
   const arrayFilters = updateConfig?.arrayFilters ?? [];
 
