@@ -1,4 +1,9 @@
-import { CloneMode, ComputeOptions, Options } from "./core/_internal";
+import {
+  CloneMode,
+  CollationSpec,
+  ComputeOptions,
+  Options
+} from "./core/_internal";
 import { Lazy } from "./lazy";
 import * as booleanOperators from "./operators/expression/boolean";
 import * as comparisonOperators from "./operators/expression/comparison";
@@ -39,9 +44,16 @@ export type UpdateExpression =
   | OneKey<keyof typeof PIPELINE_OPERATORS, Any>[];
 
 export interface UpdateConfig {
+  /** An array of filter documents that determine which array elements to modify for an update operation on an array field. */
   arrayFilters?: AnyObject[];
+  /** Determines how to set values to fields. */
   cloneMode?: CloneMode;
+  /** {@link updateOne} updates the first document in the sort order specified by this argument. */
   sort?: Record<string, 1 | -1>;
+  /** The collation to use for the operation. Merged into {@link Options.collation} when specified. */
+  collation?: CollationSpec;
+  /** A document with a list of variables. Merged into {@link Options.variables} when specified. */
+  let?: AnyObject;
 }
 
 /** A function to process an update expression and modify the object. */
@@ -128,10 +140,16 @@ function updateDocuments(
   options?: Partial<Options> & { firstOnly?: boolean }
 ): { matchedCount: number; modifiedCount: number } {
   // apply options overrides
+  options ||= {};
+
   const firstOnly = options?.firstOnly ?? false;
-  const opts = ComputeOptions.init(options).update({
+  const opts = ComputeOptions.init({
+    ...options,
+    collation: Object.assign({}, options?.collation, updateConfig?.collation)
+  }).update({
     condition,
-    updateConfig: { cloneMode: "copy", ...updateConfig }
+    updateConfig: { cloneMode: "copy", ...updateConfig },
+    variables: updateConfig.let
   });
   opts.context
     .addExpressionOps(booleanOperators)

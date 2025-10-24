@@ -357,7 +357,7 @@ export function computeValue(
       : options;
 
   // ensure valid options exist on first invocation
-  return !!operator && isOperator(operator)
+  return isOperator(operator)
     ? computeOperator(obj, expr, operator, copts)
     : computeExpression(obj, expr, copts);
 }
@@ -433,7 +433,10 @@ function computeExpression(obj: Any, expr: Any, options: ComputeOptions): Any {
     for (const [key, val] of elems) {
       // if object represents an operator expression, there should only be a single key
       if (isOperator(key)) {
-        assert(elems.length == 1, "expression must have single operator.");
+        assert(
+          elems.length === 1,
+          `Expression must contain a single operator. got [${Object.keys(expr).join(",")}]`
+        );
         return computeOperator(obj, val, key, options);
       }
       result[key] = computeExpression(obj, val, options);
