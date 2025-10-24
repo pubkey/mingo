@@ -349,7 +349,7 @@ describe("updater", () => {
           { name: "Central Perk Cafe" },
           { $set: { violations: 3 } }
         )
-      ).toEqual({ matchedCount: 1, modifiedCount: 1 });
+      ).toEqual({ matchedCount: 1, modifiedCount: 1, fields: ["violations"] });
 
       expect(restaurants).toEqual([
         {
@@ -385,7 +385,7 @@ describe("updater", () => {
           { $set: { state: "inactive" } },
           { sort: { rating: 1 } }
         )
-      ).toEqual({ matchedCount: 1, modifiedCount: 1 });
+      ).toEqual({ matchedCount: 1, modifiedCount: 1, fields: ["state"] });
 
       expect(people).toEqual([
         { name: "Alice", state: "active", rating: 5 },
@@ -412,7 +412,7 @@ describe("updater", () => {
           {},
           { collation: { locale: "fr", strength: 1 } }
         )
-      ).toEqual({ matchedCount: 1, modifiedCount: 1 });
+      ).toEqual({ matchedCount: 1, modifiedCount: 1, fields: ["status"] });
 
       expect(items).toEqual([
         {
@@ -447,7 +447,7 @@ describe("updater", () => {
           { $set: { "grades.$[element]": 100 } },
           { arrayFilters: [{ element: { $gte: 100 } }] }
         )
-      ).toEqual({ matchedCount: 1, modifiedCount: 1 });
+      ).toEqual({ matchedCount: 1, modifiedCount: 1, fields: ["grades"] });
 
       expect(students).toEqual([
         { _id: 1, grades: [95, 92, 90] },
@@ -483,7 +483,7 @@ describe("updater", () => {
           { $set: { "grades.$[elem].mean": 100 } },
           { arrayFilters: [{ "elem.grade": { $gte: 85 } }] }
         )
-      ).toEqual({ matchedCount: 1, modifiedCount: 1 });
+      ).toEqual({ matchedCount: 1, modifiedCount: 1, fields: ["grades"] });
 
       expect(students).toEqual([
         {
@@ -546,7 +546,17 @@ describe("updater", () => {
           {},
           { variables: { now } }
         )
-      ).toEqual({ matchedCount: 1, modifiedCount: 1 });
+      ).toEqual({
+        matchedCount: 1,
+        modifiedCount: 1,
+        fields: [
+          "comments",
+          "commentsSemester1",
+          "commentsSemester2",
+          "lastUpdate",
+          "status"
+        ]
+      });
 
       expect(students).toEqual([
         {
@@ -622,7 +632,11 @@ describe("updater", () => {
         { ...DEFAULT_OPTS, variables: { now } }
       );
 
-      expect(res).toEqual({ matchedCount: 1, modifiedCount: 1 });
+      expect(res).toEqual({
+        matchedCount: 1,
+        modifiedCount: 1,
+        fields: ["average", "grade", "lastUpdate"]
+      });
 
       expect(students).toEqual([
         {

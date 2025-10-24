@@ -16,10 +16,22 @@ import { $sort } from "./operators/pipeline/sort";
 import { $unset } from "./operators/pipeline/unset";
 import * as queryOperators from "./operators/query";
 import * as UPDATE_OPERATORS from "./operators/update";
-import { buildParams, UpdateOperator } from "./operators/update/_internal";
+import {
+  buildParams,
+  Trie,
+  UpdateOperator
+} from "./operators/update/_internal";
 import { Query } from "./query";
 import { Any, AnyObject } from "./types";
-import { assert, hashCode, isArray } from "./util";
+import {
+  assert,
+  cloneDeep,
+  ensureArray,
+  hashCode,
+  isArray,
+  isEqual,
+  resolve
+} from "./util";
 
 // https://stackoverflow.com/questions/60872063/enforce-typescript-object-has-exactly-one-key-from-a-set
 /** Define maps to enforce a single key from a union. */
@@ -39,9 +51,27 @@ const PIPELINE_OPERATORS = {
   $replaceWith
 } as const;
 
+type StageName = keyof typeof PIPELINE_OPERATORS;
+// enum Stage {
+//   $addFields,
+//   $set,
+//   $project,
+//   $unset,
+//   $replaceRoot,
+//   $replaceWith,
+// }
+
+type PipelineStage =
+  | { $addFields: AnyObject }
+  | { $set: AnyObject }
+  | { $project: AnyObject }
+  | { $unset: string | string[] }
+  | { $replaceRoot: { newRoot: AnyObject } }
+  | { $replaceWith: AnyObject };
+
 export type UpdateExpression =
   | Partial<Record<keyof typeof UPDATE_OPERATORS, AnyObject>>
-  | OneKey<keyof typeof PIPELINE_OPERATORS, Any>[];
+  | PipelineStage[];
 
 export interface UpdateConfig {
   /** An array of filter documents that determine which array elements to modify for an update operation on an array field. */
@@ -132,13 +162,69 @@ export function createUpdater(defaultOptions?: Partial<Options>): Updater {
  */
 export const update = createUpdater();
 
+/**
+ * Updates all documents that match the specified filter for a collection.
+ *
+ * Supports both aggregation pipeline updates and standard update operators.
+ * Documents in the collection may be replaced or modified.
+ *
+ * @param documents - The array of documents to update.
+ * @param condition - The query condition to match documents.
+ * @param updateExpr - The update expression or aggregation pipeline stages.
+ * @param updateConfig - Optional update config parameters.
+ * @param options - Optional settings to control update behavior.
+ * @returns An object containing `matchedCount` and `modifiedCount`.
+ */
+export function updateMany(
+  documents: AnyObject[],
+  condition: AnyObject,
+  updateExpr: UpdateExpression,
+  updateConfig: UpdateConfig = {},
+  options?: Partial<Options>
+) {
+  return updateDocuments(
+    documents,
+    condition,
+    updateExpr,
+    updateConfig,
+    options
+  );
+}
+
+/**
+ * Updates a single document within the collection based on the filter.
+ *
+ * Supports both aggregation pipeline updates and standard update operators.
+ * Returns the number of documents matched and modified.
+ * Objects in the array may be modified inplace or replaced entirely.
+ *
+ * @param documents - The array of documents to update.
+ * @param condition - The query condition to match documents.
+ * @param updateExpr - The update expression or aggregation pipeline stages.
+ * @param updateConfig - Optional update config parameters.
+ * @param options - Optional settings to control update behavior.
+ * @returns An object containing `matchedCount` and `modifiedCount`.
+ */
+export function updateOne(
+  documents: AnyObject[],
+  condition: AnyObject,
+  updateExpr: UpdateExpression,
+  updateConfig: UpdateConfig = {},
+  options?: Partial<Options>
+) {
+  return updateDocuments(documents, condition, updateExpr, updateConfig, {
+    ...options,
+    firstOnly: true
+  });
+}
+
 function updateDocuments(
   documents: AnyObject[],
   condition: AnyObject,
   updateExpr: UpdateExpression,
   updateConfig: UpdateConfig = {},
   options?: Partial<Options> & { firstOnly?: boolean }
-): { matchedCount: number; modifiedCount: number } {
+): { matchedCount: number; modifiedCount: number; fields?: string[] } {
   // apply options overrides
   options ||= {};
 
@@ -204,11 +290,15 @@ function updateDocuments(
 
     // the number of documents hashed equals the number of matched documents.
     const matchedCount = hashes.length;
+    // store a copy of first only doc to track modified paths.
+    const oldFirstDoc = firstOnly
+      ? cloneDeep(documents[indexes[0]])
+      : undefined;
 
     // apply pipeline stages
     let resultIter = Lazy(foundDocs);
     for (const stage of updateExpr) {
-      const [op, expr] = Object.entries(stage)[0];
+      const [op, expr] = Object.entries(stage)[0] as [string, Any];
       const pipelineOp =
         PIPELINE_OPERATORS[op as keyof typeof PIPELINE_OPERATORS];
       resultIter = pipelineOp(resultIter, expr, opts);
@@ -239,7 +329,27 @@ function updateDocuments(
       }
     }
 
-    return { modifiedCount, matchedCount };
+    const fieldsObj: { fields?: string[] } = {};
+
+    // find all the updated fields if firstOnly.
+    if (firstOnly && modifiedCount) {
+      // NOTE: might be faster to start with '!isEqual(old,new)' in some cases. profiling needed.
+      const newDoc = documents[indexes[0]];
+      const fields = extractUpdatedFields(updateExpr, oldFirstDoc, newDoc);
+      if (fields.length) {
+        Object.assign(fieldsObj, { fields });
+      } else {
+        // no change detected
+        // NOTE: may want to do assert not equal here but the extraction routine is already much involved.
+        modifiedCount = 0;
+      }
+    }
+
+    return {
+      modifiedCount,
+      matchedCount,
+      ...fieldsObj
+    };
   }
 
   // validate operators
@@ -253,6 +363,8 @@ function updateDocuments(
     updateParams: buildParams(Object.values(updateExpr), arrayFilters, opts)
   });
 
+  const matchedCount = foundDocs.length;
+  const fieldsObj: { fields?: string[] } = {};
   let modifiedCount = 0;
 
   for (const doc of foundDocs) {
@@ -260,66 +372,77 @@ function updateDocuments(
     for (const [op, expr] of Object.entries(updateExpr)) {
       const mutate = UPDATE_OPERATORS[op] as UpdateOperator;
       const res = mutate(doc, expr, arrayFilters, opts);
-      if (!modified && res.length) modified = true;
+      if (!modified && res.length) {
+        modified = true;
+        if (firstOnly) {
+          Object.assign(fieldsObj, {
+            fields: (fieldsObj?.fields ?? []).concat(res)
+          });
+        }
+      }
     }
+    // sort the fields if a change was found.
+    if (firstOnly && modified) fieldsObj?.fields?.sort();
+
     modifiedCount += +modified;
   }
 
-  return { matchedCount: foundDocs.length, modifiedCount };
+  return {
+    modifiedCount,
+    matchedCount,
+    ...fieldsObj
+  };
 }
 
-/**
- * Updates all documents that match the specified filter for a collection.
- *
- * Supports both aggregation pipeline updates and standard update operators.
- * Documents in the collection may be replaced or modified.
- *
- * @param documents - The array of documents to update.
- * @param condition - The query condition to match documents.
- * @param updateExpr - The update expression or aggregation pipeline stages.
- * @param updateConfig - Optional update config parameters.
- * @param options - Optional settings to control update behavior.
- * @returns An object containing `matchedCount` and `modifiedCount`.
- */
-export function updateMany(
-  documents: AnyObject[],
-  condition: AnyObject,
-  updateExpr: UpdateExpression,
-  updateConfig: UpdateConfig = {},
-  options?: Partial<Options>
-) {
-  return updateDocuments(
-    documents,
-    condition,
-    updateExpr,
-    updateConfig,
-    options
-  );
-}
-
-/**
- * Updates a single document within the collection based on the filter.
- *
- * Supports both aggregation pipeline updates and standard update operators.
- * Returns the number of documents matched and modified.
- * Objects in the array may be modified inplace or replaced entirely.
- *
- * @param documents - The array of documents to update.
- * @param condition - The query condition to match documents.
- * @param updateExpr - The update expression or aggregation pipeline stages.
- * @param updateConfig - Optional update config parameters.
- * @param options - Optional settings to control update behavior.
- * @returns An object containing `matchedCount` and `modifiedCount`.
- */
-export function updateOne(
-  documents: AnyObject[],
-  condition: AnyObject,
-  updateExpr: UpdateExpression,
-  updateConfig: UpdateConfig = {},
-  options?: Partial<Options>
-) {
-  return updateDocuments(documents, condition, updateExpr, updateConfig, {
-    ...options,
-    firstOnly: true
-  });
+/** Extracts fields added, changed, or deleted between the old and new document. */
+function extractUpdatedFields(
+  pipeline: PipelineStage[],
+  oldDoc: AnyObject,
+  newDoc: AnyObject
+): string[] {
+  const stageFields: string[] = [];
+  for (const stage of pipeline) {
+    const op = Object.keys(stage)[0] as StageName;
+    switch (op) {
+      case "$addFields":
+      case "$set":
+      case "$project":
+      case "$replaceWith":
+        stageFields.push(...Object.keys(stage[op] as AnyObject));
+        break;
+      case "$unset":
+        stageFields.push(...ensureArray(stage[op] as string[]));
+        break;
+      case "$replaceRoot":
+        stageFields.push(
+          ...Object.keys((stage[op] as { newRoot: AnyObject })?.newRoot || [])
+        );
+        break;
+    }
+  }
+  const stageFieldsSet = new Set(stageFields.sort());
+  const stageConflictDetector = new Trie();
+  const updatedStageFields: string[] = [];
+  for (const key of stageFieldsSet) {
+    if (
+      stageConflictDetector.add(key) &&
+      !isEqual(resolve(newDoc, key), resolve(oldDoc, key))
+    ) {
+      updatedStageFields.push(key);
+    }
+  }
+  // for all top-level keys in oldDoc not in stage fields conflict, add to the updated fields.
+  // this addresses cases where the entire object is replaced.
+  for (const key of Object.keys(oldDoc)) {
+    if (stageFieldsSet.has(key)) continue;
+    if (!stageConflictDetector.add(key) || !isEqual(newDoc[key], oldDoc[key])) {
+      // (1) conflict detected because child keys already exiss.
+      //     since we don't know the state of sibling fields we must replace with top-level field instead.
+      // (2) no conflict so we must check values and key only if not equal.
+      updatedStageFields.push(key);
+    }
+  }
+  // sort the final list and pick only the parent key paths.
+  const topLevelFilter = new Trie();
+  return updatedStageFields.sort().filter(key => topLevelFilter.add(key));
 }

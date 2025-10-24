@@ -203,10 +203,7 @@ export function typeOf(v: Any): string {
   if (isDate(v)) return "date";
   if (isRegExp(v)) return "regexp";
   // native objects and custom types
-  const s = Object.prototype.toString.call(v) as string;
-  return s === "[object Object]"
-    ? (v?.constructor?.name?.toLowerCase() ?? "object")
-    : s.slice(8, -1).toLowerCase();
+  return v?.constructor?.name?.toLowerCase() ?? "object";
 }
 export const isBoolean = (v: Any): v is boolean => typeof v === "boolean";
 export const isString = (v: Any): v is string => typeof v === "string";
