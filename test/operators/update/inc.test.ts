@@ -1,5 +1,6 @@
+import { update } from "../../../src";
 import { $inc } from "../../../src/operators/update";
-import { testPath, update } from "../../support";
+import { testPath } from "../../support";
 
 describe(testPath(__filename), () => {
   it("should set field to current date", () => {

@@ -1,5 +1,22 @@
 # Changelog
 
+## 7.0.0 / pending
+
+**New**
+
+- Added support for positional project operator `.$`.
+- Added support for positional update operator `$`.
+- Added support for `updateOne` and `updateMany` functions with all related config.
+- Support multiple update operations in expression. Closes [#570](https://github.com/kofrasa/mingo/issues/570)
+
+**Removed**
+
+- `initOptions` function. Use plain object initializers.
+- `useOperators` function in `mingo/core`. Replaced with `Context`.
+- `getOperator` function in `mingo/core`. Replaced with `Context`.
+- `createUpdater` function in `mingo/updater`. No longer supported.
+- `mingo/init/{basic,system}` modules.
+
 ## 6.7.2 / 2025-10-24
 
 **Fixes**

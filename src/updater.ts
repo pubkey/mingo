@@ -58,9 +58,7 @@ type PipelineStage =
   | { $replaceRoot: { newRoot: AnyObject } }
   | { $replaceWith: AnyObject };
 
-export type UpdateExpression =
-  | Partial<Record<UpdateOp, AnyObject>>
-  | PipelineStage[];
+type UpdateExpression = Partial<Record<UpdateOp, AnyObject>>;
 
 export interface UpdateConfig {
   /** An array of filter documents that determine which array elements to modify for an update operation on an array field. */
@@ -79,7 +77,7 @@ export interface UpdateConfig {
  * Updates the given object with the expression.
  *
  * @param obj The object to update.
- * @param expr The update expressions.
+ * @param updateExpr The update expressions.
  * @param arrayFilters Filters to apply to nested items.
  * @param conditions Conditions to validate before performing update.
  * @param options Update options to override defaults.
@@ -87,7 +85,7 @@ export interface UpdateConfig {
  */
 export function update(
   obj: AnyObject,
-  updateExpr: Partial<Record<UpdateOp, AnyObject>>,
+  updateExpr: UpdateExpression,
   arrayFilters?: AnyObject[],
   condition?: AnyObject,
   options?: {
@@ -123,7 +121,7 @@ export function update(
 export function updateMany(
   documents: AnyObject[],
   condition: AnyObject,
-  updateExpr: UpdateExpression,
+  updateExpr: UpdateExpression | PipelineStage[],
   updateConfig: UpdateConfig = {},
   options?: Partial<Options>
 ) {
@@ -153,7 +151,7 @@ export function updateMany(
 export function updateOne(
   documents: AnyObject[],
   condition: AnyObject,
-  updateExpr: UpdateExpression,
+  updateExpr: UpdateExpression | PipelineStage[],
   updateConfig: UpdateConfig = {},
   options?: Partial<Options>
 ) {
@@ -166,7 +164,7 @@ export function updateOne(
 function updateDocuments(
   documents: AnyObject[],
   condition: AnyObject,
-  updateExpr: UpdateExpression,
+  updateExpr: UpdateExpression | PipelineStage[],
   updateConfig: UpdateConfig = {},
   options?: Partial<Options> & { firstOnly?: boolean }
 ): { matchedCount: number; modifiedCount: number; fields?: string[] } {

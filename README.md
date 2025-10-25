@@ -258,7 +258,7 @@ const util = require("mingo/util");
 ### Custom Operator Examples
 
 ```js
-// this example creates a query operator that checks is a value is between a boundary.
+// this example creates a query operator that checks if a value is between a boundary.
 const $between = (selector, args, options) => {
   return obj => {
     const value = util.resolve(obj, selector, { unwrapArray: true });
@@ -290,11 +290,7 @@ console.log(result); // output => [ { a: 7, b: 1 }, { a: 10, b: 6 } ]
 
 ## Updating Documents
 
-An update operation can be performed using the `update` function from the `mingo/updater` module. Unlike other operations in the library, this only works on a single object.
-The query and aggregation operators are powerful enough to use for transforming arrays of documents and should be preferred when dealing with multiple objects.
-`update` returns an array of all paths that were updated. It also supports [arrayFilters](https://www.mongodb.com/docs/manual/release-notes/3.6/#std-label-3.6-arrayFilters) for applicable operators. To detect whether a change occurred you can check the length of the returned array.
-
-All operators as of MongoDB 5.0 are supported except the positional array operator `$`.
+From `7.0.0` you can use `updateOne` and `updateMany` functions to update collections. These work similarly to the methods of the same name on MongoDB collections. An older function `update`, also exists as a convenience with a slightly different API. For more flexibility such as using pipeline operators to update documents, prefer the `updateOne` and `updateMany` functions.
 
 ### Examples
 
@@ -322,27 +318,6 @@ update(obj, { $set: { "friends.$[e]": "Velma" } }, [{ e: null }]); // ["friends"
 update(obj, { $set: { firstName: "Bob" } }); // [] => no change to object.
 ```
 
-You can also create a preconfigured updater function.
-
-```ts
-import { createUpdater } from "mingo/updater";
-
-// configure updater to deep clone passed values. clone mode defaults to "copy".
-const updateState = createUpdater({ cloneMode: "deep" });
-
-const state = { people: ["Fred", "John"] };
-const newPeople = ["Amy", "Mark"];
-
-console.log(state.people); // ["Fred", "John"]
-
-updateState(state, { $set: { people: newPeople } });
-
-newPeople.push("Jason");
-
-console.log(state.people); // ["Amy", "Mark"]
-console.log(newPeople); // ["Amy", "Mark", "Jason"]
-```
-
 ## Differences from MongoDB
 
 Below is a description of how this library differs from the full MongoDB query engine.
@@ -351,9 +326,8 @@ Below is a description of how this library differs from the full MongoDB query e
 1. Support a single numeric type `number`.
 1. Does not support [types](https://www.mongodb.com/docs/manual/reference/operator/aggregation/type/#available-types) `"minKey"`, `"maxKey"`, `"timestamp"`, or `"binData"`.
 1. Does not support server specific operators. E.g. `$collStat`, `$planCacheStats`, `$listSessions`.
-1. Does not support geometry query operators.
+1. Does not support geometry operators.
 1. Does not support query operators dependent on persistent storage; `$comment`, `$meta`, `$text`.
-1. Does not support positional update operator `$`.
 1. Does not support server specific expression operators; `$toObjectId`, `$binarySize`, `bsonSize`.
 1. Aggregation pipeline operator `$merge` enforces unique constraint on the lookup field during input processing.
 1. Custom function evaluation operators; `$where`, `$function`, and `$accumulator`, do not accept strings as the function body.
