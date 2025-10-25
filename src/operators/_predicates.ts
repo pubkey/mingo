@@ -33,8 +33,6 @@ import {
   typeOf
 } from "../util";
 
-type PredicateOptions = ComputeOptions;
-
 type ConversionType = number | Exclude<JsType, "function"> | BsonType;
 
 export function processQuery(
@@ -70,7 +68,7 @@ export function processExpression(
  * @param b         The rhs operand provided by the user
  * @returns {*}
  */
-export function $eq(a: Any, b: Any, options?: PredicateOptions): boolean {
+export function $eq(a: Any, b: Any, options?: ComputeOptions): boolean {
   // start with simple equality check
   if (isEqual(a, b)) return true;
 
@@ -95,7 +93,7 @@ export function $eq(a: Any, b: Any, options?: PredicateOptions): boolean {
  * @param b
  * @returns {boolean}
  */
-export function $ne(a: Any, b: Any, options?: PredicateOptions): boolean {
+export function $ne(a: Any, b: Any, options?: ComputeOptions): boolean {
   return !$eq(a, b, options);
 }
 
@@ -106,7 +104,7 @@ export function $ne(a: Any, b: Any, options?: PredicateOptions): boolean {
  * @param b
  * @returns {*}
  */
-export function $in(a: Any[], b: Any[], options?: PredicateOptions): boolean {
+export function $in(a: Any[], b: Any[], options?: ComputeOptions): boolean {
   // queries for null should be able to find undefined fields
   if (isNil(a)) return b.some(v => v === null);
 
@@ -120,7 +118,7 @@ export function $in(a: Any[], b: Any[], options?: PredicateOptions): boolean {
  * @param b
  * @returns {*|boolean}
  */
-export function $nin(a: Any[], b: Any[], options?: PredicateOptions): boolean {
+export function $nin(a: Any[], b: Any[], options?: ComputeOptions): boolean {
   return !$in(a, b, options);
 }
 
@@ -131,7 +129,7 @@ export function $nin(a: Any[], b: Any[], options?: PredicateOptions): boolean {
  * @param b
  * @returns {boolean}
  */
-export function $lt(a: Any, b: Any, _options?: PredicateOptions): boolean {
+export function $lt(a: Any, b: Any, _options?: ComputeOptions): boolean {
   return compare(a, b, (x: Any, y: Any) => mingoCmp(x, y) < 0);
 }
 
@@ -142,7 +140,7 @@ export function $lt(a: Any, b: Any, _options?: PredicateOptions): boolean {
  * @param b
  * @returns {boolean}
  */
-export function $lte(a: Any, b: Any, _options?: PredicateOptions): boolean {
+export function $lte(a: Any, b: Any, _options?: ComputeOptions): boolean {
   return compare(a, b, (x: Any, y: Any) => mingoCmp(x, y) <= 0);
 }
 
@@ -153,7 +151,7 @@ export function $lte(a: Any, b: Any, _options?: PredicateOptions): boolean {
  * @param b
  * @returns {boolean}
  */
-export function $gt(a: Any, b: Any, _options?: PredicateOptions): boolean {
+export function $gt(a: Any, b: Any, _options?: ComputeOptions): boolean {
   return compare(a, b, (x: Any, y: Any) => mingoCmp(x, y) > 0);
 }
 
@@ -164,7 +162,7 @@ export function $gt(a: Any, b: Any, _options?: PredicateOptions): boolean {
  * @param b
  * @returns {boolean}
  */
-export function $gte(a: Any, b: Any, _options?: PredicateOptions): boolean {
+export function $gte(a: Any, b: Any, _options?: ComputeOptions): boolean {
   return compare(a, b, (x: Any, y: Any) => mingoCmp(x, y) >= 0);
 }
 
@@ -175,11 +173,7 @@ export function $gte(a: Any, b: Any, _options?: PredicateOptions): boolean {
  * @param b
  * @returns {boolean}
  */
-export function $mod(
-  a: Any,
-  b: number[],
-  _options?: PredicateOptions
-): boolean {
+export function $mod(a: Any, b: number[], _options?: ComputeOptions): boolean {
   return ensureArray(a).some(
     ((x: number) => b.length === 2 && x % b[0] === b[1]) as Callback
   );
@@ -192,7 +186,7 @@ export function $mod(
  * @param b
  * @returns {boolean}
  */
-export function $regex(a: Any, b: RegExp, options?: PredicateOptions): boolean {
+export function $regex(a: Any, b: RegExp, options?: ComputeOptions): boolean {
   const lhs = ensureArray(a) as string[];
   const match = (x: string) =>
     isString(x) && truthy(b.exec(x), options?.useStrictMode);
@@ -209,7 +203,7 @@ export function $regex(a: Any, b: RegExp, options?: PredicateOptions): boolean {
 export function $all(
   values: Any[],
   queries: AnyObject[],
-  options?: PredicateOptions
+  options?: ComputeOptions
 ): boolean {
   if (
     !isArray(values) ||
@@ -242,11 +236,7 @@ export function $all(
  * @param b
  * @returns {*|boolean}
  */
-export function $size(
-  a: Any[],
-  b: number,
-  _options?: PredicateOptions
-): boolean {
+export function $size(a: Any[], b: number, _options?: ComputeOptions): boolean {
   return Array.isArray(a) && a.length === b;
 }
 
@@ -263,7 +253,7 @@ function isNonBooleanOperator(name: string): boolean {
 export function $elemMatch(
   a: Any[],
   b: AnyObject,
-  options?: PredicateOptions
+  options?: ComputeOptions
 ): boolean {
   // should return false for non-matching input
   if (isArray(a) && !isEmpty(a)) {
@@ -331,7 +321,7 @@ const compareFuncs: Record<ConversionType, Predicate<Any>> = {
  * @param b
  * @returns {boolean}
  */
-function compareType(a: Any, b: ConversionType, _?: PredicateOptions): boolean {
+function compareType(a: Any, b: ConversionType, _?: ComputeOptions): boolean {
   const f = compareFuncs[b];
   return f ? f(a) : false;
 }
@@ -346,7 +336,7 @@ function compareType(a: Any, b: ConversionType, _?: PredicateOptions): boolean {
 export function $type(
   a: Any,
   b: ConversionType | ConversionType[],
-  options?: PredicateOptions
+  options?: ComputeOptions
 ): boolean {
   return isArray(b)
     ? b.findIndex(t => compareType(a, t, options)) >= 0

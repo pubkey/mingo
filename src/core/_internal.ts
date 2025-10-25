@@ -249,12 +249,13 @@ type Operator =
   | QueryOperator
   | WindowOperator;
 
-type AccumulatorOps = Record<string, AccumulatorOperator>;
-type ExpressionOps = Record<string, ExpressionOperator>;
-type ProjectionOps = Record<string, ProjectionOperator>;
-type QueryOps = Record<string, QueryOperator>;
-type PipelineOps = Record<string, PipelineOperator>;
-type WindowOps = Record<string, WindowOperator>;
+export type OperatorName = `$${string}`;
+export type AccumulatorOps = Record<OperatorName, AccumulatorOperator>;
+export type ExpressionOps = Record<OperatorName, ExpressionOperator>;
+export type ProjectionOps = Record<OperatorName, ProjectionOperator>;
+export type QueryOps = Record<OperatorName, QueryOperator>;
+export type PipelineOps = Record<OperatorName, PipelineOperator>;
+export type WindowOps = Record<OperatorName, WindowOperator>;
 
 export class Context {
   #operators = new Map<OpType, Record<string, Operator>>(

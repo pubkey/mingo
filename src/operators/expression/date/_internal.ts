@@ -2,16 +2,15 @@ import { computeValue, Options } from "../../../core/_internal";
 import { Any, TimeUnit } from "../../../types";
 import { assert, isDate, isNil, isNumber } from "../../../util";
 
-const ISO_WEEKDAYS = [
-  "mon" /*ignore by using .lastIndexOf()*/,
-  "mon",
-  "tue",
-  "wed",
-  "thu",
-  "fri",
-  "sat",
-  "sun"
-] as const;
+const ISO_WEEKDAYS = {
+  mon: 1,
+  tue: 2,
+  wed: 3,
+  thu: 4,
+  fri: 5,
+  sat: 6,
+  sun: 7
+} as const;
 
 export type DayOfWeek =
   | "monday"
@@ -21,7 +20,7 @@ export type DayOfWeek =
   | "friday"
   | "saturday"
   | "sunday"
-  | (typeof ISO_WEEKDAYS)[number];
+  | keyof typeof ISO_WEEKDAYS;
 
 export const LEAP_YEAR_REF_POINT = -1000000000;
 export const DAYS_PER_WEEK = 7;
@@ -44,8 +43,8 @@ export const isoWeekday = (date: Date, startOfWeek: DayOfWeek): number => {
   const dow = date.getUTCDay() || 7;
   const name = (startOfWeek as string)
     .toLowerCase()
-    .substring(0, 3) as (typeof ISO_WEEKDAYS)[number];
-  return (dow - ISO_WEEKDAYS.lastIndexOf(name) + DAYS_PER_WEEK) % DAYS_PER_WEEK;
+    .substring(0, 3) as keyof typeof ISO_WEEKDAYS;
+  return (dow - ISO_WEEKDAYS[name] + DAYS_PER_WEEK) % DAYS_PER_WEEK;
 };
 
 // https://en.wikipedia.org/wiki/ISO_week_date

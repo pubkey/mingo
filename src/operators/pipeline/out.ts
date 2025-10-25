@@ -1,6 +1,6 @@
-import { Options, PipelineOperator } from "../../core/_internal";
+import type { Options, PipelineOperator } from "../../core/_internal";
 import { Iterator } from "../../lazy";
-import { AnyObject } from "../../types";
+import type { AnyObject } from "../../types";
 import { assert, cloneDeep, isArray, isString } from "../../util";
 
 /**
@@ -9,7 +9,7 @@ import { assert, cloneDeep, isArray, isString } from "../../util";
  * Unlike in MongoDB, this operator can appear in any position in the pipeline and is
  * useful for collecting intermediate results of an aggregation operation.
  *
- * Note: Object are deep cloned for output regardless of the {@link ProcessingMode}.
+ * Note: Object are deep cloned for output regardless of the processing mode.
  *
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/out/ usage}.
  *

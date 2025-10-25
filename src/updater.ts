@@ -17,7 +17,7 @@ import {
   $unset
 } from "./operators/pipeline";
 import * as queryOperators from "./operators/query";
-import * as updateOperators from "./operators/update";
+import * as UPDATE_OPERATORS from "./operators/update";
 import {
   buildParams,
   Trie,
@@ -35,10 +35,6 @@ import {
   resolve
 } from "./util";
 
-// using const assignment to get around eslint 'import/namespace' error.
-const UPDATE_OPERATORS = updateOperators;
-type UpdateOp = keyof typeof UPDATE_OPERATORS;
-
 const PIPELINE_OPERATORS = {
   $addFields,
   $set,
@@ -50,7 +46,7 @@ const PIPELINE_OPERATORS = {
 
 type StageName = keyof typeof PIPELINE_OPERATORS;
 
-type PipelineStage =
+export type PipelineStage =
   | { $addFields: AnyObject }
   | { $set: AnyObject }
   | { $project: AnyObject }
@@ -58,7 +54,9 @@ type PipelineStage =
   | { $replaceRoot: { newRoot: AnyObject } }
   | { $replaceWith: AnyObject };
 
-type UpdateExpression = Partial<Record<UpdateOp, AnyObject>>;
+export type UpdateExpression = Partial<
+  Record<keyof typeof UPDATE_OPERATORS, AnyObject>
+>;
 
 export interface UpdateConfig {
   /** An array of filter documents that determine which array elements to modify for an update operation on an array field. */
@@ -79,7 +77,7 @@ export interface UpdateConfig {
  * @param obj The object to update.
  * @param updateExpr The update expressions.
  * @param arrayFilters Filters to apply to nested items.
- * @param conditions Conditions to validate before performing update.
+ * @param condition Conditions to validate before performing update.
  * @param options Update options to override defaults.
  * @returns {string[]} A list of modified field paths in the object.
  */
@@ -308,6 +306,7 @@ function updateDocuments(
   }
 
   // USING UPDATE OPERATORS
+  /*eslint import/namespace: ['error', { allowComputed: true }]*/
 
   // validated operators
   const unknownOp = Object.keys(updateExpr).find(op => !UPDATE_OPERATORS[op]);

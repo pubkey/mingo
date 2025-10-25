@@ -1,17 +1,23 @@
 export {
   AccumulatorOperator,
+  AccumulatorOps,
   CloneMode,
   CollationSpec,
   CollectionResolver,
   computeValue,
   Context,
   ExpressionOperator,
+  ExpressionOps,
   JsonSchemaValidator,
   Options,
   OpType,
   PipelineOperator,
+  PipelineOps,
   ProcessingMode,
   ProjectionOperator,
+  ProjectionOps,
   QueryOperator,
-  WindowOperator
+  QueryOps,
+  WindowOperator,
+  WindowOps
 } from "./_internal";

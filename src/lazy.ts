@@ -12,11 +12,11 @@ export interface IteratorResult<T = Any> {
 /**
  * Represents a stream interface that provides a method to retrieve the next item in a sequence.
  */
-interface Stream {
+export interface Generator {
   next: () => IteratorResult;
 }
 
-export type Source = Stream | Callback<IteratorResult> | Iterable<Any>;
+export type Source = Generator | Callback<IteratorResult> | Iterable<Any>;
 
 /**
  * Creates a lazy iterator from the given source.
@@ -35,11 +35,11 @@ export function concat(...iterators: Iterator[]): Iterator {
   let index = 0;
   return Lazy(() => {
     while (index < iterators.length) {
-      const o = iterators[index].next();
+      const o = iterators[index].next<Any>();
       if (!o.done) return o;
       index++;
     }
-    return { done: true };
+    return { done: true, value: undefined };
   });
 }
 
@@ -76,10 +76,10 @@ export class Iterator {
   #done = false;
 
   constructor(source: Source) {
-    const iter: Stream = isIterable(source)
-      ? ((source as Iterable<Any>)[Symbol.iterator]() as Stream)
+    const iter: Generator = isIterable(source)
+      ? ((source as Iterable<Any>)[Symbol.iterator]() as Generator)
       : isGenerator(source)
-        ? (source as Stream)
+        ? (source as Generator)
         : typeof source === "function"
           ? { next: source }
           : null;
