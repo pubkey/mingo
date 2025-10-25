@@ -162,13 +162,13 @@ export class Iterator {
    * Returns a new lazy object with results of the transformation
    * The entire sequence is realized.
    *
-   * @param {Callback<Source, Any[]>} fn Tranform function of type (Array) => (Any)
+   * @param {Callback<Source, Any[]>} f Tranform function of type (Array) => (Any)
    */
-  transform(fn: Callback<Source, Any[]>): Iterator {
+  transform(f: Callback<Source, Any[]>): Iterator {
     const self = this;
     let iter: Iterator;
     return Lazy(() => {
-      if (!iter) iter = Lazy(fn(self.value()));
+      if (!iter) iter = Lazy(f(self.collect()));
       return iter.next();
     });
   }
@@ -178,7 +178,7 @@ export class Iterator {
    * This method processes the underlying iterator until it is exhausted, storing the results
    * in an internal buffer to ensure subsequent calls return the same data.
    */
-  value<T>(): T[] {
+  collect<T>(): T[] {
     while (!this.#done) {
       const { done, value } = this.#getNext();
       if (!done) this.#buffer.push(value);
@@ -224,13 +224,11 @@ export class Iterator {
   }
 
   /**
-   * Returns the number of matched items in the sequence
+   * Returns the number of matched items in the sequence.
+   * The stream is realized and buffered for later retrieval with {@link collect}.
    */
   size(): number {
-    return this.reduce(
-      ((acc: number, _: number) => ++acc) as Callback<number>,
-      0
-    );
+    return this.collect().length;
   }
 
   [Symbol.iterator](): Iterator {

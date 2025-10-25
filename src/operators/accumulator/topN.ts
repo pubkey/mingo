@@ -37,6 +37,6 @@ export const $topN: AccumulatorOperator<Any[]> = (
     copts
   ) as Pick<InputExpr, "n" | "sortBy">;
 
-  const result = $sort(Lazy(collection), sortBy, options).take(n).value();
+  const result = $sort(Lazy(collection), sortBy, options).take(n).collect();
   return $push(result, expr.output, copts);
 };

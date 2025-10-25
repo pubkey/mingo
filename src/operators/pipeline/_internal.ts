@@ -12,7 +12,7 @@ export function filterDocumentsStage(
   const docs = !!pipeline && pipeline[0]?.$documents;
   if (!docs) return { pipeline };
   return {
-    documents: $documents(null, docs, options).value(),
+    documents: $documents(null, docs, options).collect(),
     pipeline: pipeline.slice(1)
   };
 }

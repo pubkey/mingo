@@ -89,6 +89,6 @@ export class AggregatorImpl {
    * @returns An array of objects of type `T` resulting from the aggregation.
    */
   run<T extends AnyObject>(collection: Source, options?: Options): T[] {
-    return this.stream(collection, options).value();
+    return this.stream(collection, options).collect();
   }
 }

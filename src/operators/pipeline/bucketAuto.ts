@@ -98,7 +98,7 @@ export const $bucketAuto: PipelineOperator = (
       setKey(o, k ?? null);
       return [k ?? null, o];
     })
-    .value();
+    .collect();
 
   sorted.sort((x, y) => {
     if (isNil(x[0])) return -1;

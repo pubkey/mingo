@@ -219,11 +219,11 @@ function updateDocuments(
     }
     docsIter = docsIter.take(1);
     const m = filterExists ? matchedDocs : indexes;
-    firstOnlyIndex = m.get(docsIter.value<AnyObject>()[0]) ?? 0;
+    firstOnlyIndex = m.get(docsIter.collect<AnyObject>()[0]) ?? 0;
   }
 
   // docs to update
-  const foundDocs = docsIter.value<AnyObject>();
+  const foundDocs = docsIter.collect<AnyObject>();
   if (foundDocs.length === 0) return { matchedCount: 0, modifiedCount: 0 };
 
   // USING AGGREGATION PIPELINE OPERATORS
@@ -257,7 +257,7 @@ function updateDocuments(
       resultIter = pipelineOp(resultIter, expr, opts);
     }
 
-    const result = resultIter.value<AnyObject>();
+    const result = resultIter.collect<AnyObject>();
     let modifiedCount = 0;
 
     // update only modified indexes if documents were filtered

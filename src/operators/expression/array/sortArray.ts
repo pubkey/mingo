@@ -30,7 +30,7 @@ export const $sortArray: ExpressionOperator = (
   assert(isArray(input), "$sortArray expression must resolve to an array");
 
   if (isObject(sortBy)) {
-    return $sort(Lazy(input), sortBy, options).value();
+    return $sort(Lazy(input), sortBy, options).collect();
   }
 
   const result = [...input];

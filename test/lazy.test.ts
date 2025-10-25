@@ -28,22 +28,22 @@ describe("lazy", () => {
   it("can map", () => {
     const result = Lazy(data)
       .map(n => (n as number) * 3)
-      .value();
+      .collect();
     expect(result).toStrictEqual([3, 6, 9, 12, 15, 18, 21, 24, 27]);
   });
 
   it("can filter", () => {
-    const result = Lazy(data).filter(isEven).value();
+    const result = Lazy(data).filter(isEven).collect();
     expect(result).toStrictEqual([2, 4, 6, 8]);
   });
 
   it("can skip with number", () => {
-    const result = Lazy(data).drop(3).value();
+    const result = Lazy(data).drop(3).collect();
     expect(result).toStrictEqual([4, 5, 6, 7, 8, 9]);
   });
 
   it("can take with number", () => {
-    const result = Lazy(data).take(3).value();
+    const result = Lazy(data).take(3).collect();
     expect(result).toStrictEqual([1, 2, 3]);
   });
 

@@ -81,7 +81,7 @@ export const $graphLookup: PipelineOperator = (
           options
         )
           .map(o => o[asField] as AnyObject)
-          .value()
+          .collect()
       ) as AnyObject[];
       const oldSize = map.size;
       matches.forEach(k => map.set(k, map.get(k) ?? i));

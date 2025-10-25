@@ -31,7 +31,7 @@ export const $bottomN: AccumulatorOperator<Any[]> = (
 ): Any[] => {
   const copts = options as ComputeOptions;
   const n = computeValue(copts?.local?.groupId, expr.n, null, copts) as number;
-  const result = $sort(Lazy(collection), expr.sortBy, options).value();
+  const result = $sort(Lazy(collection), expr.sortBy, options).collect();
   const m = result.length;
   return $push(m <= n ? result : result.slice(m - n), expr.output, copts);
 };

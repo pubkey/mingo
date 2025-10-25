@@ -95,7 +95,7 @@ export class Cursor<T> {
    * @returns {Array}
    */
   all(): T[] {
-    return this.fetchAll().value();
+    return this.fetchAll().collect();
   }
 
   /**
