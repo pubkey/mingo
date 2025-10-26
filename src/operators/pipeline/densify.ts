@@ -1,6 +1,6 @@
 import { Options, PipelineOperator } from "../../core/_internal";
 import { concat, Iterator, IteratorResult, Lazy } from "../../lazy";
-import { AnyObject, TIME_UNITS, TimeUnit } from "../../types";
+import { AnyObject } from "../../types";
 import {
   assert,
   HashMap,
@@ -12,6 +12,7 @@ import {
   isString,
   resolve
 } from "../../util";
+import { TIME_UNITS, TimeUnit } from "../expression/date/_internal";
 import { $dateAdd } from "../expression/date/dateAdd";
 import { $sort } from "./sort";
 

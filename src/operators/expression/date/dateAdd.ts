@@ -3,8 +3,8 @@ import {
   ExpressionOperator,
   Options
 } from "../../../core/_internal";
-import { Any, AnyObject, TimeUnit } from "../../../types";
-import { dateAdd } from "./_internal";
+import { Any, AnyObject } from "../../../types";
+import { dateAdd, TimeUnit } from "./_internal";
 
 /**
  * Increments a Date object by a specified number of time units.

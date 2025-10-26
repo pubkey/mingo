@@ -1,6 +1,21 @@
 import { computeValue, Options } from "../../../core/_internal";
-import { Any, TimeUnit } from "../../../types";
+import { Any } from "../../../types";
 import { assert, isDate, isNil, isNumber } from "../../../util";
+
+export const TIME_UNITS = [
+  "year",
+  "quarter",
+  "month",
+  "week",
+  "day",
+  "hour",
+  "minute",
+  "second",
+  "millisecond"
+] as const;
+
+/** Time unit for datetime periods */
+export type TimeUnit = (typeof TIME_UNITS)[number];
 
 const ISO_WEEKDAYS = {
   mon: 1,

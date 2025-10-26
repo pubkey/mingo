@@ -1,7 +1,8 @@
 import type { Options } from "../../core/_internal";
-import type { Any, AnyObject, Callback, TimeUnit } from "../../types";
+import type { Any, AnyObject, Callback } from "../../types";
 import { groupBy } from "../../util";
 import { $push } from "../accumulator/push";
+import { TimeUnit } from "../expression/date/_internal";
 
 // Window operator types.
 export type Boundary = "current" | "unbounded" | number;

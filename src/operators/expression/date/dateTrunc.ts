@@ -3,7 +3,7 @@ import {
   ExpressionOperator,
   Options
 } from "../../../core/_internal";
-import { AnyObject, TIME_UNITS, TimeUnit } from "../../../types";
+import { AnyObject } from "../../../types";
 import { assert, isDate, isNil } from "../../../util";
 import {
   adjustDate,
@@ -17,6 +17,8 @@ import {
   DAYS_PER_WEEK,
   isoWeekday,
   parseTimezone,
+  TIME_UNITS,
+  TimeUnit,
   TIMEUNIT_IN_MILLIS
 } from "./_internal";
 

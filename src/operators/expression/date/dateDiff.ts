@@ -3,7 +3,7 @@ import {
   ExpressionOperator,
   Options
 } from "../../../core/_internal";
-import { Any, AnyObject, TimeUnit } from "../../../types";
+import { Any, AnyObject } from "../../../types";
 import {
   adjustDate,
   dateDiffDay,
@@ -14,6 +14,7 @@ import {
   dateDiffYear,
   DayOfWeek,
   parseTimezone,
+  TimeUnit,
   TIMEUNIT_IN_MILLIS
 } from "./_internal";
 

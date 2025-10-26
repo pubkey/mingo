@@ -48,18 +48,3 @@ export type BsonType =
   | "double"
   | "decimal"
   | "regex";
-
-export const TIME_UNITS = [
-  "year",
-  "quarter",
-  "month",
-  "week",
-  "day",
-  "hour",
-  "minute",
-  "second",
-  "millisecond"
-] as const;
-
-/** Time unit for datetime periods */
-export type TimeUnit = (typeof TIME_UNITS)[number];
