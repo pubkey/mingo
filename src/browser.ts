@@ -1,19 +1,14 @@
-import { Aggregator } from "../src/aggregator";
-import {
-  CloneMode,
-  ComputeOptions,
-  Context,
-  Options
-} from "../src/core/_internal";
-import { Cursor } from "../src/cursor";
-import fullContext from "../src/init/context";
-import { Source } from "../src/lazy";
-import { QueryImpl } from "../src/query/_internal";
-import { AnyObject } from "../src/types";
-import * as updater from "../src/updater";
+import { Aggregator } from "./aggregator";
+import { CloneMode, ComputeOptions, Context, Options } from "./core/_internal";
+import { Cursor } from "./cursor";
+import fullContext from "./init/context";
+import { Source } from "./lazy";
+import { QueryImpl } from "./query/_internal";
+import { AnyObject } from "./types";
+import * as updater from "./updater";
 
-export { Aggregator } from "../src/aggregator";
-export { Context, ProcessingMode } from "../src/core";
+export { Aggregator } from "./aggregator";
+export { Context, ProcessingMode } from "./core";
 
 const CONTEXT = fullContext();
 
@@ -71,9 +66,10 @@ export const updateMany = (
   updateConfig: updater.UpdateConfig = {},
   options?: Partial<Options>
 ): { matchedCount: number; modifiedCount: number } => {
+  const context = options?.context;
   return updater.updateMany(documents, condition, updateExpr, updateConfig, {
     ...options,
-    context: CONTEXT
+    context: context ? Context.merge(CONTEXT, context) : CONTEXT
   });
 };
 
@@ -84,8 +80,9 @@ export const updateOne = (
   updateConfig: updater.UpdateConfig = {},
   options?: Partial<Options>
 ): { matchedCount: number; modifiedCount: number } => {
+  const context = options?.context;
   return updater.updateOne(documents, condition, updateExpr, updateConfig, {
     ...options,
-    context: CONTEXT
+    context: context ? Context.merge(CONTEXT, context) : CONTEXT
   });
 };

@@ -28,7 +28,7 @@ function build() {
   // browser
   esbuild.buildSync({
     globalName: packageJson.name,
-    entryPoints: ["./src-browser/index.ts"],
+    entryPoints: ["./src/browser.ts"],
     outfile: path.join(BUILD_DIR, BUNDLE_NAME),
     platform: "browser",
     minify: true,
