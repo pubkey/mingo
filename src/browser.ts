@@ -1,28 +1,45 @@
-import { Aggregator } from "./aggregator";
+import { AggregatorImpl } from "./aggregator/_internal";
 import { CloneMode, ComputeOptions, Context, Options } from "./core/_internal";
 import { Cursor } from "./cursor";
-import fullContext from "./init/context";
-import { Source } from "./lazy";
+import type { Source } from "./lazy";
+import * as accumulatorOperators from "./operators/accumulator";
+import * as expressionOperators from "./operators/expression";
+import * as pipelineOperators from "./operators/pipeline";
+import * as projectionOperators from "./operators/projection";
+import * as queryOperators from "./operators/query";
+import * as windowOperators from "./operators/window";
 import { QueryImpl } from "./query/_internal";
-import { AnyObject } from "./types";
+import type { AnyObject } from "./types";
 import * as updater from "./updater";
 
-export { Aggregator } from "./aggregator";
 export { Context, ProcessingMode } from "./core";
 
-const CONTEXT = fullContext();
+const CONTEXT = Context.init()
+  .addAccumulatorOps(accumulatorOperators)
+  .addExpressionOps(expressionOperators)
+  .addPipelineOps(pipelineOperators)
+  .addProjectionOps(projectionOperators)
+  .addQueryOps(queryOperators)
+  .addWindowOps(windowOperators);
+
+const makeOpts = (options?: Partial<Options>) => {
+  return ComputeOptions.init({
+    ...options,
+    context: options?.context
+      ? Context.merge(CONTEXT, options?.context)
+      : CONTEXT
+  });
+};
 
 export class Query extends QueryImpl {
   constructor(condition: AnyObject, options?: Partial<Options>) {
-    super(
-      condition,
-      ComputeOptions.init({
-        ...options,
-        context: options?.context
-          ? Context.merge(CONTEXT, options?.context)
-          : CONTEXT
-      })
-    );
+    super(condition, makeOpts(options));
+  }
+}
+
+export class Aggregator extends AggregatorImpl {
+  constructor(pipeline: AnyObject[], options?: Partial<Options>) {
+    super(pipeline, makeOpts(options));
   }
 }
 
@@ -49,13 +66,9 @@ export const update = (
     queryOptions?: Partial<Options>;
   }
 ) => {
-  const context = options?.queryOptions?.context;
   return updater.update(obj, updateExpr, arrayFilters, condition, {
     cloneMode: options?.cloneMode,
-    queryOptions: {
-      ...options?.queryOptions,
-      context: context ? Context.merge(CONTEXT, context) : CONTEXT
-    }
+    queryOptions: makeOpts(options?.queryOptions)
   });
 };
 
@@ -66,11 +79,13 @@ export const updateMany = (
   updateConfig: updater.UpdateConfig = {},
   options?: Partial<Options>
 ): { matchedCount: number; modifiedCount: number } => {
-  const context = options?.context;
-  return updater.updateMany(documents, condition, updateExpr, updateConfig, {
-    ...options,
-    context: context ? Context.merge(CONTEXT, context) : CONTEXT
-  });
+  return updater.updateMany(
+    documents,
+    condition,
+    updateExpr,
+    updateConfig,
+    makeOpts(options)
+  );
 };
 
 export const updateOne = (
@@ -80,9 +95,11 @@ export const updateOne = (
   updateConfig: updater.UpdateConfig = {},
   options?: Partial<Options>
 ): { matchedCount: number; modifiedCount: number } => {
-  const context = options?.context;
-  return updater.updateOne(documents, condition, updateExpr, updateConfig, {
-    ...options,
-    context: context ? Context.merge(CONTEXT, context) : CONTEXT
-  });
+  return updater.updateOne(
+    documents,
+    condition,
+    updateExpr,
+    updateConfig,
+    makeOpts(options)
+  );
 };

@@ -1,4 +1,4 @@
-import { Aggregator } from "../../aggregator";
+import { AggregatorImpl } from "../../aggregator/_internal";
 import { Options, PipelineOperator } from "../../core/_internal";
 import { concat, Iterator, Lazy } from "../../lazy";
 import { AnyObject } from "../../types";
@@ -37,6 +37,6 @@ export const $unionWith: PipelineOperator = (
 
   return concat(
     collection,
-    pipeline ? new Aggregator(pipeline, options).stream(xs) : Lazy(xs)
+    pipeline ? new AggregatorImpl(pipeline, options).stream(xs) : Lazy(xs)
   );
 };

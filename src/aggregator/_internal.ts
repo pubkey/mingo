@@ -1,23 +1,19 @@
 import {
-  ComputeOptions,
   Options,
   OpType,
   PipelineOperator,
   ProcessingMode
-} from "./core/_internal";
-import { Iterator, Lazy, Source } from "./lazy";
-import { $match } from "./operators/pipeline/match";
-import { $project } from "./operators/pipeline/project";
-import { $sort } from "./operators/pipeline/sort";
-import { Any, AnyObject } from "./types";
-import { assert, cloneDeep } from "./util";
+} from "../core/_internal";
+import { Iterator, Lazy, Source } from "../lazy";
+import { Any, AnyObject } from "../types";
+import { assert, cloneDeep } from "../util";
 
 /**
  * The `Aggregator` class provides functionality to process data collections
  * through an aggregation pipeline. It supports streaming and executing
  * aggregation operations with customizable options.
  */
-export class Aggregator {
+export class AggregatorImpl {
   #pipeline: AnyObject[];
   #options: Options;
 
@@ -27,14 +23,9 @@ export class Aggregator {
    * @param pipeline - An array of objects representing the aggregation pipeline stages.
    * @param options - Optional configuration settings for the aggregator.
    */
-  constructor(pipeline: AnyObject[], options: Partial<Options>) {
+  constructor(pipeline: AnyObject[], options: Options) {
     this.#pipeline = pipeline;
-    if (options instanceof ComputeOptions) {
-      this.#options = options;
-    } else {
-      this.#options = ComputeOptions.init(options);
-      this.#options.context.addPipelineOps({ $match, $project, $sort });
-    }
+    this.#options = options;
   }
 
   /**
