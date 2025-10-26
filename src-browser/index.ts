@@ -1,35 +1,33 @@
-import { AggregatorImpl } from "../src/aggregator/_internal";
-import { ComputeOptions, Context, Options } from "../src/core/_internal";
+import { Aggregator } from "../src/aggregator";
+import {
+  CloneMode,
+  ComputeOptions,
+  Context,
+  Options
+} from "../src/core/_internal";
 import { Cursor } from "../src/cursor";
 import fullContext from "../src/init/context";
 import { Source } from "../src/lazy";
 import { QueryImpl } from "../src/query/_internal";
 import { AnyObject } from "../src/types";
+import * as updater from "../src/updater";
 
+export { Aggregator } from "../src/aggregator";
 export { Context, ProcessingMode } from "../src/core";
-export { update, updateMany, updateOne } from "../src/updater";
 
-const context = fullContext();
-const makeOpts = (options?: Partial<Options>) => {
-  return ComputeOptions.init(
-    options?.context
-      ? {
-          ...options,
-          context: Context.merge(context, options.context)
-        }
-      : options
-  );
-};
+const CONTEXT = fullContext();
 
 export class Query extends QueryImpl {
   constructor(condition: AnyObject, options?: Partial<Options>) {
-    super(condition, makeOpts(options));
-  }
-}
-
-export class Aggregator extends AggregatorImpl {
-  constructor(pipeline: AnyObject[], options?: Partial<Options>) {
-    super(pipeline, makeOpts(options));
+    super(
+      condition,
+      ComputeOptions.init({
+        ...options,
+        context: options?.context
+          ? Context.merge(CONTEXT, options?.context)
+          : CONTEXT
+      })
+    );
   }
 }
 
@@ -45,3 +43,49 @@ export const find = <T>(
   projection?: AnyObject,
   options?: Partial<Options>
 ): Cursor<T> => new Query(criteria, options).find<T>(collection, projection);
+
+export const update = (
+  obj: AnyObject,
+  updateExpr: updater.UpdateExpression,
+  arrayFilters?: AnyObject[],
+  condition?: AnyObject,
+  options?: {
+    cloneMode?: CloneMode;
+    queryOptions?: Partial<Options>;
+  }
+) => {
+  const context = options?.queryOptions?.context;
+  return updater.update(obj, updateExpr, arrayFilters, condition, {
+    cloneMode: options?.cloneMode,
+    queryOptions: {
+      ...options?.queryOptions,
+      context: context ? Context.merge(CONTEXT, context) : CONTEXT
+    }
+  });
+};
+
+export const updateMany = (
+  documents: AnyObject[],
+  condition: AnyObject,
+  updateExpr: updater.UpdateExpression | updater.PipelineStage[],
+  updateConfig: updater.UpdateConfig = {},
+  options?: Partial<Options>
+): { matchedCount: number; modifiedCount: number } => {
+  return updater.updateMany(documents, condition, updateExpr, updateConfig, {
+    ...options,
+    context: CONTEXT
+  });
+};
+
+export const updateOne = (
+  documents: AnyObject[],
+  condition: AnyObject,
+  updateExpr: updater.UpdateExpression | updater.PipelineStage[],
+  updateConfig: updater.UpdateConfig = {},
+  options?: Partial<Options>
+): { matchedCount: number; modifiedCount: number } => {
+  return updater.updateOne(documents, condition, updateExpr, updateConfig, {
+    ...options,
+    context: CONTEXT
+  });
+};
