@@ -100,7 +100,7 @@ export function update(
     { arrayFilters, cloneMode: options?.cloneMode ?? "copy" },
     options?.queryOptions
   );
-  return res.fields ?? [];
+  return res.modifiedFields ?? [];
 }
 
 /**
@@ -122,14 +122,15 @@ export function updateMany(
   updateExpr: UpdateExpression | PipelineStage[],
   updateConfig: UpdateConfig = {},
   options?: Partial<Options>
-) {
-  return updateDocuments(
+): { matchedCount: number; modifiedCount: number } {
+  const { modifiedCount, matchedCount } = updateDocuments(
     documents,
     condition,
     updateExpr,
     updateConfig,
     options
   );
+  return { modifiedCount, matchedCount };
 }
 
 /**
@@ -144,7 +145,7 @@ export function updateMany(
  * @param updateExpr - The update expression or aggregation pipeline stages.
  * @param updateConfig - Optional update config parameters.
  * @param options - Optional settings to control update behavior.
- * @returns An object containing `matchedCount` and `modifiedCount`.
+ * @returns An object containing `matchedCount`, `modifiedCount`, and `fields`.
  */
 export function updateOne(
   documents: AnyObject[],
@@ -165,7 +166,7 @@ function updateDocuments(
   updateExpr: UpdateExpression | PipelineStage[],
   updateConfig: UpdateConfig = {},
   options?: Partial<Options> & { firstOnly?: boolean }
-): { matchedCount: number; modifiedCount: number; fields?: string[] } {
+): { matchedCount: number; modifiedCount: number; modifiedFields?: string[] } {
   // apply options overrides
   options ||= {};
 
@@ -241,68 +242,65 @@ function updateDocuments(
       : foundDocs.map(o => hashCode(o));
 
     // the number of documents hashed equals the number of matched documents.
-    const matchedCount = hashes.length;
+    const output = { matchedCount: hashes.length, modifiedCount: 0 };
+
     // store a copy of first only doc to track modified paths.
     const oldFirstDoc = firstOnly
       ? cloneDeep(documents[indexes[0]])
       : undefined;
 
     // apply pipeline stages
-    let resultIter = Lazy(foundDocs);
+    let updateIter = Lazy(foundDocs);
     for (const stage of updateExpr) {
       const [op, expr] = Object.entries(stage)[0] as [string, Any];
       const pipelineOp =
         PIPELINE_OPERATORS[op as keyof typeof PIPELINE_OPERATORS];
       assert(pipelineOp, `Unknown pipeline operator: '${op}'.`);
-      resultIter = pipelineOp(resultIter, expr, opts);
+      updateIter = pipelineOp(updateIter, expr, opts);
     }
 
-    const result = resultIter.collect<AnyObject>();
-    let modifiedCount = 0;
+    const matches = updateIter.collect<AnyObject>();
 
     // update only modified indexes if documents were filtered
     if (indexes.length) {
       assert(
-        indexes.length === result.length,
+        indexes.length === matches.length,
         "bug: indexes and result size must match."
       );
       for (let i = 0; i < indexes.length; i++) {
-        if (hashCode(result[i]) !== hashes[i]) {
-          documents[indexes[i]] = result[i];
-          modifiedCount++;
+        if (hashCode(matches[i]) !== hashes[i]) {
+          documents[indexes[i]] = matches[i];
+          output.modifiedCount++;
         }
       }
     } else {
       // update all documents where changes occurred
       for (let i = 0; i < documents.length; i++) {
-        if (hashCode(result[i]) !== hashes[i]) {
-          documents[i] = result[i];
-          modifiedCount++;
+        if (hashCode(matches[i]) !== hashes[i]) {
+          documents[i] = matches[i];
+          output.modifiedCount++;
         }
       }
     }
 
-    const fieldsObj: { fields?: string[] } = {};
-
     // find all the updated fields if firstOnly.
-    if (firstOnly && modifiedCount) {
+    if (firstOnly && output.modifiedCount) {
       // NOTE: might be faster to start with '!isEqual(old,new)' in some cases. profiling needed.
       const newDoc = documents[indexes[0]];
-      const fields = extractUpdatedFields(updateExpr, oldFirstDoc, newDoc);
-      if (fields.length) {
-        Object.assign(fieldsObj, { fields });
-      } else {
-        // no change detected
+      const modifiedFields = extractUpdatedFields(
+        updateExpr,
+        oldFirstDoc,
+        newDoc
+      );
+      if (!modifiedFields.length) {
         // NOTE: may want to do assert not equal here but the extraction routine is already much involved.
-        modifiedCount = 0;
+        output.modifiedCount = 0;
+      } else {
+        Object.assign(output, { modifiedFields });
       }
     }
 
-    return {
-      modifiedCount,
-      matchedCount,
-      ...fieldsObj
-    };
+    return output;
   }
 
   // USING UPDATE OPERATORS
@@ -320,34 +318,23 @@ function updateDocuments(
   });
 
   const matchedCount = foundDocs.length;
-  const fieldsObj: { fields?: string[] } = {};
-  let modifiedCount = 0;
+  const output = { matchedCount, modifiedCount: 0 };
 
   for (const doc of foundDocs) {
     let modified = false;
     for (const [op, expr] of Object.entries(updateExpr)) {
       const mutate = UPDATE_OPERATORS[op] as UpdateOperator;
-      const res = mutate(doc, expr, arrayFilters, opts);
-      if (!modified && res.length) {
+      const modifiedFields = mutate(doc, expr, arrayFilters, opts);
+      if (!modified && modifiedFields.length) {
         modified = true;
-        if (firstOnly) {
-          Object.assign(fieldsObj, {
-            fields: (fieldsObj?.fields ?? []).concat(res)
-          });
-        }
+        if (firstOnly) Object.assign(output, { modifiedFields });
       }
     }
-    // sort the fields if a change was found.
-    if (firstOnly && modified) fieldsObj?.fields?.sort();
 
-    modifiedCount += +modified;
+    output.modifiedCount += +modified;
   }
 
-  return {
-    modifiedCount,
-    matchedCount,
-    ...fieldsObj
-  };
+  return output;
 }
 
 /** Extracts fields added, changed, or deleted between the old and new document. */
