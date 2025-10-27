@@ -1,5 +1,5 @@
 import { Options, QueryOperator } from "../../../core/_internal";
-import { QueryImpl } from "../../../query/_internal";
+import { Query } from "../../../query";
 import { Any, AnyObject, Callback } from "../../../types";
 import { normalize } from "../../../util";
 
@@ -17,6 +17,6 @@ export const $not: QueryOperator = (
 ): Callback<boolean> => {
   const criteria = {};
   criteria[selector] = normalize(rhs);
-  const query = new QueryImpl(criteria, options);
+  const query = new Query(criteria, options);
   return (obj: AnyObject) => !query.test(obj);
 };

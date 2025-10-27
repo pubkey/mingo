@@ -10,7 +10,7 @@ const NPM_ARGS = process.argv.slice(2);
 const SRC_FILES = glob("./src/**/*.ts");
 const BUILD_DIR = path.resolve("build");
 const NPM_IGNORE = [".*", "*.tgz", "node_modules", "package-lock.json"];
-const BUNDLE_NAME = `./dist/${packageJson.name}.min.js`;
+const BUNDLE_NAME = `${packageJson.name}.min.js`;
 
 /** Builds */
 function build() {
@@ -25,11 +25,11 @@ function build() {
     });
   }
 
-  // browser
+  // bundle
   esbuild.buildSync({
     globalName: packageJson.name,
-    entryPoints: ["./src/browser.ts"],
-    outfile: path.join(BUILD_DIR, BUNDLE_NAME),
+    entryPoints: ["./src/index.ts"],
+    outfile: path.join(BUILD_DIR, "dist", BUNDLE_NAME),
     platform: "browser",
     minify: true,
     bundle: true

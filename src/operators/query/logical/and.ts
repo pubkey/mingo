@@ -1,5 +1,5 @@
 import { Options, QueryOperator } from "../../../core/_internal";
-import { QueryImpl } from "../../../query/_internal";
+import { Query } from "../../../query";
 import { AnyObject, Callback } from "../../../types";
 import { assert, isArray } from "../../../util";
 
@@ -19,6 +19,6 @@ export const $and: QueryOperator = (
     isArray(rhs),
     "Invalid expression: $and expects value to be an Array."
   );
-  const queries = rhs.map(expr => new QueryImpl(expr, options));
+  const queries = rhs.map(expr => new Query(expr, options));
   return (obj: AnyObject) => queries.every(q => q.test(obj));
 };

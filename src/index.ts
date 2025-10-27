@@ -1,15 +1,47 @@
-import { Aggregator } from "./aggregator";
-import { Context, Options, ProcessingMode } from "./core/_internal";
+import { Aggregator as AggregatorBase } from "./aggregator";
+import { CloneMode, Context, Options, ProcessingMode } from "./core/_internal";
 import { Cursor } from "./cursor";
-import { Source } from "./lazy";
-import { Query } from "./query";
-import { AnyObject } from "./types";
-import { update, updateMany, updateOne } from "./updater";
+import type { Source } from "./lazy";
+import * as accumulatorOperators from "./operators/accumulator";
+import * as expressionOperators from "./operators/expression";
+import * as pipelineOperators from "./operators/pipeline";
+import * as projectionOperators from "./operators/projection";
+import * as queryOperators from "./operators/query";
+import * as windowOperators from "./operators/window";
+import { Query as QueryBase } from "./query";
+import type { AnyObject } from "./types";
+import * as updater from "./updater";
 
-export { Aggregator } from "./aggregator";
-export { Context, ProcessingMode } from "./core/_internal";
-export { Query } from "./query";
-export { update, updateMany, updateOne } from "./updater";
+export { Context, ProcessingMode } from "./core";
+
+const CONTEXT = Context.init({
+  accumulator: accumulatorOperators,
+  expression: expressionOperators,
+  pipeline: pipelineOperators,
+  projection: projectionOperators,
+  query: queryOperators,
+  window: windowOperators
+});
+
+const makeOpts = (options?: Partial<Options>) =>
+  Object.assign({
+    ...options,
+    context: options?.context
+      ? Context.merge(CONTEXT, options?.context)
+      : CONTEXT
+  }) as Options;
+
+export class Query extends QueryBase {
+  constructor(condition: AnyObject, options?: Partial<Options>) {
+    super(condition, makeOpts(options));
+  }
+}
+
+export class Aggregator extends AggregatorBase {
+  constructor(pipeline: AnyObject[], options?: Partial<Options>) {
+    super(pipeline, makeOpts(options));
+  }
+}
 
 /**
  * Finds documents in a collection that match the specified criteria.
@@ -27,7 +59,10 @@ export function find<T>(
   projection?: AnyObject,
   options?: Partial<Options>
 ): Cursor<T> {
-  return new Query(condition, options).find<T>(collection, projection);
+  return new Query(condition, makeOpts(options)).find<T>(
+    collection,
+    projection
+  );
 }
 
 /**
@@ -43,10 +78,57 @@ export function aggregate(
   pipeline: AnyObject[],
   options?: Partial<Options>
 ): AnyObject[] {
-  return new Aggregator(pipeline, options).run(collection);
+  return new Aggregator(pipeline, makeOpts(options)).run(collection);
 }
 
-// default interface for ES6 modules
+export function update(
+  obj: AnyObject,
+  updateExpr: updater.UpdateExpression,
+  arrayFilters?: AnyObject[],
+  condition?: AnyObject,
+  options?: {
+    cloneMode?: CloneMode;
+    queryOptions?: Partial<Options>;
+  }
+) {
+  return updater.update(obj, updateExpr, arrayFilters, condition, {
+    cloneMode: options?.cloneMode,
+    queryOptions: makeOpts(options?.queryOptions)
+  });
+}
+
+export function updateMany(
+  documents: AnyObject[],
+  condition: AnyObject,
+  updateExpr: updater.UpdateExpression | updater.PipelineStage[],
+  updateConfig: updater.UpdateConfig = {},
+  options?: Partial<Options>
+) {
+  return updater.updateMany(
+    documents,
+    condition,
+    updateExpr,
+    updateConfig,
+    makeOpts(options)
+  );
+}
+
+export function updateOne(
+  documents: AnyObject[],
+  condition: AnyObject,
+  updateExpr: updater.UpdateExpression | updater.PipelineStage[],
+  updateConfig: updater.UpdateConfig = {},
+  options?: Partial<Options>
+) {
+  return updater.updateOne(
+    documents,
+    condition,
+    updateExpr,
+    updateConfig,
+    makeOpts(options)
+  );
+}
+
 export default {
   Aggregator,
   Context,

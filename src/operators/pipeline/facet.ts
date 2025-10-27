@@ -1,4 +1,4 @@
-import { AggregatorImpl } from "../../aggregator/_internal";
+import { Aggregator } from "../../aggregator";
 import {
   ComputeOptions,
   Options,
@@ -31,7 +31,7 @@ export const $facet: PipelineOperator = (
   return collection.transform(((array: AnyObject[]) => {
     const o: AnyObject = {};
     for (const [k, pipeline] of Object.entries(expr)) {
-      o[k] = new AggregatorImpl(pipeline, options).run(array);
+      o[k] = new Aggregator(pipeline, options).run(array);
     }
     return [o];
   }) as Callback<AnyObject[]>);

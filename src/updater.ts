@@ -7,15 +7,13 @@ import {
 import { Lazy } from "./lazy";
 import * as booleanOperators from "./operators/expression/boolean";
 import * as comparisonOperators from "./operators/expression/comparison";
-import {
-  $addFields,
-  $project,
-  $replaceRoot,
-  $replaceWith,
-  $set,
-  $sort,
-  $unset
-} from "./operators/pipeline";
+import { $addFields } from "./operators/pipeline/addFields";
+import { $project } from "./operators/pipeline/project";
+import { $replaceRoot } from "./operators/pipeline/replaceRoot";
+import { $replaceWith } from "./operators/pipeline/replaceWith";
+import { $set } from "./operators/pipeline/set";
+import { $sort } from "./operators/pipeline/sort";
+import { $unset } from "./operators/pipeline/unset";
 import * as queryOperators from "./operators/query";
 import * as UPDATE_OPERATORS from "./operators/update";
 import {

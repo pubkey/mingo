@@ -1,4 +1,4 @@
-import { AggregatorImpl } from "../../aggregator/_internal";
+import { Aggregator } from "../../aggregator";
 import {
   ComputeOptions,
   computeValue,
@@ -99,7 +99,7 @@ export const $merge: PipelineOperator = (
       ) as AnyObject;
 
       if (isArray(expr.whenMatched)) {
-        const aggregator = new AggregatorImpl(
+        const aggregator = new Aggregator(
           expr.whenMatched,
           copts.update({ root: null, variables })
         );
