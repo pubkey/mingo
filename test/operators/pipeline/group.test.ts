@@ -1,4 +1,5 @@
-import { aggregate, studentsData, testPath } from "../../support";
+import { aggregate } from "../../../src";
+import { studentsData, testPath } from "../../support";
 
 describe(testPath(__filename), () => {
   it("can apply $group operator with simple group key", () => {

@@ -1,6 +1,7 @@
+import { find } from "../../src";
 import { ProcessingMode } from "../../src/core/_internal";
 import { Any, AnyObject } from "../../src/types";
-import { find, ObjectId, personData, testPath } from "../support";
+import { ObjectId, personData, testPath } from "../support";
 
 const idStr = "123456789abe";
 const obj = Object.assign({}, personData, { _id: ObjectId(idStr) });

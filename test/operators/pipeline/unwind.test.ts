@@ -1,5 +1,6 @@
+import { aggregate } from "../../../src";
 import { ProcessingMode } from "../../../src/core/_internal";
-import { aggregate, studentsData } from "../../support";
+import { studentsData } from "../../support";
 
 const options = {
   processingMode: ProcessingMode.CLONE_INPUT

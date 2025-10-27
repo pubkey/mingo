@@ -1,4 +1,4 @@
-import { aggregate } from "../../support";
+import { aggregate } from "../../../src";
 
 describe("operators/expression/literal", () => {
   it("can apply $literal operator", () => {

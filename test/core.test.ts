@@ -8,7 +8,7 @@ import {
 import { Iterator } from "../src/lazy";
 import { $toString } from "../src/operators/expression";
 import { $match } from "../src/operators/pipeline/match";
-import { COMPUTE_OPTS, DEFAULT_OPTS } from "./support";
+import { DEFAULT_OPTS } from "./support";
 
 const copts = ComputeOptions.init(DEFAULT_OPTS);
 
@@ -123,7 +123,7 @@ describe("core", () => {
 
   describe("computeValue", () => {
     it("throws for invalid operator", () => {
-      expect(() => computeValue({}, {}, "$fakeOperator", COMPUTE_OPTS)).toThrow(
+      expect(() => computeValue({}, {}, "$fakeOperator", DEFAULT_OPTS)).toThrow(
         Error
       );
     });
@@ -133,7 +133,7 @@ describe("core", () => {
         {},
         { date: "$$NOW" },
         null,
-        COMPUTE_OPTS
+        DEFAULT_OPTS
       ) as {
         date: Date;
       };
@@ -187,7 +187,7 @@ describe("core", () => {
           }
         },
         null,
-        COMPUTE_OPTS
+        DEFAULT_OPTS
       );
       expect(res).toEqual({
         data: {

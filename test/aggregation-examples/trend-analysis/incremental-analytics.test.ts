@@ -1,5 +1,6 @@
+import { aggregate } from "../../../src";
 import { Any, AnyObject } from "../../../src/types";
-import { aggregate, ISODate } from "../../support";
+import { ISODate } from "../../support";
 
 /**
  * You have a set of shop orders accumulated over many years, with the retail channel adding new order records continuously to the orders collection throughout each trading day.

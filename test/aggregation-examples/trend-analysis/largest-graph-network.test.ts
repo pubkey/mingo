@@ -1,4 +1,4 @@
-import { aggregate } from "../../support";
+import { aggregate } from "../../../src";
 
 /**
  * Your organisation wants to know the best targets for a new marketing campaign based on a social network database similar to Twitter.

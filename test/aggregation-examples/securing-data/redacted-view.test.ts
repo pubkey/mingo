@@ -1,4 +1,5 @@
-import { aggregate, find, ISODate } from "../../support";
+import { aggregate, find } from "../../../src";
+import { ISODate } from "../../support";
 
 /**
  * You have a user management system containing data about various people in a database, and you need to ensure a particular client application cannot view the sensitive parts of the data relating to each person.

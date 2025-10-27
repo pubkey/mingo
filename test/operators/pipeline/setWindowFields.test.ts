@@ -1,5 +1,6 @@
+import { aggregate } from "../../../src";
 import { ProcessingMode } from "../../../src/core/_internal";
-import { aggregate, ISODate, testPath } from "../../support";
+import { ISODate, testPath } from "../../support";
 
 describe(testPath(__filename), () => {
   const options = {

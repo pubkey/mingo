@@ -1,8 +1,9 @@
+import { find } from "../src";
 import { ComputeOptions } from "../src/core/_internal";
 import { clone, Trie } from "../src/operators/update/_internal";
 import { update, updateMany, updateOne } from "../src/updater";
 import { isArray } from "../src/util";
-import { DEFAULT_OPTS, find, ISODate } from "./support";
+import { DEFAULT_OPTS, ISODate } from "./support";
 
 describe("updater", () => {
   describe("Trie: Conflict Detection", () => {

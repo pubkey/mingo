@@ -1,4 +1,5 @@
-import { aggregate, ISODate } from "../../support";
+import { aggregate } from "../../../src";
+import { ISODate } from "../../support";
 
 /**
  * At a medical establishment, the central IT system holds patient data that you need to surface

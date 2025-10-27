@@ -1,5 +1,6 @@
+import { aggregate } from "../../../src";
 import { ProcessingMode } from "../../../src/core/_internal";
-import { aggregate, runTest } from "../../support";
+import { runTest } from "../../support";
 
 describe("operators/expression/object", () => {
   runTest("$mergeObjects", {

@@ -1,4 +1,4 @@
-import { aggregate } from "../../support";
+import { aggregate } from "../../../src";
 
 describe("operators/expressions/custom", () => {
   describe("$accumulator", () => {

@@ -1,8 +1,9 @@
+import { aggregate } from "../../../src";
 import * as samples from "../../support";
 
 describe(samples.testPath(__filename), () => {
   it("should use partitionByFields", () => {
-    const res = samples.aggregate(
+    const res = aggregate(
       [
         {
           altitude: 600,

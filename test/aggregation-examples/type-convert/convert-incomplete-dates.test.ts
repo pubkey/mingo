@@ -1,4 +1,5 @@
-import { aggregate, ISODate } from "../../support";
+import { aggregate } from "../../../src";
+import { ISODate } from "../../support";
 
 /**
  *

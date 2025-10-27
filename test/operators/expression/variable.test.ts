@@ -1,4 +1,4 @@
-import { aggregate, find } from "../../support";
+import { aggregate, find } from "../../../src";
 
 describe("operators/expression/variable", () => {
   it("can apply $let operator", () => {

@@ -1,4 +1,4 @@
-import { aggregate } from "../support";
+import { aggregate } from "../../src";
 
 // https://stackoverflow.com/a/79174521
 describe("nested top-down hierarchy", () => {

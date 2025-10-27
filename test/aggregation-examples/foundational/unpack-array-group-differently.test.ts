@@ -1,4 +1,4 @@
-import { aggregate } from "../../support";
+import { aggregate } from "../../../src";
 
 /**
  * You want to generate a retail report to list the total value and quantity of expensive products sold (valued over 15 dollars).

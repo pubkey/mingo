@@ -1,7 +1,8 @@
+import { aggregate, find } from "../../../src";
 import { $getField } from "../../../src/operators/expression/misc/getField";
 import { Any, AnyObject } from "../../../src/types";
 import { isEqual } from "../../../src/util";
-import { aggregate, DEFAULT_OPTS, find } from "../../support";
+import { DEFAULT_OPTS } from "../../support";
 
 describe("operators/expression/misc", () => {
   describe("$rand", () => {

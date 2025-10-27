@@ -1,4 +1,5 @@
-import { aggregate, ISODate } from "../../support";
+import { aggregate } from "../../../src";
+import { ISODate } from "../../support";
 
 /**
  * You want to provide a report for your online game showing the total "coin" rewards each gaming

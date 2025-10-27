@@ -1,4 +1,5 @@
-import { aggregate, ISODate } from "../../support";
+import { aggregate } from "../../../src";
+import { ISODate } from "../../support";
 
 /**
  * You want to query a collection of people to find the three youngest people who have a job in engineering, sorted by the youngest person first.

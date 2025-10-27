@@ -1,4 +1,5 @@
-import { aggregate, ObjectId } from "../support";
+import { aggregate } from "../../src";
+import { ObjectId } from "../support";
 
 // https://stackoverflow.com/a/55034166
 describe("Ensure Lookup is in Stable Order", () => {

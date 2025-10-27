@@ -1,5 +1,5 @@
-import { ProcessingMode } from "../../../src";
-import { aggregate, testPath } from "../../support";
+import { aggregate, ProcessingMode } from "../../../src";
+import { testPath } from "../../support";
 
 /**
  * Test for $redact operator

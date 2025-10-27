@@ -1,4 +1,4 @@
-import { aggregate } from "../../support";
+import { aggregate } from "../../../src";
 
 /**
  * You want to query a collection of persons where each document contains data on one or more languages spoken by the person.

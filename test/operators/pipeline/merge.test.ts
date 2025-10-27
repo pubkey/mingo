@@ -1,6 +1,6 @@
+import { aggregate } from "../../../src";
 import { ComputeOptions, ProcessingMode } from "../../../src/core/_internal";
 import { Any, AnyObject } from "../../../src/types";
-import { aggregate } from "../../support";
 
 const options = ComputeOptions.init({
   processingMode: ProcessingMode.CLONE_INPUT

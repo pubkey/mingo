@@ -1,4 +1,5 @@
-import { aggregate, runTest } from "../../support";
+import { aggregate } from "../../../src";
+import { runTest } from "../../support";
 
 runTest("operators/expression/boolean", {
   $and: [

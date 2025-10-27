@@ -1,4 +1,4 @@
-import { aggregate } from "../../support";
+import { aggregate } from "../../../src";
 
 /**
  * You want to provide a {@link https://en.wikipedia.org/wiki/Faceted_search | faceted search} capability on your retail website to enable customers to refine their product search by selecting specific characteristics against the product results listed in the web page.

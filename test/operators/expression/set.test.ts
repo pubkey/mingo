@@ -1,4 +1,4 @@
-import { aggregate } from "../../support";
+import { aggregate } from "../../../src";
 
 describe("operators/expression/set", () => {
   const experiments = [

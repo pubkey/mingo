@@ -1,4 +1,5 @@
-import { find, testPath } from "../../support";
+import { find } from "../../../src";
+import { testPath } from "../../support";
 
 describe(testPath(__filename), () => {
   const docs = [

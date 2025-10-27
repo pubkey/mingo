@@ -1,4 +1,5 @@
-import { aggregate, runTest, testPath } from "../../../support";
+import { aggregate } from "../../../../src";
+import { runTest, testPath } from "../../../support";
 
 runTest(testPath(__filename), {
   $reduce: [

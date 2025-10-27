@@ -1,6 +1,6 @@
+import { aggregate } from "../../../src";
 import { AnyObject } from "../../../src/types";
 import { cloneDeep } from "../../../src/util";
-import { aggregate } from "../../support";
 
 describe("operators/pipeline/unionWith", () => {
   describe("$unionWith", () => {

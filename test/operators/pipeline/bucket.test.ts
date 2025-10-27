@@ -1,4 +1,5 @@
-import { aggregate, testPath } from "../../support";
+import { aggregate } from "../../../src";
+import { testPath } from "../../support";
 
 describe(testPath(__filename), () => {
   it("Bucket with 'default' value greater than upper bound", () => {

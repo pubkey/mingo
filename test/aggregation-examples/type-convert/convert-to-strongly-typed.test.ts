@@ -1,4 +1,5 @@
-import { aggregate, ISODate } from "../../support";
+import { aggregate } from "../../../src";
+import { ISODate } from "../../support";
 
 /**
  * A 3rd party has imported a set of retail orders into a MongoDB collection but with all data typing lost (it stored all field values as strings).

@@ -1,4 +1,4 @@
-import { aggregate } from "../support";
+import { aggregate } from "../../src";
 
 // https://stackoverflow.com/a/57427863
 describe("Give me all persons connected to hotels", () => {

@@ -1,4 +1,4 @@
-import { aggregate } from "../support";
+import { aggregate } from "../../src";
 
 // https://stackoverflow.com/a/79213065
 describe("Aggregate User Orders Data", () => {

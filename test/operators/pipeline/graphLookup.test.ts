@@ -1,4 +1,5 @@
-import { aggregate, DEFAULT_OPTS, testPath } from "../../support";
+import { aggregate } from "../../../src";
+import { DEFAULT_OPTS, testPath } from "../../support";
 
 describe(testPath(__filename), () => {
   const employees = [

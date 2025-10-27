@@ -1,4 +1,5 @@
-import { aggregate, testPath } from "../../support";
+import { aggregate } from "../../../src";
+import { testPath } from "../../support";
 
 const exampleData = [
   {

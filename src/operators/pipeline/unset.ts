@@ -1,4 +1,4 @@
-import { ComputeOptions, PipelineOperator } from "../../core/_internal";
+import { Options, PipelineOperator } from "../../core/_internal";
 import { Iterator } from "../../lazy";
 import { ensureArray } from "../../util";
 import { $project } from "./project";
@@ -16,7 +16,7 @@ import { $project } from "./project";
 export const $unset: PipelineOperator = (
   collection: Iterator,
   expr: string | string[],
-  options?: ComputeOptions
+  options?: Options
 ): Iterator => {
   expr = ensureArray(expr);
   const doc: Record<string, number> = {};

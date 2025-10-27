@@ -1,4 +1,5 @@
-import { aggregate, ISODate } from "../../support";
+import { aggregate } from "../../../src";
+import { ISODate } from "../../support";
 
 /**
  * You are monitoring various industrial devices (e.g. heaters, fans) contained in the business locations of your clients.

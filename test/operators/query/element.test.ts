@@ -1,7 +1,7 @@
 import { Query } from "../../../src";
 import { $exists } from "../../../src/operators/query";
 import { AnyObject } from "../../../src/types";
-import { COMPUTE_OPTS, testPath } from "../../support";
+import { DEFAULT_OPTS, testPath } from "../../support";
 
 describe(testPath(__filename), () => {
   const obj = {
@@ -80,7 +80,7 @@ describe(testPath(__filename), () => {
     it.each(fixtures)(
       "can apply $exists operator",
       (expected, obj, selector, cond) => {
-        const actual = $exists(selector, cond, COMPUTE_OPTS)(obj);
+        const actual = $exists(selector, cond, DEFAULT_OPTS)(obj);
         expect(actual).toEqual(expected);
       }
     );

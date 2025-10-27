@@ -1,4 +1,5 @@
-import { aggregate, testPath } from "../../../support";
+import { aggregate } from "../../../../src";
+import { testPath } from "../../../support";
 
 describe(testPath(__filename), () => {
   it("passes: using $firstN as an array operator", () => {

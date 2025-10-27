@@ -1,5 +1,6 @@
+import { aggregate } from "../../../src";
 import { AnyObject } from "../../../src/types";
-import { aggregate, testPath } from "../../support";
+import { testPath } from "../../support";
 
 describe(testPath(__filename), () => {
   const things: AnyObject[] = [];

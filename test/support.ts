@@ -1,12 +1,16 @@
-import { aggregate as srcAggregate, find as srcFind } from "../src";
+import { aggregate } from "../src";
 import {
-  ComputeOptions,
   computeValue,
+  Context,
   Options,
   ProcessingMode
 } from "../src/core/_internal";
-import fullContext from "../src/init/context";
-import { Source } from "../src/lazy";
+import * as accumulatorOperators from "../src/operators/accumulator";
+import * as expressionOperators from "../src/operators/expression";
+import * as pipelineOperators from "../src/operators/pipeline";
+import * as projectionOperators from "../src/operators/projection";
+import * as queryOperators from "../src/operators/query";
+import * as windowOperators from "../src/operators/window";
 import { Any, AnyObject, Callback } from "../src/types";
 import complexGrades from "./data/grades_complex";
 import simpleGrades from "./data/grades_simple";
@@ -19,10 +23,15 @@ export const DEFAULT_OPTS = Object.freeze({
   useStrictMode: true,
   useGlobalContext: true,
   processingMode: ProcessingMode.CLONE_OFF,
-  context: fullContext()
+  context: Context.init({
+    accumulator: accumulatorOperators,
+    expression: expressionOperators,
+    pipeline: pipelineOperators,
+    projection: projectionOperators,
+    query: queryOperators,
+    window: windowOperators
+  })
 });
-
-export const COMPUTE_OPTS = ComputeOptions.init(DEFAULT_OPTS);
 
 export const complexGradesData = complexGrades;
 export const simpleGradesData = simpleGrades;
@@ -44,25 +53,6 @@ class objectId {
   }
 }
 export const ObjectId = (id: string) => new objectId(id);
-
-export const aggregate = (
-  coll: Source,
-  pipeline: AnyObject[],
-  options?: Partial<Options>
-) => srcAggregate(coll, pipeline, Object.assign({}, DEFAULT_OPTS, options));
-
-export const find = (
-  collection: Source,
-  condition: AnyObject,
-  projection?: AnyObject,
-  options?: Partial<Options>
-) =>
-  srcFind(
-    collection,
-    condition,
-    projection ?? {},
-    Object.assign({}, DEFAULT_OPTS, options)
-  );
 
 export function runTest(
   description: string,
@@ -95,12 +85,12 @@ export function runTest(
           if (ctx.err) {
             it(`${prefix} => Error("${expected as string}")`, () => {
               expect(() =>
-                computeValue(obj, input, field, COMPUTE_OPTS)
+                computeValue(obj, input, field, DEFAULT_OPTS)
               ).toThrow();
             });
           } else {
             it(`${prefix} => ${JSON.stringify(expected)}`, () => {
-              let actual = computeValue(obj, input, field, COMPUTE_OPTS);
+              let actual = computeValue(obj, input, field, DEFAULT_OPTS);
               // NaNs don't compare
               if (actual !== actual && expected !== expected) {
                 actual = expected = 0;

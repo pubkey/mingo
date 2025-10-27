@@ -1,4 +1,5 @@
-import { aggregate, ISODate } from "../../support";
+import { aggregate } from "../../../src";
+import { ISODate } from "../../support";
 
 /**
  * You want to generate a report to show what each shop customer purchased in 2020. You will group the individual order records by customer,

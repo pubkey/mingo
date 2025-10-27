@@ -1,4 +1,5 @@
-import { aggregate, ISODate } from "../../support";
+import { aggregate } from "../../../src";
+import { ISODate } from "../../support";
 
 /**
  * You want to generate daily summaries for the exchange rates of foreign currency "pairs" (e.g. "Euro-to-USDollar").

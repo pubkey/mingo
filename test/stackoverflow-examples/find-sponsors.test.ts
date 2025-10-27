@@ -1,4 +1,5 @@
-import { aggregate, ObjectId } from "../support";
+import { aggregate } from "../../src";
+import { ObjectId } from "../support";
 
 // https://stackoverflow.com/a/67226903
 describe("Find Sponsors", () => {

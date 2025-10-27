@@ -1,4 +1,4 @@
-import { aggregate } from "../support";
+import { aggregate } from "../../src";
 
 // https://stackoverflow.com/a/75245880
 describe("Degrees of separation", () => {

@@ -1,6 +1,6 @@
+import { aggregate } from "../../../src";
 import { ProcessingMode } from "../../../src/core/_internal";
 import {
-  aggregate,
   DEFAULT_OPTS,
   runTestPipeline,
   studentsData,
