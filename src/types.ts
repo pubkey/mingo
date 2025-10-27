@@ -48,3 +48,27 @@ export type BsonType =
   | "double"
   | "decimal"
   | "regex";
+
+/**
+ * Resolves the given string to a Collection.
+ * This is useful for operators that require a second collection to use such as $lookup and $out.
+ * The collection is not cached and will be resolved each time it is used.
+ */
+export type CollectionResolver = (name: string) => AnyObject[];
+
+/** Specification for collation options */
+export interface CollationSpec {
+  readonly locale: string;
+  readonly caseLevel?: boolean;
+  readonly caseFirst?: "upper" | "lower" | "off";
+  readonly strength?: 1 | 2 | 3;
+  readonly numericOrdering?: boolean;
+  readonly alternate?: string;
+  readonly maxVariable?: never; // unsupported
+  readonly backwards?: never; // unsupported
+}
+
+/**
+ * JSON schema validator
+ */
+export type JsonSchemaValidator = (schema: AnyObject) => Predicate<AnyObject>;

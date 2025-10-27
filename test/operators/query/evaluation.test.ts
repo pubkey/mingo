@@ -2,8 +2,7 @@
 import Ajv, { Schema } from "ajv";
 
 import { aggregate, find } from "../../../src";
-import { JsonSchemaValidator } from "../../../src/core/_internal";
-import { Any, AnyObject } from "../../../src/types";
+import { Any, AnyObject, JsonSchemaValidator } from "../../../src/types";
 import { testPath } from "../../support";
 
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */

@@ -5,9 +5,10 @@ import type {
   Any,
   AnyObject,
   ArrayOrObject,
-  Callback,
+  CollationSpec,
+  CollectionResolver,
   HashFunction,
-  Predicate
+  JsonSchemaValidator
 } from "../types";
 import type { UpdateConfig } from "../updater";
 import {
@@ -20,30 +21,6 @@ import {
   isString,
   resolve
 } from "../util";
-
-/**
- * Resolves the given string to a Collection.
- * This is useful for operators that require a second collection to use such as $lookup and $out.
- * The collection is not cached and will be resolved each time it is used.
- */
-export type CollectionResolver = (name: string) => AnyObject[];
-
-/** Specification for collation options */
-export interface CollationSpec {
-  readonly locale: string;
-  readonly caseLevel?: boolean;
-  readonly caseFirst?: "upper" | "lower" | "off";
-  readonly strength?: 1 | 2 | 3;
-  readonly numericOrdering?: boolean;
-  readonly alternate?: string;
-  readonly maxVariable?: never; // unsupported
-  readonly backwards?: never; // unsupported
-}
-
-/**
- * JSON schema validator
- */
-export type JsonSchemaValidator = (schema: AnyObject) => Predicate<AnyObject>;
 
 /**
  * Enum representing the processing modes for handling input and output documents.
@@ -184,14 +161,6 @@ export class ComputeOptions implements Options {
 }
 
 /**
- * Supported cloning modes.
- * - "deep": Performs a recursive deep clone of the object.
- * - "copy": Performs a shallow copy of the object. @default
- * - "none": No cloning. Uses the value as given. NOT RECOMMENDED.
- */
-export type CloneMode = "deep" | "copy" | "none";
-
-/**
  * The different groups of operators
  */
 export enum OpType {
@@ -241,7 +210,7 @@ export type WindowOperator = (
   options: Options
 ) => Any;
 
-type Operator =
+export type Operator =
   | AccumulatorOperator
   | ExpressionOperator
   | PipelineOperator
@@ -257,6 +226,11 @@ export type QueryOps = Record<OperatorName, QueryOperator>;
 export type PipelineOps = Record<OperatorName, PipelineOperator>;
 export type WindowOps = Record<OperatorName, WindowOperator>;
 
+/**
+ * The `Context` class is a utility for managing and organizing operators of various types.
+ * It provides methods to initialize, merge, and retrieve operators, as well as add specific
+ * types of operators to the context.
+ */
 export class Context {
   #operators = new Map<OpType, Record<string, Operator>>(
     Object.values(OpType).map(k => [k, {}])
@@ -278,7 +252,7 @@ export class Context {
     // ensure all operator types are initialized
     for (const [type, operators] of Object.entries(ops)) {
       if (ctx.#operators.has(type as OpType) && operators) {
-        ctx.addOperators(type as OpType, operators);
+        ctx.addOps(type as OpType, operators);
       }
     }
     return ctx;
@@ -291,14 +265,14 @@ export class Context {
   static merge(first: Context, second: Context): Context {
     const ctx = Context.from(first);
     for (const type of Object.values(OpType)) {
-      ctx.addOperators(type, second.#operators.get(type));
+      ctx.addOps(type, second.#operators.get(type));
     }
     return ctx;
   }
 
-  private addOperators(
+  private addOps(
     type: OpType,
-    operators: Record<string, Operator>
+    operators: Record<OperatorName, Operator>
   ): Context {
     this.#operators.set(
       type,
@@ -307,32 +281,32 @@ export class Context {
     return this;
   }
 
-  getOperator(type: OpType, name: string): Callback | null {
+  getOperator(type: OpType, name: string): Operator | null {
     return this.#operators.get(type)[name] ?? null;
   }
 
   addAccumulatorOps(ops: AccumulatorOps) {
-    return this.addOperators(OpType.ACCUMULATOR, ops);
+    return this.addOps(OpType.ACCUMULATOR, ops);
   }
 
   addExpressionOps(ops: ExpressionOps) {
-    return this.addOperators(OpType.EXPRESSION, ops);
+    return this.addOps(OpType.EXPRESSION, ops);
   }
 
   addQueryOps(ops: QueryOps) {
-    return this.addOperators(OpType.QUERY, ops);
+    return this.addOps(OpType.QUERY, ops);
   }
 
   addPipelineOps(ops: PipelineOps) {
-    return this.addOperators(OpType.PIPELINE, ops);
+    return this.addOps(OpType.PIPELINE, ops);
   }
 
   addProjectionOps(ops: ProjectionOps) {
-    return this.addOperators(OpType.PROJECTION, ops);
+    return this.addOps(OpType.PROJECTION, ops);
   }
 
   addWindowOps(ops: WindowOps) {
-    return this.addOperators(OpType.WINDOW, ops);
+    return this.addOps(OpType.WINDOW, ops);
   }
 }
 

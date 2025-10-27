@@ -52,51 +52,45 @@ import mingo from "mingo";
 const mingo = require("mingo");
 ```
 
-The [public API ](https://kofrasa.github.io/mingo/modules/index.html) exports interfacs suitable for most use cases. By default the `Query` and `Aggregator` objects add [query predicates](https://www.mongodb.com/docs/manual/reference/mql/query-predicates/) and [projection](https://www.mongodb.com/docs/manual/reference/mql/projection/) operators to their context whether one is provided or not. For `Aggregator`, pipeline stage operators [$project](https://www.mongodb.com/docs/manual/reference/operator/aggregation/project/), [$match](https://www.mongodb.com/docs/manual/reference/operator/aggregation/match/), and [$sort](https://www.mongodb.com/docs/manual/reference/operator/aggregation/sort/) are also included. All other operators must be explicitly registered using a custom `Context`.
+The [public API ](https://kofrasa.github.io/mingo/modules/index.html) exports interfacs suitable for most use cases. By default interfaces imported from the default entry point always load all operators. This includes `Query`, `Aggregator`, `find`, `aggregate`, `update`, `updateOne`, and `updateMany` objects.
+
+To load and configure only specific operators for your environment, do not use the default entry point but instead use interfaces from the corresponding modules i.e. `mingo/{core,query,aggregator,updater}`, and load operators into a custom `Context` object to use for your options.
 
 ### Loading Operators
 
-To use extra operators, load them into a `Context` object and configure in your `Options`. For ESM environments, non-used operators are subject to tree-shaking during bundling.
+For a minimal build, the desired operators must be loaded into a `Context` object and configured in your `Options`. This enable all unused features to be subject to tree-shaking and excluded during bundling.
 
 **NB**: To avoid surprises, operators loaded into a `Context` cannot be replaced. Adding a new operator with an existing name is a no-op and does not throw an error. To ensure a specific implementation of an operator is used, it must be the first to be registered in the `Context`.
 
 ```js
-import { aggregate, Context } from "mingo";
-import { $count } from "mingo/operators/pipeline";
+import { Context } from "mingo/core";
+import { Aggregator } from "mingo/aggregator";
+import { $match } from "mingo/operators/pipeline/count";
+import { $count } from "mingo/operators/pipeline/count";
+import { $gt } from "mingo/operators/expression/comparison/gt";
 
-// creates a context with "$count" stage operator
-// can also use `Context.init().addPipelineOps({ $count })`.
-const context = Context.init({ pipeline: { $count } });
+// creates a context with only operators needed for execution.
+const context = Context.init({
+  pipeline: { $count, $match },
+  expression: { $gt }
+});
 
-const results = aggregate(
-  [
-    { _id: 1, score: 10 },
-    { _id: 2, score: 60 },
-    { _id: 3, score: 100 }
-  ],
-  [
-    // $match will be added to `context` by default.
-    { $match: { score: { $gt: 80 } } },
-    { $count: "passing_scores" }
-  ],
+const agg = new Aggregator(
+  [{ $match: { score: { $gt: 80 } } }, { $count: "passing_scores" }],
   { context } // pass context as part of options
 );
-```
 
-A fully loaded `Context` with every operator is provided through the module `mingo/init/context`.
-
-```js
-import fullContext from "mingo/init/context";
-
-// include every operator in the context.
-const context = fullContext();
-
-// use in options for queries (find) and aggregation (aggregate) to get access to full operator support.
+const result = agg.run([
+  { _id: 1, score: 10 },
+  { _id: 2, score: 60 },
+  { _id: 3, score: 100 }
+]);
 ```
 
 ### Using query to test objects
 
 ```js
+// Query imported from default entry point. Automatically loads all operators into context.
 import { Query } from "mingo";
 
 // create a query with criteria
@@ -113,6 +107,7 @@ query.test(doc);
 ### Searching and Filtering
 
 ```js
+// Query imported from default entry point. Automatically loads all operators into context.
 import { Query } from "mingo";
 
 // input is either an Array or any iterable source (i.e Object{next:Function}) including ES6 generators.
@@ -122,9 +117,6 @@ let query = new Query(criteria);
 
 // filter collection with find()
 let cursor = query.find(collection);
-
-// alternatively use shorthand
-// cursor = mingo.find(collection, criteria)
 
 // sort, skip and limit by chaining
 cursor.sort({ student_id: 1, score: -1 }).skip(100).limit(100);
@@ -154,7 +146,7 @@ No default implementation is provided out of the box so users can use a library 
 The example below uses [Ajv](https://www.npmjs.com/package/ajv) to implement schema validation.
 
 ```js
-import * as mingo from "mingo"
+import mingo from "mingo"
 import type { AnyObject, JsonSchemaValidator } from "mingo/types"
 import Ajv, { Schema } from "ajv"
 
@@ -192,13 +184,16 @@ mingo.find(docs, { $jsonSchema: schema }, {}, { jsonSchemaValidator }).all();
 ## Aggregation Pipeline
 
 ```js
-import { Aggregator, Context } from "mingo";
-import { $group } from "mingo/operators/pipeline";
-import { $min } from "mingo/operators/accumulator";
+import { Aggregator } from "mingo/aggregator";
+import { Context } from "mingo/core";
+import { $group } from "mingo/operators/pipeline/group";
+import { $match } from "mingo/operators/pipeline/match";
+import { $sort } from "mingo/operators/pipeline/sort";
+import { $min } from "mingo/operators/accumulator/min";
 
 // ensure the required operators are preloaded prior to using them.
 const context = Context.init({
-  pipeline: { $group },
+  pipeline: { $group, $match, $sort },
   accumulator: { $min }
 });
 

@@ -1,5 +1,5 @@
 import { Aggregator as AggregatorBase } from "./aggregator";
-import { CloneMode, Context, Options, ProcessingMode } from "./core/_internal";
+import { Context, Options, ProcessingMode } from "./core/_internal";
 import { Cursor } from "./cursor";
 import type { Source } from "./lazy";
 import * as accumulatorOperators from "./operators/accumulator";
@@ -87,7 +87,7 @@ export function update(
   arrayFilters?: AnyObject[],
   condition?: AnyObject,
   options?: {
-    cloneMode?: CloneMode;
+    cloneMode?: updater.CloneMode;
     queryOptions?: Partial<Options>;
   }
 ) {

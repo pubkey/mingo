@@ -1,9 +1,4 @@
-import {
-  CloneMode,
-  CollationSpec,
-  ComputeOptions,
-  Options
-} from "./core/_internal";
+import { ComputeOptions, Options } from "./core/_internal";
 import { Lazy } from "./lazy";
 import * as booleanOperators from "./operators/expression/boolean";
 import * as comparisonOperators from "./operators/expression/comparison";
@@ -22,7 +17,7 @@ import {
   UpdateOperator
 } from "./operators/update/_internal";
 import { Query } from "./query";
-import { Any, AnyObject } from "./types";
+import { Any, AnyObject, CollationSpec } from "./types";
 import {
   assert,
   cloneDeep,
@@ -55,6 +50,14 @@ export type PipelineStage =
 export type UpdateExpression = Partial<
   Record<keyof typeof UPDATE_OPERATORS, AnyObject>
 >;
+
+/**
+ * Supported cloning modes.
+ * - "deep": Performs a recursive deep clone of the object.
+ * - "copy": Performs a shallow copy of the object. @default
+ * - "none": No cloning. Uses the value as given. NOT RECOMMENDED.
+ */
+export type CloneMode = "deep" | "copy" | "none";
 
 export interface UpdateConfig {
   /** An array of filter documents that determine which array elements to modify for an update operation on an array field. */

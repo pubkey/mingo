@@ -8,14 +8,15 @@
 - Added support for positional update operator `$`.
 - Added support for `updateOne` and `updateMany` functions with all related config.
 - Support multiple update operations in expression. Closes [#570](https://github.com/kofrasa/mingo/issues/570)
+- **BREAKING**: Load all operators for interfaces in default entry point.
 
-**Removed**
+**Removed (BREAKING)**
 
-- `initOptions` function. Use plain object initializers.
+- `initOptions` function in `mingo/core`. Use plain object initializer.
 - `useOperators` function in `mingo/core`. Replaced with `Context`.
 - `getOperator` function in `mingo/core`. Replaced with `Context`.
 - `createUpdater` function in `mingo/updater`. No longer supported.
-- `mingo/init/{basic,system}` modules.
+- `mingo/init/{basic,system,context}` modules.
 
 ## 6.7.2 / 2025-10-24
 
