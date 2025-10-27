@@ -76,7 +76,7 @@ export interface UpdateConfig {
  * Updates the given object with the expression.
  *
  * @param obj The object to update.
- * @param updateExpr The update expressions.
+ * @param modifier The update expressions.
  * @param arrayFilters Filters to apply to nested items.
  * @param condition Conditions to validate before performing update.
  * @param options Update options to override defaults.
@@ -84,7 +84,7 @@ export interface UpdateConfig {
  */
 export function update(
   obj: AnyObject,
-  updateExpr: UpdateExpression,
+  modifier: UpdateExpression,
   arrayFilters?: AnyObject[],
   condition?: AnyObject,
   options?: {
@@ -97,7 +97,7 @@ export function update(
   const res = updateOne(
     docs,
     condition || {},
-    updateExpr,
+    modifier,
     { arrayFilters, cloneMode: options?.cloneMode ?? "copy" },
     options?.queryOptions
   );
@@ -112,7 +112,7 @@ export function update(
  *
  * @param documents - The array of documents to update.
  * @param condition - The query condition to match documents.
- * @param updateExpr - The update expression or aggregation pipeline stages.
+ * @param modifier - The update expression or aggregation pipeline stages.
  * @param updateConfig - Optional update config parameters.
  * @param options - Optional settings to control update behavior.
  * @returns An object containing `matchedCount` and `modifiedCount`.
@@ -120,14 +120,14 @@ export function update(
 export function updateMany(
   documents: AnyObject[],
   condition: AnyObject,
-  updateExpr: UpdateExpression | PipelineStage[],
+  modifier: UpdateExpression | PipelineStage[],
   updateConfig: UpdateConfig = {},
   options?: Partial<Options>
 ): { matchedCount: number; modifiedCount: number } {
   const { modifiedCount, matchedCount } = updateDocuments(
     documents,
     condition,
-    updateExpr,
+    modifier,
     updateConfig,
     options
   );
@@ -143,7 +143,7 @@ export function updateMany(
  *
  * @param documents - The array of documents to update.
  * @param condition - The query condition to match documents.
- * @param updateExpr - The update expression or aggregation pipeline stages.
+ * @param modifier - The update expression or aggregation pipeline stages.
  * @param updateConfig - Optional update config parameters.
  * @param options - Optional settings to control update behavior.
  * @returns An object containing `matchedCount`, `modifiedCount`, and `fields`.
@@ -151,11 +151,11 @@ export function updateMany(
 export function updateOne(
   documents: AnyObject[],
   condition: AnyObject,
-  updateExpr: UpdateExpression | PipelineStage[],
+  modifier: UpdateExpression | PipelineStage[],
   updateConfig: UpdateConfig = {},
   options?: Partial<Options>
 ) {
-  return updateDocuments(documents, condition, updateExpr, updateConfig, {
+  return updateDocuments(documents, condition, modifier, updateConfig, {
     ...options,
     firstOnly: true
   });
@@ -164,7 +164,7 @@ export function updateOne(
 function updateDocuments(
   documents: AnyObject[],
   condition: AnyObject,
-  updateExpr: UpdateExpression | PipelineStage[],
+  modifier: UpdateExpression | PipelineStage[],
   updateConfig: UpdateConfig = {},
   options?: Partial<Options> & { firstOnly?: boolean }
 ): { matchedCount: number; modifiedCount: number; modifiedFields?: string[] } {
@@ -202,8 +202,8 @@ function updateDocuments(
     });
   }
 
-  // stores the index of the firstOnly document.
-  let firstOnlyIndex = -1;
+  // stores the index of the first document to be modified when using firstOnly is `true`.
+  let modifiedIndex = -1;
 
   // apply first only and sort if specified
   if (firstOnly) {
@@ -220,8 +220,8 @@ function updateDocuments(
       docsIter = $sort(docsIter, updateConfig.sort, opts);
     }
     docsIter = docsIter.take(1);
-    const m = filterExists ? matchedDocs : indexes;
-    firstOnlyIndex = m.get(docsIter.collect<AnyObject>()[0]) ?? 0;
+    const firstDoc = docsIter.collect<AnyObject>()[0];
+    modifiedIndex = matchedDocs.get(firstDoc) ?? indexes.get(firstDoc) ?? 0;
   }
 
   // docs to update
@@ -229,10 +229,10 @@ function updateDocuments(
   if (foundDocs.length === 0) return { matchedCount: 0, modifiedCount: 0 };
 
   // USING AGGREGATION PIPELINE OPERATORS
-  if (isArray(updateExpr)) {
+  if (isArray(modifier)) {
     // indexes of documents to be updated. when indexes is empty, all documents are checked for update.
     const indexes = firstOnly
-      ? [firstOnlyIndex]
+      ? [modifiedIndex]
       : Array.from(matchedDocs.values()); // empty when no filters applied
 
     // use hashing to detect changes.
@@ -252,7 +252,7 @@ function updateDocuments(
 
     // apply pipeline stages
     let updateIter = Lazy(foundDocs);
-    for (const stage of updateExpr) {
+    for (const stage of modifier) {
       const [op, expr] = Object.entries(stage)[0] as [string, Any];
       const pipelineOp =
         PIPELINE_OPERATORS[op as keyof typeof PIPELINE_OPERATORS];
@@ -288,16 +288,12 @@ function updateDocuments(
     if (firstOnly && output.modifiedCount) {
       // NOTE: might be faster to start with '!isEqual(old,new)' in some cases. profiling needed.
       const newDoc = documents[indexes[0]];
-      const modifiedFields = extractUpdatedFields(
-        updateExpr,
-        oldFirstDoc,
-        newDoc
-      );
+      const modifiedFields = getModifiedFields(modifier, oldFirstDoc, newDoc);
       if (!modifiedFields.length) {
         // NOTE: may want to do assert not equal here but the extraction routine is already much involved.
         output.modifiedCount = 0;
       } else {
-        Object.assign(output, { modifiedFields });
+        Object.assign(output, { modifiedFields, modifiedIndex });
       }
     }
 
@@ -308,14 +304,14 @@ function updateDocuments(
   /*eslint import/namespace: ['error', { allowComputed: true }]*/
 
   // validated operators
-  const unknownOp = Object.keys(updateExpr).find(op => !UPDATE_OPERATORS[op]);
+  const unknownOp = Object.keys(modifier).find(op => !UPDATE_OPERATORS[op]);
   assert(!unknownOp, `Unknown update operator: '${unknownOp}'.`);
 
   const arrayFilters = updateConfig?.arrayFilters ?? [];
 
   // build parameters and add to locals
   opts.update({
-    updateParams: buildParams(Object.values(updateExpr), arrayFilters, opts)
+    updateParams: buildParams(Object.values(modifier), arrayFilters, opts)
   });
 
   const matchedCount = foundDocs.length;
@@ -323,12 +319,12 @@ function updateDocuments(
 
   for (const doc of foundDocs) {
     let modified = false;
-    for (const [op, expr] of Object.entries(updateExpr)) {
+    for (const [op, expr] of Object.entries(modifier)) {
       const mutate = UPDATE_OPERATORS[op] as UpdateOperator;
       const modifiedFields = mutate(doc, expr, arrayFilters, opts);
       if (!modified && modifiedFields.length) {
         modified = true;
-        if (firstOnly) Object.assign(output, { modifiedFields });
+        if (firstOnly) Object.assign(output, { modifiedFields, modifiedIndex });
       }
     }
 
@@ -339,7 +335,7 @@ function updateDocuments(
 }
 
 /** Extracts fields added, changed, or deleted between the old and new document. */
-function extractUpdatedFields(
+function getModifiedFields(
   pipeline: PipelineStage[],
   oldDoc: AnyObject,
   newDoc: AnyObject
@@ -380,7 +376,7 @@ function extractUpdatedFields(
   for (const key of Object.keys(oldDoc)) {
     if (stageFieldsSet.has(key)) continue;
     if (!stageConflictDetector.add(key) || !isEqual(newDoc[key], oldDoc[key])) {
-      // (1) conflict detected because child keys already exiss.
+      // (1) conflict detected because child keys already exists.
       //     since we don't know the state of sibling fields we must replace with top-level field instead.
       // (2) no conflict so we must check values and key only if not equal.
       updatedStageFields.push(key);

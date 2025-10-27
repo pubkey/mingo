@@ -65,7 +65,7 @@ For a minimal build, the desired operators must be loaded into a `Context` objec
 ```js
 import { Context } from "mingo/core";
 import { Aggregator } from "mingo/aggregator";
-import { $match } from "mingo/operators/pipeline/count";
+import { $match } from "mingo/operators/pipeline/match";
 import { $count } from "mingo/operators/pipeline/count";
 import { $gt } from "mingo/operators/expression/comparison/gt";
 
@@ -285,7 +285,7 @@ console.log(result); // output => [ { a: 7, b: 1 }, { a: 10, b: 6 } ]
 
 ## Updating Documents
 
-From `7.0.0` you can use `updateOne` and `updateMany` functions to update collections. These work similarly to the methods of the same name on MongoDB collections. An older function `update`, also exists as a convenience with a slightly different API. For more flexibility such as using pipeline operators to update documents, prefer the `updateOne` and `updateMany` functions.
+From `7.0.0` you can use `updateOne` and `updateMany` functions to update collections. These work similarly to the methods of the same name on MongoDB collections. The older `update` function still exists and retains the same API as before. For more flexibility such as using pipeline operators to update documents, prefer the `updateOne` and `updateMany` functions. `updateOne` and `updateMany` work on collections rather than individual objects and may modify objects in-place within the collection, or replace them entirely.
 
 ### Examples
 

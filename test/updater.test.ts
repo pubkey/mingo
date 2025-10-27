@@ -129,6 +129,39 @@ describe("updater", () => {
         }
       }
     );
+
+    it("should return correct updated paths", () => {
+      const obj = {
+        firstName: "John",
+        lastName: "Wick",
+        age: 40,
+        friends: ["Scooby", "Shagy", "Fred"]
+      };
+
+      // returns array of modified paths if value changed.
+      expect(
+        update(obj, { $set: { firstName: "Bob", lastName: "Doe" } })
+      ).toEqual(["firstName", "lastName"]);
+
+      // update nested values.
+      expect(update(obj, { $pop: { friends: 1 } })).toEqual(["friends"]);
+      expect(obj.friends).toEqual(["Scooby", "Shagy"]);
+
+      // update nested value path
+      expect(update(obj, { $unset: { "friends.1": "" } })).toEqual([
+        "friends.1"
+      ]);
+      expect(obj.friends).toEqual(["Scooby", null]);
+
+      // update with condition
+      expect(
+        update(obj, { $set: { "friends.$[e]": "Velma" } }, [{ e: null }])
+      ).toEqual(["friends"]);
+      expect(obj.friends).toEqual(["Scooby", "Velma"]);
+
+      // empty array returned if value has not changed.
+      expect(update(obj, { $set: { firstName: "Bob" } })).toEqual([]);
+    });
   });
 
   describe("updateMany() with expressions", () => {
@@ -353,7 +386,8 @@ describe("updater", () => {
       ).toEqual({
         matchedCount: 1,
         modifiedCount: 1,
-        modifiedFields: ["violations"]
+        modifiedFields: ["violations"],
+        modifiedIndex: 0
       });
 
       expect(restaurants).toEqual([
@@ -393,7 +427,8 @@ describe("updater", () => {
       ).toEqual({
         matchedCount: 1,
         modifiedCount: 1,
-        modifiedFields: ["state"]
+        modifiedFields: ["state"],
+        modifiedIndex: 4
       });
 
       expect(people).toEqual([
@@ -426,7 +461,8 @@ describe("updater", () => {
       ).toEqual({
         matchedCount: 1,
         modifiedCount: 1,
-        modifiedFields: ["state"]
+        modifiedFields: ["state"],
+        modifiedIndex: 5
       });
 
       expect(people).toEqual([
@@ -457,7 +493,8 @@ describe("updater", () => {
       ).toEqual({
         matchedCount: 1,
         modifiedCount: 1,
-        modifiedFields: ["status"]
+        modifiedFields: ["status"],
+        modifiedIndex: 1
       });
 
       expect(items).toEqual([
@@ -496,7 +533,8 @@ describe("updater", () => {
       ).toEqual({
         matchedCount: 1,
         modifiedCount: 1,
-        modifiedFields: ["grades"]
+        modifiedFields: ["grades"],
+        modifiedIndex: 1
       });
 
       expect(students).toEqual([
@@ -536,7 +574,8 @@ describe("updater", () => {
       ).toEqual({
         matchedCount: 1,
         modifiedCount: 1,
-        modifiedFields: ["grades"]
+        modifiedFields: ["grades"],
+        modifiedIndex: 0
       });
 
       expect(students).toEqual([
@@ -609,7 +648,8 @@ describe("updater", () => {
           "commentsSemester2",
           "lastUpdate",
           "status"
-        ]
+        ],
+        modifiedIndex: 0
       });
 
       expect(students).toEqual([
@@ -689,7 +729,8 @@ describe("updater", () => {
       expect(res).toEqual({
         matchedCount: 1,
         modifiedCount: 1,
-        modifiedFields: ["average", "grade", "lastUpdate"]
+        modifiedFields: ["average", "grade", "lastUpdate"],
+        modifiedIndex: 2
       });
 
       expect(students).toEqual([
@@ -730,7 +771,8 @@ describe("updater", () => {
       expect(updateOne(people, {}, [{ $set: { state: "inactive" } }])).toEqual({
         matchedCount: 1,
         modifiedCount: 1,
-        modifiedFields: ["state"]
+        modifiedFields: ["state"],
+        modifiedIndex: 0
       });
 
       expect(people).toEqual([
@@ -799,10 +841,12 @@ describe("updater", () => {
         ]
       };
 
-      update(input, { $set: { "grades.$.std": 6 } }, [], {
-        _id: 5,
-        grades: { $elemMatch: { grade: { $lte: 90 }, mean: { $gt: 80 } } }
-      });
+      expect(
+        update(input, { $set: { "grades.$.std": 6 } }, [], {
+          _id: 5,
+          grades: { $elemMatch: { grade: { $lte: 90 }, mean: { $gt: 80 } } }
+        })
+      ).toEqual(["grades"]);
 
       expect(input).toEqual({
         _id: 5,
@@ -822,11 +866,13 @@ describe("updater", () => {
         deans_list: [2021, 2020]
       };
 
-      update(input, { $set: { "deans_list.$": 2022 } }, [], {
-        activity_ids: 1,
-        grades: 95,
-        deans_list: 2021
-      });
+      expect(
+        update(input, { $set: { "deans_list.$": 2022 } }, [], {
+          activity_ids: 1,
+          grades: 95,
+          deans_list: 2021
+        })
+      ).toEqual(["deans_list"]);
 
       expect(input).toEqual({
         _id: 8,
@@ -870,12 +916,14 @@ describe("updater", () => {
     ];
 
     it("Use the $ Operator to Update the First Match in an Array", () => {
-      update(
-        input[0],
-        { $set: { "engineering.$.email": "alice@mail.com" } },
-        [],
-        { "engineering.email": "missingEmail" }
-      );
+      expect(
+        update(
+          input[0],
+          { $set: { "engineering.$.email": "alice@mail.com" } },
+          [],
+          { "engineering.email": "missingEmail" }
+        )
+      ).toEqual(["engineering"]);
 
       expect(input[0]).toEqual({
         _id: "SF",
@@ -893,14 +941,16 @@ describe("updater", () => {
         ]
       });
 
-      update(
-        input[0],
-        { $set: { "engineering.$.email": "bob@mail.com" } },
-        [],
-        {
-          engineering: { $elemMatch: { name: "Bob", email: "missingEmail" } }
-        }
-      );
+      expect(
+        update(
+          input[0],
+          { $set: { "engineering.$.email": "bob@mail.com" } },
+          [],
+          {
+            engineering: { $elemMatch: { name: "Bob", email: "missingEmail" } }
+          }
+        )
+      ).toEqual(["engineering"]);
 
       expect(input[0]).toEqual({
         _id: "SF",
@@ -920,9 +970,11 @@ describe("updater", () => {
     });
 
     it("Use the $[] Operator to Update All Array Elements Within a Document", () => {
-      input.forEach(o => {
-        update(o, { $inc: { "sales.$[].bonus": 2000 } }, [], { _id: "NYC" });
-      });
+      expect(
+        update(input[1], { $inc: { "sales.$[].bonus": 2000 } }, [], {
+          _id: "NYC"
+        })
+      ).toEqual(["sales"]);
 
       expect(find(input, { _id: "NYC" }, { sales: 1, _id: 0 }).all()).toEqual([
         {
