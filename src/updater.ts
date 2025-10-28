@@ -284,17 +284,13 @@ function updateDocuments(
       }
     }
 
-    // find all the updated fields if firstOnly.
+    // find all the modified fields if firstOnly.
     if (firstOnly && output.modifiedCount) {
-      // NOTE: might be faster to start with '!isEqual(old,new)' in some cases. profiling needed.
       const newDoc = documents[indexes[0]];
       const modifiedFields = getModifiedFields(modifier, oldFirstDoc, newDoc);
-      if (!modifiedFields.length) {
-        // NOTE: may want to do assert not equal here but the extraction routine is already much involved.
-        output.modifiedCount = 0;
-      } else {
-        Object.assign(output, { modifiedFields, modifiedIndex });
-      }
+      // modified fields MUST exist since we know the hashes did not match.
+      assert(modifiedFields.length, "bug: failed to retrieve modified fields");
+      Object.assign(output, { modifiedFields, modifiedIndex });
     }
 
     return output;
@@ -361,28 +357,28 @@ function getModifiedFields(
     }
   }
   const stageFieldsSet = new Set(stageFields.sort());
-  const stageConflictDetector = new Trie();
-  const updatedStageFields: string[] = [];
+  const conflictDetector = new Trie();
+  const modifiedFields: string[] = [];
   for (const key of stageFieldsSet) {
     if (
-      stageConflictDetector.add(key) &&
+      conflictDetector.add(key) &&
       !isEqual(resolve(newDoc, key), resolve(oldDoc, key))
     ) {
-      updatedStageFields.push(key);
+      modifiedFields.push(key);
     }
   }
   // for all top-level keys in oldDoc not in stage fields conflict, add to the updated fields.
   // this addresses cases where the entire object is replaced.
   for (const key of Object.keys(oldDoc)) {
     if (stageFieldsSet.has(key)) continue;
-    if (!stageConflictDetector.add(key) || !isEqual(newDoc[key], oldDoc[key])) {
+    if (!conflictDetector.add(key) || !isEqual(newDoc[key], oldDoc[key])) {
       // (1) conflict detected because child keys already exists.
       //     since we don't know the state of sibling fields we must replace with top-level field instead.
       // (2) no conflict so we must check values and key only if not equal.
-      updatedStageFields.push(key);
+      modifiedFields.push(key);
     }
   }
   // sort the final list and pick only the parent key paths.
   const topLevelFilter = new Trie();
-  return updatedStageFields.sort().filter(key => topLevelFilter.add(key));
+  return modifiedFields.sort().filter(key => topLevelFilter.add(key));
 }

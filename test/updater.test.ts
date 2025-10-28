@@ -1,9 +1,8 @@
-import { find } from "../src";
+import { find, update, updateMany, updateOne } from "../src";
 import { ComputeOptions } from "../src/core/_internal";
 import { clone, Trie } from "../src/operators/update/_internal";
-import { update, updateMany, updateOne } from "../src/updater";
 import { isArray } from "../src/util";
-import { DEFAULT_OPTS, ISODate } from "./support";
+import { ISODate } from "./support";
 
 describe("updater", () => {
   describe("Trie: Conflict Detection", () => {
@@ -161,6 +160,28 @@ describe("updater", () => {
 
       // empty array returned if value has not changed.
       expect(update(obj, { $set: { firstName: "Bob" } })).toEqual([]);
+    });
+
+    it("should update positional nested in deep object", () => {
+      const obj = {
+        first: {
+          second: {
+            third: [20, 5, 91, 300, 400]
+          }
+        }
+      };
+      expect(
+        update(obj, { $set: { "first.second.third.$[elem]": 0 } }, [
+          { elem: { $gt: 100 } }
+        ])
+      ).toEqual(["first.second.third"]);
+      expect(obj).toEqual({
+        first: {
+          second: {
+            third: [20, 5, 91, 0, 0]
+          }
+        }
+      });
     });
   });
 
@@ -333,7 +354,7 @@ describe("updater", () => {
           }
         ],
         {},
-        { ...DEFAULT_OPTS, variables: { now } }
+        { variables: { now } }
       );
 
       expect(res).toEqual({ matchedCount: 3, modifiedCount: 3 });
@@ -723,7 +744,7 @@ describe("updater", () => {
           }
         ],
         {},
-        { ...DEFAULT_OPTS, variables: { now } }
+        { variables: { now } }
       );
 
       expect(res).toEqual({
@@ -783,6 +804,75 @@ describe("updater", () => {
         { name: "Eve", state: "active", rating: 1 },
         { name: "Frank", state: "inactive", rating: 6 }
       ]);
+    });
+
+    it("should return correct results when no field is modified", () => {
+      const people = [
+        { name: "Alice", state: "active", rating: 5 },
+        { name: "Bob", state: "active", rating: 3 },
+        { name: "Charlie", state: "active", rating: 4 },
+        { name: "Diana", state: "inactive", rating: 2 },
+        { name: "Eve", state: "active", rating: 1 },
+        { name: "Frank", state: "inactive", rating: 6 }
+      ];
+
+      expect(
+        updateOne(people, { name: "Bob" }, [{ $set: { state: "active" } }])
+      ).toEqual({
+        matchedCount: 1,
+        modifiedCount: 0
+      });
+
+      expect(people).toEqual([
+        { name: "Alice", state: "active", rating: 5 },
+        { name: "Bob", state: "active", rating: 3 },
+        { name: "Charlie", state: "active", rating: 4 },
+        { name: "Diana", state: "inactive", rating: 2 },
+        { name: "Eve", state: "active", rating: 1 },
+        { name: "Frank", state: "inactive", rating: 6 }
+      ]);
+    });
+
+    it("should replace the entire object with $replaceRoot", () => {
+      const obj = {
+        country: "Ghana",
+        continent: "Africa",
+        flag: { red: true, yellow: true, black: true, green: true }
+      };
+      expect(
+        updateOne([obj], {}, [
+          {
+            $replaceRoot: {
+              newRoot: {
+                country: "Togo",
+                continent: "Africa",
+                flag: { red: true, yellow: true, white: true, green: true }
+              }
+            }
+          }
+        ])
+      ).toEqual({
+        matchedCount: 1,
+        modifiedCount: 1,
+        modifiedIndex: 0,
+        modifiedFields: ["country", "flag"]
+      });
+    });
+
+    it("should remove array value with $unset", () => {
+      const obj = {
+        friends: ["Scooby", "Shagy", "Fred"]
+      };
+      expect(updateOne([obj], {}, [{ $unset: "friends.1" }])).toEqual({
+        matchedCount: 1,
+        modifiedCount: 1,
+        modifiedIndex: 0,
+        modifiedFields: ["friends"]
+      });
+
+      expect(obj).toEqual({
+        friends: ["Scooby", "Fred"]
+      });
     });
   });
 
