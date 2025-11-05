@@ -118,6 +118,14 @@ support.runTest("operators/expression/arithmetic", {
     [[11.4, 0], 11],
     [[11.9, 0], 12]
   ],
+  $sigmoid: [
+    [undefined, null],
+    [null, null],
+    [1, 0.7310585786],
+    [5, 0.9933071491],
+    [13, 0.9999977397],
+    [21, 0.9999999992]
+  ],
   $sqrt: [
     [{ $sqrt: null }, null],
     [{ $sqrt: NaN }, NaN],

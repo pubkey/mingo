@@ -11,6 +11,7 @@ export * from "./mod";
 export * from "./multiply";
 export * from "./pow";
 export * from "./round";
+export * from "./sigmoid";
 export * from "./sqrt";
 export * from "./subtract";
 export * from "./trunc";
