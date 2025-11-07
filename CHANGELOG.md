@@ -2,12 +2,13 @@
 
 ## 7.0.0 / pending
 
-**New**
+**Added**
 
-- Added support for positional project operator `.$`.
-- Added support for positional update operator `$`.
-- Added support for `updateOne` and `updateMany` functions with all related config.
-- Support multiple update operations in expression. Closes [#570](https://github.com/kofrasa/mingo/issues/570)
+- Support positional project operator `.$`.
+- Support positional update operator `.$`.
+- Support `updateOne` and `updateMany` functions with all related config.
+- Support multiple operations in update expression. Closes [#570](https://github.com/kofrasa/mingo/issues/570)
+- Support `$sigmoid` arithmetic operator.
 - **BREAKING**: Load all operators for interfaces in default entry point.
 
 **Removed (BREAKING)**
