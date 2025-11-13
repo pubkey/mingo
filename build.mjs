@@ -96,9 +96,25 @@ function createModule() {
   fs.writeFileSync(path.join(BUILD_DIR, "package.json"), data);
 }
 
+function copyDemoHtml() {
+  // read file
+  const demoHtml = "demo.html";
+  let content = fs.readFileSync(demoHtml, "utf8");
+
+  // replace local distribution
+  content = content.replace(
+    "./build/dist/mingo.min.js",
+    `https://unpkg.com/mingo@${packageJson.version}/dist/mingo.min.js`
+  );
+
+  // write to new location
+  fs.writeFileSync("docs/" + demoHtml, content, "utf8");
+}
+
 function main() {
   build();
   createModule();
+  copyDemoHtml();
 
   if (NPM_ARGS.length) {
     // execute within lib dir
