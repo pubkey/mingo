@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Mingo Playground</title>
+
+  <!-- Prism for highlighting -->
+  <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-javascript.min.js"></script>
+
+  <!-- Prettier for formatting -->
+  <script src="https://unpkg.com/prettier@2.8.8/standalone.js"></script>
+  <script src="https://unpkg.com/prettier@2.8.8/parser-babel.js"></script>
+
+  <!-- Mingo Library -->
+  <script src="./build/dist/mingo.min.js"></script>
+
+  <style>
+    /* shared font styles */
+    :root {
+      --editor-font: 13.5px/1.5 "Source Code Pro", ui-monospace, SFMono-Regular, Menlo, Monaco, "Courier New", monospace;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background: #fff;
+    }
+
+    /* Dark mode styles */
+    /* @media (prefers-color-scheme: dark) {
+      body {
+        background: #121212;
+        color: #ffffff;
+      }
+    } */
+
+    /* Light mode styles (optional override) */
+    /* @media (prefers-color-scheme: light) {
+      body {
+        background: #ffffff;
+        color: #000000;
+      }
+    } */
+
+    .titlebar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      background: #fff;
+      color-scheme: light dark;
+    }
+
+    .title {
+      font-weight: 600;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    button {
+      background: #0b5fff;
+      color: #fff;
+      border: 0;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: #6b7280;
+    }
+
+    .main {
+      display: flex;
+      gap: var(--gap);
+      padding: 16px;
+      flex: 1 1 auto;
+      min-height: 0;
+      box-sizing: border-box;
+    }
+
+    .column {
+      flex: 1 1 0;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--bg);
+      min-width: 0;
+      height: calc(100vh - 120px);
+    }
+
+    .pane-header {
+      padding: 10px 12px;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+    }
+
+    .editor-frame {
+      display: flex;
+      flex: 1 1 auto;
+      min-height: 0;
+      height: 100%;
+    }
+
+    /* gutter */
+    .gutter {
+      width: var(--gutter);
+      background: var(--gutter-bg);
+      padding: 10px 6px;
+      box-sizing: border-box;
+      color: #6b7280;
+      text-align: right;
+      user-select: none;
+      overflow: hidden;
+      /* font: var(--font); */
+      font: var(--editor-font);
+    }
+
+    .gutter .line {
+      height: 1.5em;
+      padding-right: 6px;
+    }
+
+    /* content area that holds highlight and textarea perfectly stacked */
+    .stack {
+      position: relative;
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow: auto;
+      background: transparent;
+    }
+
+    /* result pane uses same overlay technique but textarea is readonly and pointer-events none */
+    .result-gutter {
+      width: var(--gutter);
+      background: var(--gutter-bg);
+      padding: 10px 6px;
+      box-sizing: border-box;
+      color: #6b7280;
+      text-align: right;
+      font: var(--editor-font);
+    }
+
+    pre.result-highlight {
+      margin: 0;
+      padding: 10px;
+      box-sizing: border-box;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font: var(--font);
+      color: transparent;
+    }
+
+    pre.result-highlight code {
+      font: inherit;
+      color: inherit;
+    }
+
+    textarea.result {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 10px;
+      box-sizing: border-box;
+      border: 0;
+      background: transparent;
+      color: transparent;
+      caret-color: transparent;
+      pointer-events: none;
+      font: var(--font);
+    }
+
+    @media (max-width:900px) {
+      .main {
+        flex-direction: column;
+      }
+    }
+
+    /* output classes */
+    .output-success {
+      color: #0b5fff;
+    }
+
+    .output-error {
+      color: #d14343;
+      font-weight: 600;
+    }
+
+    .output-plain {
+      color: #111;
+    }
+
+    /* highlight layer */
+    .highlight {
+      margin: 30;
+      padding: 0px;
+      box-sizing: border-box;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font: var(--editor-font);
+      min-height: 100%;
+      pointer-events: none;
+    }
+
+    .highlight code {
+      font: inherit;
+      color: inherit;
+      /* Prism theme colors will apply */
+    }
+
+    /* textarea overlay */
+    textarea.editor {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 10px;
+      box-sizing: border-box;
+      border: 0;
+      outline: 0;
+      resize: none;
+      background: transparent;
+      color: transparent;
+      /* hide raw text */
+      caret-color: #111;
+      /* keep caret visible */
+      font: var(--editor-font);
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow: auto;
+      z-index: 2;
+    }
+
+    /* override default Prism styles */
+    pre[class*="language-"] {
+      font: var(--editor-font);
+      padding: 10px;
+      margin: 0px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="titlebar">
+    <div class="title">Mingo Playground</div>
+    <div class="controls">
+      <button id="runBtn">Run</button>
+      <button id="formatBtn" class="secondary">Format</button>
+    </div>
+    <div class="title"><a href="">Docs</a></div>
+  </div>
+
+  <div class="main">
+    <!-- Editor column -->
+    <div class="column">
+      <div class="pane-header">Editor</div>
+      <div class="editor-frame">
+        <div class="gutter" id="editorGutter" aria-hidden="true"></div>
+
+        <div class="stack" id="editorStack">
+          <pre class="highlight language-javascript"><code id="editorHighlight"></code></pre>
+          <textarea id="editorInput" class="editor" spellcheck="false" autocomplete="off">
+// commonly used members from global 'mingo' object.
+const { Aggregator, Query, aggregate, find, updateOne, updateMany } = mingo
+
+// example
+const result = find([
+  {"name":"Alice","age":30},
+  {"name":"Bob","age":21},
+  {"name":"Charlie","age":25}
+],
+{ "age": { "$gte": 25 } }).all();
+
+// display result
+console.log(result)
+          </textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Result column -->
+    <div class="column">
+      <div class="pane-header">Result</div>
+      <div class="editor-frame">
+        <div class="result-gutter" id="resultGutter" aria-hidden="true"></div>
+
+        <div class="stack" id="resultStack">
+          <pre class="result-highlight language-javascript"><code id="resultHighlight"></code></pre>
+          <textarea id="resultInput" class="result" readonly></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Elements
+    const editorInput = document.getElementById('editorInput');
+    const editorHighlight = document.getElementById('editorHighlight');
+    const editorGutter = document.getElementById('editorGutter');
+
+    const resultInput = document.getElementById('resultInput');
+    const resultHighlight = document.getElementById('resultHighlight');
+    const resultGutter = document.getElementById('resultGutter');
+
+    const runBtn = document.getElementById('runBtn');
+    const formatBtn = document.getElementById('formatBtn');
+
+    // Escape for HTML
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // Update gutters
+    function updateGutter(gutterEl, text) {
+      const lines = Math.max(1, text.split('\n').length);
+      let html = '';
+      for (let i = 1; i <= lines; i++) html += '<div class="line">' + i + '</div>';
+      gutterEl.innerHTML = html;
+    }
+
+    // Update highlight (editor)
+    function updateEditorHighlight() {
+      const code = editorInput.value;
+      const escaped = escapeHtml(code);
+      editorHighlight.innerHTML = Prism.highlight(escaped, Prism.languages.javascript, 'javascript');
+      updateGutter(editorGutter, code);
+    }
+
+    // Update result highlight
+    function updateResult(text, cls) {
+      const escaped = escapeHtml(text);
+      resultHighlight.innerHTML = Prism.highlight(escaped, Prism.languages.javascript, 'javascript');
+      resultInput.value = text;
+      updateGutter(resultGutter, text);
+      resultHighlight.classList.remove('output-success', 'output-error', 'output-plain');
+      if (cls) resultHighlight.classList.add(cls);
+    }
+
+    // Sync scroll: textarea -> highlight & gutter
+    function syncScrollFromTextarea() {
+      const ta = editorInput;
+      editorHighlight.parentElement.scrollTop = ta.scrollTop;
+      editorHighlight.parentElement.scrollLeft = ta.scrollLeft;
+      editorGutter.scrollTop = ta.scrollTop;
+    }
+
+    editorInput.addEventListener('scroll', syncScrollFromTextarea);
+    editorHighlight.parentElement.addEventListener('scroll', () => {
+      editorInput.scrollTop = editorHighlight.parentElement.scrollTop;
+      editorInput.scrollLeft = editorHighlight.parentElement.scrollLeft;
+      editorGutter.scrollTop = editorHighlight.parentElement.scrollTop;
+    });
+
+    // Live update highlighting as user types with small debounce
+    let deb = null;
+    editorInput.addEventListener('input', () => {
+      if (deb) clearTimeout(deb);
+      deb = setTimeout(() => {
+        updateEditorHighlight();
+        deb = null;
+      }, 25);
+    });
+
+    // Handle Tab and Enter and shortcuts (single handler)
+    editorInput.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        runUserCode();
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'F' || e.key === 'f')) {
+        e.preventDefault();
+        formatCode();
+        return;
+      }
+
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const start = editorInput.selectionStart;
+        const end = editorInput.selectionEnd;
+        const val = editorInput.value;
+        const insert = '  ';
+        editorInput.value = val.slice(0, start) + insert + val.slice(end);
+        editorInput.selectionStart = editorInput.selectionEnd = start + insert.length;
+        updateEditorHighlight();
+        syncScrollFromTextarea();
+        return;
+      }
+
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const start = editorInput.selectionStart;
+        const val = editorInput.value;
+        const before = val.slice(0, start);
+        const after = val.slice(editorInput.selectionEnd);
+        const currentLineMatch = before.match(/(^|\n)([ \t]*)[^\n]*$/);
+        const indent = currentLineMatch ? currentLineMatch[2] : '';
+        const prevLine = before.split('\n').pop();
+        const openBlock = /{\s*$/.test(prevLine);
+        const closeBlock = /^\s*}/.test(after);
+        const extra = openBlock && !closeBlock ? '  ' : '';
+        const insert = '\n' + indent + extra;
+        const newPos = start + insert.length;
+        editorInput.value = before + insert + after;
+        editorInput.selectionStart = editorInput.selectionEnd = newPos;
+        updateEditorHighlight();
+        syncScrollFromTextarea();
+        return;
+      }
+    });
+
+    // Capture console output and run code
+    function runUserCode() {
+      const userCode = editorInput.value;
+      const logs = [];
+      try {
+        const fakeConsole = {
+          log: (...args) => logs.push({ type: 'log', text: args.map(stringify).join(' ') }),
+          error: (...args) => logs.push({ type: 'error', text: args.map(stringify).join(' ') }),
+          warn: (...args) => logs.push({ type: 'warn', text: args.map(stringify).join(' ') }),
+          info: (...args) => logs.push({ type: 'info', text: args.map(stringify).join(' ') })
+        };
+        const fn = new Function('console', 'mingo', '"use strict";\n(function(){' + userCode + '})();');
+        fn(fakeConsole, mingo);
+        if (logs.length === 0) {
+          updateResult('// No console output produced.', 'output-plain');
+        } else {
+          const text = logs.map(l => (l.type === 'error' ? '[error] ' : (l.type === 'warn' ? '[warn] ' : '')) + l.text).join('\n');
+          const cls = logs.some(l => l.type === 'error') ? 'output-error' : 'output-success';
+          updateResult(text, cls);
+        }
+      } catch (err) {
+        updateResult(String(err && (err.stack || err.message || err)), 'output-error');
+      }
+    }
+
+    function stringify(v) {
+      try {
+        if (typeof v === 'string') return v;
+        if (v === undefined) return 'undefined';
+        if (v === null) return 'null';
+        if (typeof v === 'object') return JSON.stringify(v, getCircularReplacer(), 2);
+        return String(v);
+      } catch (e) {
+        return String(v);
+      }
+    }
+    function getCircularReplacer() {
+      const seen = new WeakSet();
+      return (k, v) => {
+        if (typeof v === 'object' && v !== null) {
+          if (seen.has(v)) return '[Circular]';
+          seen.add(v);
+        }
+        return v;
+      };
+    }
+
+    // Format with Prettier
+    function formatCode() {
+      try {
+        const raw = editorInput.value;
+        const formatted = prettier.format(raw, {
+          parser: "babel",
+          plugins: prettierPlugins,
+          singleQuote: true,
+          trailingComma: "es5",
+          tabWidth: 2,
+          useTabs: false
+        });
+        editorInput.value = formatted.replace(/\s+$/, '') + (formatted.endsWith('\n') ? '' : '\n');
+        updateEditorHighlight();
+        syncScrollFromTextarea();
+      } catch (err) {
+        updateResult('Prettier formatting error: ' + (err && err.message ? err.message : String(err)), 'output-error');
+      }
+    }
+
+    // Init
+    updateEditorHighlight();
+    updateGutter(editorGutter, editorInput.value);
+    updateGutter(resultGutter, '');
+    updateResult('// Press Run to execute the code and show output here', 'output-plain');
+
+    runBtn.addEventListener('click', runUserCode);
+    formatBtn.addEventListener('click', formatCode);
+
+    window.addEventListener('resize', () => {
+      updateEditorHighlight();
+      syncScrollFromTextarea();
+    });
+
+    // initial sync
+    setTimeout(() => {
+      updateEditorHighlight();
+      syncScrollFromTextarea();
+    }, 30);
+
+    // focus convenience
+    document.getElementById('editorGutter').addEventListener('click', () => editorInput.focus());
+  </script>
+</body>
+
+</html>
