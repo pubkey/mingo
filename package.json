@@ -8,7 +8,8 @@
   "types": "./types/index.d.ts",
   "scripts": {
     "prepare": "husky install",
-    "docs": "typedoc --entryPointStrategy expand src/ && touch docs/.nojekyll",
+    "docs": "touch docs/.nojekyll; npm run typedoc",
+    "typedoc": "typedoc --entryPointStrategy expand src/ --out docs/api",
     "build": "npm run clean && node ./build.mjs",
     "postbuild": "tsc --project tsconfig.build.json",
     "clean": "rm -fr build",
