@@ -42,12 +42,14 @@ Use the <a href="http://kofrasa.github.io/mingo/demo.html" target="_blank" rel="
 ```js
 import * as mingo from "mingo";
 
-const result = mingo.find([
-  {"name":"Alice","age":30},
-  {"name":"Bob","age":21},
-  {"name":"Charlie","age":25}
-],
-{ "age": { "$gte": 25 } }).all();
+const result = find(
+  [
+    { name: 'Alice', age: 30 },
+    { name: 'Bob', age: 21 },
+    { name: 'Charlie', age: 25 },
+  ],
+  { age: { $gte: 25 } }
+).all()
 
 console.log(result)
 /*
