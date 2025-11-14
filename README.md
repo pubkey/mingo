@@ -237,16 +237,9 @@ Query and aggregation operations can be configured with options to enabled diffe
 
 ## Custom Operators
 
-Custom operators can be registered using a `Context` object via the `context` option which is the recommended way since `6.4.2`. `Context` provides a container for operators, that the execution engine will use to process queries.
+Custom operators can be registered using a `Context` object via the `context` option which is the recommended way since `6.4.2`. `Context` provides a container for operators that the execution engine will use to process queries.
 
-Operators must conform to the signatures of their types.
-
-- [AccumulatorOperator](http://kofrasa.github.io/mingo/types/core.AccumulatorOperator.html)
-- [ExpressionOperator](http://kofrasa.github.io/mingo/types/core.ExpressionOperator.html)
-- [ProjectionOperator](http://kofrasa.github.io/mingo/types/core.ProjectionOperator.html)
-- [PipelineOperator](http://kofrasa.github.io/mingo/types/core.PipelineOperator.html)
-- [WindowOperator](http://kofrasa.github.io/mingo/types/core.WindowOperator.html)
-- [QueryOperator](http://kofrasa.github.io/mingo/types/core.QueryOperator.html)
+Operators must conform to the signatures of their types. See [mingo/core](https://kofrasa.github.io/mingo/api/modules/core.html) module for types.
 
 To define custom operators, the following imports are useful.
 
