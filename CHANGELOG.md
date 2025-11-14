@@ -9,13 +9,13 @@
 - Support `updateOne` and `updateMany` functions with all related config.
 - Support multiple operations in update expression. Closes [#570](https://github.com/kofrasa/mingo/issues/570)
 - Support `$sigmoid` arithmetic operator.
-- **BREAKING**: Load all operators for interfaces in default entry point.
+- **BREAKING**: Default module entry point now automatically loads all operators for interfaces (classes and functions).
 
 **Removed (BREAKING)**
 
 - `initOptions` function in `mingo/core`. Use plain object initializer.
-- `useOperators` function in `mingo/core`. Replaced with `Context`.
-- `getOperator` function in `mingo/core`. Replaced with `Context`.
+- `useOperators` function in `mingo/core`. Pass a custom `Context` object to options.
+- `getOperator` function in `mingo/core`. Pass a custom `Context` object to options.
 - `createUpdater` function in `mingo/updater`. No longer supported.
 - `mingo/init/{basic,system,context}` modules.
 

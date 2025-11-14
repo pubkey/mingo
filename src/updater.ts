@@ -47,9 +47,10 @@ export type PipelineStage =
   | { $replaceRoot: { newRoot: AnyObject } }
   | { $replaceWith: AnyObject };
 
-export type UpdateExpression = Partial<
-  Record<keyof typeof UPDATE_OPERATORS, AnyObject>
->;
+/*eslint-disable @typescript-eslint/no-empty-object-type */
+/** Expression for update operation to perform */
+export interface Modifier
+  extends Partial<Record<keyof typeof UPDATE_OPERATORS, AnyObject>> {}
 
 /**
  * Supported cloning modes.
@@ -59,6 +60,7 @@ export type UpdateExpression = Partial<
  */
 export type CloneMode = "deep" | "copy" | "none";
 
+/** Extra configuration to customize the update operation */
 export interface UpdateConfig {
   /** An array of filter documents that determine which array elements to modify for an update operation on an array field. */
   arrayFilters?: AnyObject[];
@@ -76,7 +78,7 @@ export interface UpdateConfig {
  * Updates the given object with the expression.
  *
  * @param obj The object to update.
- * @param modifier The update expressions.
+ * @param modifier The modifications to apply.
  * @param arrayFilters Filters to apply to nested items.
  * @param condition Conditions to validate before performing update.
  * @param options Update options to override defaults.
@@ -84,7 +86,7 @@ export interface UpdateConfig {
  */
 export function update(
   obj: AnyObject,
-  modifier: UpdateExpression,
+  modifier: Modifier,
   arrayFilters?: AnyObject[],
   condition?: AnyObject,
   options?: {
@@ -111,16 +113,15 @@ export function update(
  * Documents in the collection may be replaced or modified.
  *
  * @param documents - The array of documents to update.
- * @param condition - The query condition to match documents.
- * @param modifier - The update expression or aggregation pipeline stages.
+ * @param condition - The selection criteria for the update.
+ * @param modifier - The modifications to apply.
  * @param updateConfig - Optional update config parameters.
  * @param options - Optional settings to control update behavior.
- * @returns An object containing `matchedCount` and `modifiedCount`.
  */
 export function updateMany(
   documents: AnyObject[],
   condition: AnyObject,
-  modifier: UpdateExpression | PipelineStage[],
+  modifier: Modifier | PipelineStage[],
   updateConfig: UpdateConfig = {},
   options?: Partial<Options>
 ): { matchedCount: number; modifiedCount: number } {
@@ -142,16 +143,15 @@ export function updateMany(
  * Objects in the array may be modified inplace or replaced entirely.
  *
  * @param documents - The array of documents to update.
- * @param condition - The query condition to match documents.
- * @param modifier - The update expression or aggregation pipeline stages.
+ * @param condition - The selection criteria for the update.
+ * @param modifier - The modifications to apply.
  * @param updateConfig - Optional update config parameters.
  * @param options - Optional settings to control update behavior.
- * @returns An object containing `matchedCount`, `modifiedCount`, and `fields`.
  */
 export function updateOne(
   documents: AnyObject[],
   condition: AnyObject,
-  modifier: UpdateExpression | PipelineStage[],
+  modifier: Modifier | PipelineStage[],
   updateConfig: UpdateConfig = {},
   options?: Partial<Options>
 ) {
@@ -161,13 +161,25 @@ export function updateOne(
   });
 }
 
+/** Result of update operation */
+export interface UpdateResult {
+  /** Count of objects that matched filter. */
+  readonly matchedCount: number;
+  /** Count of objects modified. */
+  readonly modifiedCount: number;
+  /** Array of modified fields of single object. Available only for {@link updateOne}. */
+  readonly modifiedFields?: string[];
+  /** Index of the modified object within the collection. Available only for {@link updateOne}. */
+  readonly modifiedIndex?: number;
+}
+
 function updateDocuments(
   documents: AnyObject[],
   condition: AnyObject,
-  modifier: UpdateExpression | PipelineStage[],
+  modifier: Modifier | PipelineStage[],
   updateConfig: UpdateConfig = {},
   options?: Partial<Options> & { firstOnly?: boolean }
-): { matchedCount: number; modifiedCount: number; modifiedFields?: string[] } {
+): UpdateResult {
   // apply options overrides
   options ||= {};
 

@@ -83,7 +83,7 @@ export function aggregate(
 
 export function update(
   obj: AnyObject,
-  updateExpr: updater.UpdateExpression,
+  modifier: updater.Modifier,
   arrayFilters?: AnyObject[],
   condition?: AnyObject,
   options?: {
@@ -91,7 +91,7 @@ export function update(
     queryOptions?: Partial<Options>;
   }
 ) {
-  return updater.update(obj, updateExpr, arrayFilters, condition, {
+  return updater.update(obj, modifier, arrayFilters, condition, {
     cloneMode: options?.cloneMode,
     queryOptions: makeOpts(options?.queryOptions)
   });
@@ -100,14 +100,14 @@ export function update(
 export function updateMany(
   documents: AnyObject[],
   condition: AnyObject,
-  updateExpr: updater.UpdateExpression | updater.PipelineStage[],
+  modifer: updater.Modifier | updater.PipelineStage[],
   updateConfig: updater.UpdateConfig = {},
   options?: Partial<Options>
 ) {
   return updater.updateMany(
     documents,
     condition,
-    updateExpr,
+    modifer,
     updateConfig,
     makeOpts(options)
   );
@@ -116,14 +116,14 @@ export function updateMany(
 export function updateOne(
   documents: AnyObject[],
   condition: AnyObject,
-  updateExpr: updater.UpdateExpression | updater.PipelineStage[],
+  modifier: updater.Modifier | updater.PipelineStage[],
   updateConfig: updater.UpdateConfig = {},
   options?: Partial<Options>
 ) {
   return updater.updateOne(
     documents,
     condition,
-    updateExpr,
+    modifier,
     updateConfig,
     makeOpts(options)
   );
