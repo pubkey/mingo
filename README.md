@@ -251,7 +251,7 @@ import { resolve } from "mingo/util"
 // this example creates a query operator that checks if a value is between a boundary.
 const $between = (selector, args, options) => {
   return obj => {
-    const value = resolve(obj, selector, { unwrapArray: true });
+    const value = resolve(obj, selector);
     return value >= args[0] && value <= args[1];
   };
 };
