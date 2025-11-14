@@ -31,7 +31,7 @@ runTest(testPath(__filename), {
         date,
         timezone: "America/New_York"
       },
-      isDST(date) ? "03:15:39:736-0500" : "04:15:39:736-0400"
+      isDST(date) ? "04:15:39:736-0400" : "03:15:39:736-0500"
     ],
 
     // timewithOffset430
@@ -43,7 +43,7 @@ runTest(testPath(__filename), {
     // minutesOffsetNY
     [
       { format: "%Z", date, timezone: "America/New_York" },
-      isDST(date) ? "-300" : "-240"
+      isDST(date) ? "-240" : "-300"
     ],
 
     // minutesOffset430
