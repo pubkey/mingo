@@ -104,7 +104,7 @@ function copyDemoHtml() {
   // replace local distribution
   content = content.replace(
     "./build/dist/mingo.min.js",
-    `https://unpkg.com/mingo@${packageJson.version}/dist/mingo.min.js`
+    `https://unpkg.com/mingo@latest/dist/mingo.min.js`
   );
 
   // write to new location
