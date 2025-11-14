@@ -30,10 +30,10 @@ MongoDB query language for in-memory objects
 ## API
 Below are the most commonly used objects exported in the default module.
 
-- **Functions**: [find](http://kofrasa.github.io/mingo/api/functions/index.find.html), [aggregate](http://kofrasa.github.io/mingo/api/functions/index.aggregate.html), [update](http://kofrasa.github.io/mingo/api/functions/updater.update.html), [updateMany](http://kofrasa.github.io/mingo/api/functions/updater.updateMany.html), [updateOne](http://kofrasa.github.io/mingo/api/functions/updater.updateOne.html).
-- **Classes**: [Query](http://kofrasa.github.io/mingo/api/classes/index.Query.html), [Aggregator](http://kofrasa.github.io/mingo/api/classes/index.Aggregator.html)
+- **Functions**: [find](http://kofrasa.github.io/mingo/functions/index.find.html), [aggregate](http://kofrasa.github.io/mingo/functions/index.aggregate.html), [update](http://kofrasa.github.io/mingo/functions/updater.update.html), [updateMany](http://kofrasa.github.io/mingo/functions/updater.updateMany.html), [updateOne](http://kofrasa.github.io/mingo/functions/updater.updateOne.html).
+- **Classes**: [Query](http://kofrasa.github.io/mingo/classes/index.Query.html), [Aggregator](http://kofrasa.github.io/mingo/classes/index.Aggregator.html)
 
-See [here](http://kofrasa.github.io/mingo/api/modules.html) for full module documentation. For information on how to use specific operators refer to official [MongoDB](https://www.mongodb.com/docs/manual/reference/mql/) website.
+See [here](http://kofrasa.github.io/mingo/modules.html) for full module documentation. For information on how to use specific operators refer to official [MongoDB](https://www.mongodb.com/docs/manual/reference/mql/) website.
 
 Use the <a href="http://kofrasa.github.io/mingo/demo.html" target="_blank" rel="noopener noreferrer">playground</a> to try out this library in a fully functional environment.
 
@@ -239,25 +239,26 @@ Query and aggregation operations can be configured with options to enabled diffe
 
 Custom operators can be registered using a `Context` object via the `context` option which is the recommended way since `6.4.2`. `Context` provides a container for operators that the execution engine will use to process queries.
 
-Operators must conform to the signatures of their types. See [mingo/core](https://kofrasa.github.io/mingo/api/modules/core.html) module for types.
+Operators must conform to the signatures of their types. See [mingo/core](https://kofrasa.github.io/mingo/modules/core.html) module for types.
 
-To define custom operators, the following imports are useful.
-
-```js
-const mingo = require("mingo");
-const util = require("mingo/util");
-```
-
-### Custom Operator Examples
+### Example: Add a $between query operator
 
 ```js
+import { Query } from "mingo/query"
+import { Context } from "mingo/core"
+import { resolve } from "mingo/util"
+
 // this example creates a query operator that checks if a value is between a boundary.
 const $between = (selector, args, options) => {
   return obj => {
-    const value = util.resolve(obj, selector, { unwrapArray: true });
+    const value = resolve(obj, selector, { unwrapArray: true });
     return value >= args[0] && value <= args[1];
   };
 };
+
+const context = Context.init().addQueryOps({ $between })
+const q = new Query({ a: { $between: [5, 10] } }, { context })
+
 // a test collection
 const collection = [
   { a: 1, b: 1 },
@@ -265,6 +266,14 @@ const collection = [
   { a: 10, b: 6 },
   { a: 20, b: 10 }
 ];
+
+console.log(q.find(collection).all())
+/*
+[
+  { a: 7, b: 1 },
+  { a: 10, b: 6 },
+]
+*/
 ```
 
 #### Register custom operator using the context option.
@@ -285,7 +294,7 @@ console.log(result); // output => [ { a: 7, b: 1 }, { a: 10, b: 6 } ]
 
 The `updateOne` and `updateMany` functions can be used to update collections. These work similarly to the methods of the same names on MongoDB collections. These functions operate on an input collection and may _modify objects within the collection in-place, or replace them completely_. They also allow using supported pipeline operators as modifiers.
 
-For updating a single object reference use the [update](https://kofrasa.github.io/mingo/api/functions/updater.update.html) function.
+For updating a single object reference use the [update](https://kofrasa.github.io/mingo/functions/updater.update.html) function.
 
 ### Example: Modify object with `update()`
 
@@ -323,11 +332,13 @@ The library provides 3 distributions on [NPM](https://www.npmjs.com/package/ming
 > Supporting both CJS and ESM modules makes this library subject to the [dual package hazard](https://github.com/nodejs/package-examples). In backend environments, be consistent with the module loading format to avoid surprises and subtle errors. You can avoid this by loading from only the default exports to get all operators, or creating a custom bundle with your favorite bundler.
 
 ### Load as global object in browser
+```html
 <script src="https://unpkg.com/mingo/dist/mingo.min.js"></script>
 <script>
   // global 'mingo' module available in scope
   console.log((new mingo.Query({a:5})).test({a:10})) // false
 </script>
+```
 
 ### Load as ESM module in browser
 ```html

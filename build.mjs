@@ -96,7 +96,7 @@ function createModule() {
   fs.writeFileSync(path.join(BUILD_DIR, "package.json"), data);
 }
 
-function copyStaticFiles() {
+function copyDemoHtml() {
   // copy and update demo.html
   const demoHtml = "demo.html";
   let content = fs.readFileSync(demoHtml, "utf8");
@@ -109,18 +109,18 @@ function copyStaticFiles() {
 
   // write to new location
   fs.writeFileSync("docs/" + demoHtml, content, "utf8");
-
-  // copy readme
-  fs.cpSync("README.md", "docs/README.md")
 }
 
 function main() {
+  if (NPM_ARGS[0] === "demo") {
+    copyDemoHtml();
+    return;
+  }
+
   build();
   createModule();
-  copyStaticFiles();
 
   if (NPM_ARGS.length) {
-    // execute within lib dir
     console.log("\nExecuting command:", `npm ${NPM_ARGS.join(" ")}`, "\n");
 
     // execute command

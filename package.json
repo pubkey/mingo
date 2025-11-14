@@ -9,7 +9,8 @@
   "scripts": {
     "prepare": "husky install",
     "docs": "touch docs/.nojekyll; npm run typedoc",
-    "typedoc": "typedoc --entryPointStrategy expand src/ --out docs/api",
+    "typedoc": "typedoc --entryPointStrategy expand src/",
+    "posttypedoc": "node ./build.mjs demo",
     "build": "npm run clean && node ./build.mjs",
     "postbuild": "tsc --project tsconfig.build.json",
     "clean": "rm -fr build",
