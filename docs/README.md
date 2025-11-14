@@ -22,56 +22,55 @@ MongoDB query language for in-memory objects
   - [Expressions](https://www.mongodb.com/docs/manual/reference/mql/expressions/)
   - [Window operators](https://docs.mongodb.com/manual/reference/operator/aggregation/setWindowFields/#window-operators)
 - Aggregation variables; [`$$ROOT`, `$$CURRENT`, `$$DESCEND`, `$$PRUNE`, `$$KEEP`, `$$REMOVE`, `$$NOW`](https://docs.mongodb.com/manual/reference/aggregation-variables/)
-- Filtering and aggregation using streaming.
-- Document [update](https://www.mongodb.com/docs/manual/reference/mql/update/) support. See [Updating Documents](#updating-documents).
-- Custom type value equality using `toString` when implemented.
+- [Update](https://www.mongodb.com/docs/manual/reference/mql/update/) support. See [Updating Documents](#updating-documents).
+- Lazy data processing pipeline.
+- Support custom type value equality when `toString` is implemented.
 
-For more documentation on how to use operators see official [mongodb](https://www.mongodb.com/docs/manual/reference/mql/) website.
 
-Public [API](https://kofrasa.github.io/mingo/api/modules/index.html) for exported module interfaces and type signatures.
+## API
+Below are the most commonly used objects exported in the default module.
 
-## Distribution
+- **Functions**: [find](http://kofrasa.github.io/mingo/api/functions/index.find.html), [aggregate](http://kofrasa.github.io/mingo/api/functions/index.aggregate.html), [update](http://kofrasa.github.io/mingo/api/functions/updater.update.html), [updateMany](http://kofrasa.github.io/mingo/api/functions/updater.updateMany.html), [updateOne](http://kofrasa.github.io/mingo/api/functions/updater.updateOne.html).
+- **Classes**: [Query](http://kofrasa.github.io/mingo/api/classes/index.Query.html), [Aggregator](http://kofrasa.github.io/mingo/api/classes/index.Aggregator.html)
 
-The package provides 3 distributions on [NPM](https://www.npmjs.com/package/mingo?activeTab=code).
+See [here](http://kofrasa.github.io/mingo/api/modules.html) for full module documentation. For information on how to use specific operators refer to official [MongoDB](https://www.mongodb.com/docs/manual/reference/mql/) website.
 
-1.  A minified bundle since `6.6.0` for browser targets. See [unpkg](https://unpkg.com/mingo/dist/mingo.min.js).
-1.  A CommonJS module when loaded using `require`.
-1.  An ESM module when loaded using `import`.
-
-> Supporting both CJS and ESM modules makes this library subject to the [dual package hazard](https://github.com/nodejs/package-examples). In backend environments, be consistent with the module loading format to avoid surprises and subtle errors. You can avoid this by loading from only the default exports to get all operators, or creating a custom bundle with your favorite bundler.
-
-From `7.0.0` all operators are available for interfaces exported in the default entry point. You can use a service like `esm.run` to import the library as a module directly in your page.
-
-```html
-<script type="module">
-  import * as mingo from "https://esm.run/mingo/esm/index.js";
-  // use objects on 'mingo' module with full operator support.
-</script>
-```
+Use the <a href="http://kofrasa.github.io/mingo/demo.html" target="_blank" rel="noopener noreferrer">playground</a> to try out this library in a fully functional environment.
 
 ## Usage
 
-You can use the [playground](http://kofrasa.github.io/mingo/demo.html) for testing and running examples.
-
 ```js
-// Use as ESM module
-import mingo from "mingo";
+import * as mingo from "mingo";
 
-// or CommonJS
-const mingo = require("mingo");
+const result = find(
+  [
+    { name: 'Alice', age: 30 },
+    { name: 'Bob', age: 21 },
+    { name: 'Charlie', age: 25 },
+  ],
+  { age: { $gte: 25 } }
+).all()
+
+console.log(result)
+/*
+[
+  { "name": "Alice", "age": 30 },
+  { "name": "Charlie", "age": 25 }
+]
+*/
 ```
 
-Using objects from the default entry point interface is suitable for most use cases. All interfaces exported from the default entry point load all operators. This includes `Query`, `Aggregator`, `find`, `aggregate`, `update`, `updateOne`, and `updateMany` objects.
-
-To load and configure only specific operators for your environment, do not use the default entry point but instead use interfaces from their corresponding modules such as `mingo/{core,query,aggregator,updater}`, and load operators explicitly into a custom `Context` object to pass as options.
+**NB:** Importing the default entry point or any objcets from it will load all operators into your environment.
 
 ### Loading Operators
 
-For a minimal build, the desired operators must be loaded into a `Context` object and configured in your `Options`. This enable all unused features to be subject to tree-shaking and excluded during bundling.
+To load only specific operators in your environment, you should import objects from their base modules such as `mingo/{core,query,aggregator,updater}`, and then import and register operators into a custom `Context` which is passed as an option. This is necessary for tree-shaking when build size is a concern.
 
-**NB**: To avoid surprises, operators loaded into a `Context` cannot be replaced. Adding a new operator with an existing name is a no-op and does not throw an error. To ensure a specific implementation of an operator is used, it must be the first to be registered in the `Context`.
+Operators loaded into a `Context` cannot be replaced. Registering the same operator name is a no-op and does not throw an error.
 
 ```js
+// In this example the only operators available will be $match, $count, and $gt.
+// Attempting to use any other operator will throw an error.
 import { Context } from "mingo/core";
 import { Aggregator } from "mingo/aggregator";
 import { $match } from "mingo/operators/pipeline/match";
@@ -96,7 +95,7 @@ const result = agg.run([
 ]);
 ```
 
-### Using query to test objects
+### Using Query to test objects
 
 ```js
 // Query imported from default entry point. Automatically loads all operators into context.
@@ -110,7 +109,7 @@ let query = new Query({
 });
 
 // test if an object matches query
-query.test(doc);
+query.test(doc); // returns boolean if `doc` matches criteria.
 ```
 
 ### Searching and Filtering
@@ -119,13 +118,10 @@ query.test(doc);
 // Query imported from default entry point. Automatically loads all operators into context.
 import { Query } from "mingo";
 
-// input is either an Array or any iterable source (i.e Object{next:Function}) including ES6 generators.
-let criteria = { score: { $gt: 10 } };
+const query = new Query({ score: { $gt: 10 } });
 
-let query = new Query(criteria);
-
-// filter collection with find()
-let cursor = query.find(collection);
+// filter some `collection` with find()
+const cursor = query.find(collection);
 
 // sort, skip and limit by chaining
 cursor.sort({ student_id: 1, score: -1 }).skip(100).limit(100);
@@ -188,9 +184,9 @@ const schema = {
 mingo.find(docs, { $jsonSchema: schema }, {}, { jsonSchemaValidator }).all();
 ```
 
-**Note:** An error is thrown when the `$jsonSchema` operator is used without a the `jsonSchemaValidator` configured.
+**NB:** An error is thrown when the `$jsonSchema` operator is used without a the `jsonSchemaValidator` configured.
 
-## Aggregation Pipeline
+### Aggregation
 
 ```js
 import { Aggregator } from "mingo/aggregator";
@@ -226,31 +222,24 @@ let result = agg.run(collection);
 
 Query and aggregation operations can be configured with options to enabled different features or customize how documents are processed. Some options are only relevant to specific operators and need not be specified if not required.
 
-| Name                | Default                                                                    | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| ------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| collation           | _none_                                                                     | [Collation](http://kofrasa.github.io/mingo/interfaces/core.CollationSpec.html) specification for string sorting operations. See [Intl.Collator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Collator)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| collectionResolver  | _none_                                                                     | <p>Function to resolve strings to arrays for use with operators that reference other collections such as; `$lookup`, `$out` and `$merge`.</p>Expects: `(string) => AnyObject[]`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| context             | _none_                                                                     | <p>An object that defines which operators should be used.</p>This option allow users to load only desired operators or register custom operators which need not be available globally.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| hashFunction        | _default_                                                                  | <p>Custom hash function to replace the default based on "Effective Java" hashCode.</p>Expects: `(Any) => number`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| idKey               | `"_id"`                                                                    | <p>The key that is used to lookup the ID value of a document.</p>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| jsonSchemaValidator | _none_                                                                     | <p>JSON schema validator to use for the `$jsonSchema` operator.</p>Expects: `(schema: AnyObject) => (document: AnyObject) => boolean`.<br>The `$jsonSchema` operation would fail if a validator is not provided.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| processingMode      | [CLONE_OFF](http://kofrasa.github.io/mingo/enums/core.ProcessingMode.html) | <p>Specifies the degree of mutation for inputs and outputs. By default the input collection is modified as needed and returned output objects may share references.</p> Immutable intermediate results may be collected in a pipeline using the `$out` operator.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| scriptEnabled       | `true`                                                                     | <p>Enable or disable using custom script execution.</p>When disabled, operators that execute custom code are disallowed such as; `$where`, `$accumulator`, and `$function`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| useStrictMode       | `true`                                                                     | <p>Enforces strict MongoDB compatibility.</p>When disabled the behaviour changes as follows. <ul><li>`$elemMatch` returns all matching nested documents instead of only the first.</li><li>Empty string `""` is coerced to false during boolean checking in supported operators which is consistent with Javascript semantics.</li><li>`$type` returns JS native type names as follows. <table><thead><tr><td>MongoDB</td><td>JavaScript</td></tr></thead><tr><td><code>"missing"</code></td><td><code>"undefined"</code></td></tr><tr><td><code>"bool"</code></td><td><code>"boolean"</code></td></tr><tr><td><code>"int"&#124;"long"&#124;"double"</code></td><td><code>"number"</code></td></tr><tr><td><code>"regex"</code></td><td><code>"regexp"</code></td></tr></table> |
-| variables           | `{}`                                                                       | Global variables to pass to all operators                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| Name                | Default | Description|
+| ------------------- | ------- | ---------- |
+| collation           | _none_ | [Collation](http://kofrasa.github.io/mingo/interfaces/core.CollationSpec.html) specification for string sorting operations. See [Intl.Collator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Collator) |
+| collectionResolver  | _none_ | <p>Function to resolve strings to arrays for use with operators that reference other collections such as; `$lookup`, `$out` and `$merge`.</p>Expects: `(string) => AnyObject[]`. |
+| context             | _none_ | <p>An object that defines which operators should be used.</p>This option allow users to load only desired operators or register custom operators which need not be available globally. |
+| hashFunction        | _default_ | <p>Custom hash function to replace the default based on "Effective Java" hashCode.</p>Expects: `(Any) => number`. |
+| idKey               | `"_id"`   | <p>The key that is used to lookup the ID value of a document.</p> |
+| jsonSchemaValidator | _none_    | <p>JSON schema validator to use for the `$jsonSchema` operator.</p>Expects: `(schema: AnyObject) => (document: AnyObject) => boolean`.<br>The `$jsonSchema` operation would fail if a validator is not provided. |
+| processingMode      | `CLONE_OFF` | <p>Determines how inputs are to be modified or not during processing.</p> |
+| scriptEnabled       | `true` | <p>Enable or disable using custom script execution.</p>When disabled, operators that execute custom code are disallowed such as; `$where`, `$accumulator`, and `$function`. |
+| useStrictMode       | `true` | <p>Enforces strict MongoDB compatibility. When disabled the behaviour changes as follows.</p><ul><li>`$elemMatch` returns all matching documents instead of only the first.</li><li>Empty string `""` is coerced to false during boolean checks.</li><li>`$type` returns JS native type names. <table><thead><tr><td><b>MongoDB</b></td><td><b>JS</b></td></tr></thead><tr><td><code>"missing"</code></td><td><code>"undefined"</code></td></tr><tr><td><code>"bool"</code></td><td><code>"boolean"</code></td></tr><tr><td><code>"int"&#124;"long"&#124;"double"</code></td><td><code>"number"</code></td></tr><tr><td><code>"regex"</code></td><td><code>"regexp"</code></td></tr></table> |
+| variables           | _none_ | Global variables to pass to all operators. |
 
 ## Custom Operators
 
-Custom operators can be registered using a `Context` object via the `context` option which is the recommended way since `6.4.2`. `Context` provides a container for operators, that the execution engine will use to process queries.
+Custom operators can be registered using a `Context` object via the `context` option which is the recommended way since `6.4.2`. `Context` provides a container for operators that the execution engine will use to process queries.
 
-Operators must conform to the signatures of their types.
-
-- [AccumulatorOperator](http://kofrasa.github.io/mingo/types/core.AccumulatorOperator.html)
-- [ExpressionOperator](http://kofrasa.github.io/mingo/types/core.ExpressionOperator.html)
-- [ProjectionOperator](http://kofrasa.github.io/mingo/types/core.ProjectionOperator.html)
-- [PipelineOperator](http://kofrasa.github.io/mingo/types/core.PipelineOperator.html)
-- [WindowOperator](http://kofrasa.github.io/mingo/types/core.WindowOperator.html)
-- [QueryOperator](http://kofrasa.github.io/mingo/types/core.QueryOperator.html)
+Operators must conform to the signatures of their types. See [mingo/core](https://kofrasa.github.io/mingo/api/modules/core.html) module for types.
 
 To define custom operators, the following imports are useful.
 
@@ -294,13 +283,14 @@ console.log(result); // output => [ { a: 7, b: 1 }, { a: 10, b: 6 } ]
 
 ## Updating Documents
 
-From `7.0.0` you can use `updateOne` and `updateMany` functions to update collections. These work similarly to the methods of the same name on MongoDB collections. The older `update` function still exists and retains the same API as before. For more flexibility such as using pipeline operators to update documents, prefer the `updateOne` and `updateMany` functions. `updateOne` and `updateMany` work on collections rather than individual objects and may modify objects in-place within the collection, or replace them entirely.
+The `updateOne` and `updateMany` functions can be used to update collections. These work similarly to the methods of the same names on MongoDB collections. These functions operate on an input collection and may _modify objects within the collection in-place, or replace them completely_. They also allow using supported pipeline operators as modifiers.
 
-### Examples
+For updating a single object reference use the [update](https://kofrasa.github.io/mingo/api/functions/updater.update.html) function.
+
+### Example: Modify object with `update()`
 
 ```ts
 import { update } from "mingo";
-// all update operators are automatically loaded.
 
 const obj = {
   firstName: "John",
@@ -322,6 +312,32 @@ update(obj, { $set: { "friends.$[e]": "Velma" } }, [{ e: null }]); // ["friends"
 update(obj, { $set: { firstName: "Bob" } }); // [] => no change to object.
 ```
 
+## Distribution
+
+The library provides 3 distributions on [NPM](https://www.npmjs.com/package/mingo?activeTab=code).
+
+1.  A browser bundle that exposes a global `mingo` object. See [unpkg](https://unpkg.com/mingo/dist/mingo.min.js).
+1.  A CommonJS module under `./cjs` when loaded using `require` or in `NodeJS` environments.
+1.  An ESM module under `./esm` which is the default export. Can load as module from [esm.run](https://esm.run/mingo/esm/index.js).
+
+> Supporting both CJS and ESM modules makes this library subject to the [dual package hazard](https://github.com/nodejs/package-examples). In backend environments, be consistent with the module loading format to avoid surprises and subtle errors. You can avoid this by loading from only the default exports to get all operators, or creating a custom bundle with your favorite bundler.
+
+### Load as global object in browser
+<script src="https://unpkg.com/mingo/dist/mingo.min.js"></script>
+<script>
+  // global 'mingo' module available in scope
+  console.log((new mingo.Query({a:5})).test({a:10})) // false
+</script>
+
+### Load as ESM module in browser
+```html
+<script type="module">
+  import * as mingo from "https://esm.run/mingo/esm/index.js";
+  // use objects on 'mingo' module with full operator support.
+  console.log((new mingo.Query({a:5})).test({a:10})) // false
+</script>
+```
+
 ## Differences from MongoDB
 
 Below is a description of how this library differs from the full MongoDB query engine.
@@ -337,9 +353,9 @@ Below is a description of how this library differs from the full MongoDB query e
 1. Custom function evaluation operators; `$where`, `$function`, and `$accumulator`, do not accept strings as the function body.
 1. Custom function evaluation operators are enabled by default. They can be disabled with the `scriptEnabled` option.
 1. Custom function evaluation operator [$accumulator](https://docs.mongodb.com/manual/reference/operator/aggregation/accumulator/) does not support the `merge` option.
-1. The `$jsonSchema` operator requires the user to register their own validator using the `jsonSchemaValidator` configuration.
+1. To use `$jsonSchema` operator, you must register your own validator with the `jsonSchemaValidator` option.
 
-## Benefits
+## Use Cases
 
 - Declarative data driven API.
 - Usable on both frontend and backend.
