@@ -29,7 +29,7 @@ import {
   resolveGraph,
   setValue,
   unique
-} from "../../util";
+} from "../../util/_internal";
 
 /**
  * Reshapes each document in the stream, such as by adding new fields or removing existing fields.

@@ -20,7 +20,7 @@ import {
   typeOf,
   unique,
   walk
-} from "../src/util";
+} from "../src/util/_internal";
 import { ObjectId } from "./support";
 
 class Custom {

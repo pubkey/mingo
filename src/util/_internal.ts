@@ -8,7 +8,7 @@ import {
   Callback,
   Comparator,
   HashFunction
-} from "./types";
+} from "../types";
 
 /** Represents an error reported by the mingo library. */
 export class MingoError extends Error {}
@@ -481,17 +481,16 @@ export function hashCode(value: Any, hashFunc?: HashFunction): number {
  *
  * @param collection
  * @param keyFunc {Function} to compute the group key of an item in the collection
- * @returns {Map<Any, Any[]>}
  */
-export function groupBy(
-  collection: Any[],
-  keyFunc: Callback<Any>,
+export function groupBy<T = Any, K = Any>(
+  collection: T[],
+  keyFunc: Callback<K>,
   hashFunc: HashFunction = DEFAULT_HASH_FUNCTION
-): Map<Any, Any[]> {
+): Map<K, T[]> {
   if (collection.length < 1) return new Map();
 
   // map of raw key values to matching objects of the same keyFn(obj).
-  const result = HashMap.init<Any, Any[]>(hashFunc);
+  const result = HashMap.init<K, T[]>(hashFunc);
   for (let i = 0; i < collection.length; i++) {
     const obj = collection[i];
     const key = keyFunc(obj, i) ?? null;

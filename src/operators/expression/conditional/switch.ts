@@ -1,14 +1,10 @@
-/**
-
- */
-
 import {
   computeValue,
   ExpressionOperator,
   Options
 } from "../../../core/_internal";
 import { Any, AnyObject } from "../../../types";
-import { truthy } from "../../../util";
+import { truthy } from "../../../util/_internal";
 
 /**
  * An operator that evaluates a series of case expressions. When it finds an expression which

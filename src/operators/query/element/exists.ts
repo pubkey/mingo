@@ -1,6 +1,6 @@
 import { Options } from "../../../core/_internal";
 import { Any, AnyObject } from "../../../types";
-import { isArray, resolve, resolveGraph } from "../../../util";
+import { isArray, resolve, resolveGraph } from "../../../util/_internal";
 
 /**
  * Matches documents that contain or do not contain a specified field, including documents where the field value is null.

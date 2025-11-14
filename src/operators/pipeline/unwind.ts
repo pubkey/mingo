@@ -9,7 +9,7 @@ import {
   resolve,
   resolveGraph,
   setValue
-} from "../../util";
+} from "../../util/_internal";
 
 /**
  * Deconstructs an array field from the input documents to output a document for each element. Each output document replaces the array with an element value.

@@ -1,6 +1,6 @@
 import { Options } from "../../../core/_internal";
 import { Any, Callback, Predicate } from "../../../types";
-import { assert, isFunction, truthy } from "../../../util";
+import { assert, isFunction, truthy } from "../../../util/_internal";
 
 /**
  * Matches documents that satisfy a JavaScript expression.

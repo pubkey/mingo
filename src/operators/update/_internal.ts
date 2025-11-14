@@ -14,7 +14,7 @@ import {
   resolve,
   walk,
   WalkOptions
-} from "../../util";
+} from "../../util/_internal";
 
 export const DEFAULT_OPTIONS: Options = ComputeOptions.init({
   context: Context.init()

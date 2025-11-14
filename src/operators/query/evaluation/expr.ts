@@ -1,6 +1,6 @@
 import { computeValue, Options } from "../../../core/_internal";
 import { Any, Callback } from "../../../types";
-import { truthy } from "../../../util";
+import { truthy } from "../../../util/_internal";
 
 /**
  * Allows the use of aggregation expressions within the query language.

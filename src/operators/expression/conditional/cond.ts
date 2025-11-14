@@ -8,7 +8,7 @@ import {
   Options
 } from "../../../core/_internal";
 import { Any, AnyObject, ArrayOrObject } from "../../../types";
-import { assert, isArray, isObject, truthy } from "../../../util";
+import { assert, isArray, isObject, truthy } from "../../../util/_internal";
 
 /**
  * A ternary operator that evaluates one expression,

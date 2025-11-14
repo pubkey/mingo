@@ -27,7 +27,7 @@ import {
   resolve,
   truthy,
   typeOf
-} from "../util";
+} from "../util/_internal";
 
 type ConversionType = number | Exclude<JsType, "function"> | BsonType;
 

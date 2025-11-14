@@ -5,7 +5,7 @@ import {
   Options
 } from "../../../core/_internal";
 import { Any, AnyObject } from "../../../types";
-import { assert, isArray, isNil, truthy } from "../../../util";
+import { assert, isArray, isNil, truthy } from "../../../util/_internal";
 
 /**
  * Selects a subset of the array to return an array with only the elements that match the filter condition.

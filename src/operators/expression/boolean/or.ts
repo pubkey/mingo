@@ -4,7 +4,7 @@ import {
   Options
 } from "../../../core/_internal";
 import { Any, AnyObject } from "../../../types";
-import { truthy } from "../../../util";
+import { truthy } from "../../../util/_internal";
 
 /**
  * Returns true when any of its expressions evaluates to true. Accepts any number of argument expressions.
