@@ -18,6 +18,7 @@
 - `getOperator` function in `mingo/core`. Pass a custom `Context` object to options.
 - `createUpdater` function in `mingo/updater`. No longer supported.
 - `mingo/init/{basic,system,context}` modules.
+- `map`, `forEach`, and `count` methods on `Cursor` object.
 
 ## 6.7.2 / 2025-10-24
 

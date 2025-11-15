@@ -9,8 +9,6 @@ import { cloneDeep, has } from "./util";
 
 const OPERATORS: Record<string, PipelineOperator> = { $sort, $skip, $limit };
 
-type ArrayCallback<R, T> = (value: T, index: number, array: T[]) => R;
-
 /**
  * The `Cursor` class provides a mechanism for iterating over a collection of data
  * with support for filtering, projection, sorting, skipping, and limiting results.
@@ -94,14 +92,6 @@ export class Cursor<T> {
   }
 
   /**
-   * Returns the number of objects return in the cursor. This method exhausts the cursor
-   * @returns {Number}
-   */
-  count(): number {
-    return this.all().length;
-  }
-
-  /**
    * Returns a cursor that begins returning results only after passing or skipping a number of documents.
    * @param {Number} n the number of results to skip.
    * @return {Cursor} Returns the cursor, so you can chain this call.
@@ -173,25 +163,6 @@ export class Cursor<T> {
 
     this.#buffer.push(o.value as T);
     return true;
-  }
-
-  /**
-   * Transforms each element in the cursor using the provided callback function.
-   *
-   * @param f - A callback function.
-   * @returns An array of transformed elements.
-   */
-  map<R>(f: ArrayCallback<R, T>): R[] {
-    return this.all().map(f);
-  }
-
-  /**
-   * Applies the provided callback function to each element in the cursor.
-   *
-   * @param f - A callback function that is invoked for each element in the cursor.
-   */
-  forEach(f: ArrayCallback<void, T>): void {
-    this.all().forEach(f);
   }
 
   /**

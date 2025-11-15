@@ -94,7 +94,7 @@ const result = agg.run([
 ]);
 ```
 
-### Using Query to test objects
+### Using Query for predicate tests
 
 ```js
 // Query imported from default entry point. Automatically loads all operators into context.
@@ -125,21 +125,9 @@ const cursor = query.find(collection);
 // sort, skip and limit by chaining
 cursor.sort({ student_id: 1, score: -1 }).skip(100).limit(100);
 
-// count matches. exhausts cursor
-cursor.count();
-
-// classic cursor iterator (old school)
-while (cursor.hasNext()) {
-  console.log(cursor.next());
+for (const value of cursor) {
+  console.log(value); // print each match
 }
-
-// ES6 iterators (new cool)
-for (let value of cursor) {
-  console.log(value);
-}
-
-// all() to retrieve matched objects. exhausts cursor
-cursor.all();
 ```
 
 ### Using $jsonSchema operator

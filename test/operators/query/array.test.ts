@@ -253,7 +253,7 @@ describe(testPath(__filename), () => {
       }
     };
     // It should return one user object
-    const result = find(data, criteria).count();
+    const result = find(data, criteria).all().length;
     expect(result).toEqual(1);
   });
 
@@ -331,7 +331,7 @@ describe(testPath(__filename), () => {
     expect(results[0].user.username).toEqual("User1");
 
     criteria["user.projects"].$all = [];
-    expect(find(data, criteria).count()).toEqual(0);
+    expect(find(data, criteria).all().length).toEqual(0);
   });
 
   describe("Query $elemMatch operator", () => {

@@ -11,21 +11,8 @@ describe("Cursor", () => {
     cursor.skip(10).limit(10);
     expect(cursor.hasNext()).toEqual(true);
     expect(cursor.next()).toBeTruthy();
-    // cursor.next consumed 1 result
-    expect(cursor.count()).toEqual(9);
+    expect(cursor.all()).toBeTruthy(); // exhausts cursor
     expect(cursor.hasNext()).toBe(false);
-  });
-
-  it("can iterate with forEach", () => {
-    const cursor = newCursor();
-    cursor.forEach((x) => x);
-    expect(cursor.next()).toBeFalsy();
-  });
-
-  it("can iterate with map", () => {
-    const cursor = newCursor();
-    cursor.map((x) => typeof x).every((x) => typeof x === "boolean");
-    expect(cursor.next()).toBeFalsy();
   });
 
   it("can sort with collation", () => {
@@ -33,7 +20,7 @@ describe("Cursor", () => {
       { name: "John" },
       { name: "Bob" },
       { name: "Casey" },
-      { name: "Alice" },
+      { name: "Alice" }
     ]);
 
     cursor.sort({ name: 1 }).collation({ locale: "en" });

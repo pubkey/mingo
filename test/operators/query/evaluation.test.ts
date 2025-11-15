@@ -42,7 +42,7 @@ describe(testPath(__filename), () => {
       };
 
       // It should return one user object
-      const result = find(data, criteria).count();
+      const result = find(data, criteria).all().length;
       expect(result).toEqual(1);
     });
 
@@ -64,7 +64,7 @@ describe(testPath(__filename), () => {
         ]
       };
       // It should return one user object
-      const result = find(data, criteria).count();
+      const result = find(data, criteria).all().length;
       expect(result).toEqual(1);
     });
   });
