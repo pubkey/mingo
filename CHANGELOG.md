@@ -4,7 +4,7 @@
 
 **New**
 
-- Added support for positional project and update operator `.$`.
+- Added support for positional operator `.$` for projection and update.
 - Added `updateOne` and `updateMany` functions.
 - Added support for multiple operations in update modifier for `update()`. Closes [#570](https://github.com/kofrasa/mingo/issues/570)
 - Added `$sigmoid` arithmetic operator.
