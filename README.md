@@ -199,10 +199,7 @@ let agg = new Aggregator(
 );
 
 // return an iterator for streaming results
-let stream = agg.stream(collection);
-
-// return all results. same as `stream.all()`
-let result = agg.run(collection);
+let result = agg.stream(collection).collect(); // same as `agg.run(collection)`
 ```
 
 ### Custom Operators
