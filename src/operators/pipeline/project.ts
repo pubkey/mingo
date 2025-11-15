@@ -36,11 +36,6 @@ import {
  * For each input document, outputs one document.
  *
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/project usage}.
- *
- * @param collection
- * @param expr
- * @param opt
- * @returns
  */
 export const $project: PipelineOperator = (
   collection: Iterator,

@@ -17,17 +17,18 @@ MongoDB query language for in-memory objects
 
 - Dot notation selectors. _`<array>.<index>`_ and _`<document>.<field>`_.
 - [Query](https://www.mongodb.com/docs/manual/reference/mql/query-predicates/) and [Projection](https://www.mongodb.com/docs/manual/reference/mql/projection/).
-- Aggregation [stages](https://www.mongodb.com/docs/manual/reference/mql/aggregation-stages/) with
+- [Aggregation](https://www.mongodb.com/docs/manual/reference/mql/aggregation-stages/) pipeline with support for;
   - [Accumulators](https://www.mongodb.com/docs/manual/reference/mql/accumulators/)
   - [Expressions](https://www.mongodb.com/docs/manual/reference/mql/expressions/)
   - [Window operators](https://docs.mongodb.com/manual/reference/operator/aggregation/setWindowFields/#window-operators)
-- Aggregation variables; [`$$ROOT`, `$$CURRENT`, `$$DESCEND`, `$$PRUNE`, `$$KEEP`, `$$REMOVE`, `$$NOW`](https://docs.mongodb.com/manual/reference/aggregation-variables/)
-- [Update](https://www.mongodb.com/docs/manual/reference/mql/update/) support. See [Updating Documents](#updating-documents).
+  - Variables; [`$$ROOT`, `$$CURRENT`, `$$DESCEND`, `$$PRUNE`, `$$KEEP`, `$$REMOVE`, `$$NOW`](https://docs.mongodb.com/manual/reference/aggregation-variables/)
+- [Update](https://www.mongodb.com/docs/manual/reference/mql/update/) support for collections and objects. See [Updating Documents](#updating-documents).
 - Lazy data processing pipeline.
-- Support custom type value equality when `toString` is implemented.
+- Custom type value equality when `toString` is implemented.
 
 
 ## API
+
 Below are the most commonly used objects exported in the default module.
 
 - **Functions**: [find](http://kofrasa.github.io/mingo/functions/index.find.html), [aggregate](http://kofrasa.github.io/mingo/functions/index.aggregate.html), [update](http://kofrasa.github.io/mingo/functions/updater.update.html), [updateMany](http://kofrasa.github.io/mingo/functions/updater.updateMany.html), [updateOne](http://kofrasa.github.io/mingo/functions/updater.updateOne.html).
@@ -322,7 +323,7 @@ The library provides 3 distributions on [NPM](https://www.npmjs.com/package/ming
 
 Below is a description of how this library differs from the full MongoDB query engine.
 
-1. No concept of a collection. Input must be an iterable or generator function.
+1. Selectors using `<array>.<index>` are supported for filter and projection expressions to access specific array elements.
 1. No support for server specific types, operators, or features dependent on persistence (e.g. `merge` option for [$accumulator](https://docs.mongodb.com/manual/reference/operator/aggregation/accumulator/));
 1. No support for geometry operators.
 1. [$merge](https://www.mongodb.com/docs/manual/reference/operator/aggregation/merge/) operator enforces unique constraint during processing.

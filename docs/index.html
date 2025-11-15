@@ -9,17 +9,17 @@
 <h2 id="features" class="tsd-anchor-link">Features<a href="#features" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2><ul>
 <li>Dot notation selectors. <em><code>&lt;array&gt;.&lt;index&gt;</code></em> and <em><code>&lt;document&gt;.&lt;field&gt;</code></em>.</li>
 <li><a href="https://www.mongodb.com/docs/manual/reference/mql/query-predicates/">Query</a> and <a href="https://www.mongodb.com/docs/manual/reference/mql/projection/">Projection</a>.</li>
-<li>Aggregation <a href="https://www.mongodb.com/docs/manual/reference/mql/aggregation-stages/">stages</a> with
+<li><a href="https://www.mongodb.com/docs/manual/reference/mql/aggregation-stages/">Aggregation</a> pipeline with support for;
 <ul>
 <li><a href="https://www.mongodb.com/docs/manual/reference/mql/accumulators/">Accumulators</a></li>
 <li><a href="https://www.mongodb.com/docs/manual/reference/mql/expressions/">Expressions</a></li>
 <li><a href="https://docs.mongodb.com/manual/reference/operator/aggregation/setWindowFields/#window-operators">Window operators</a></li>
+<li>Variables; <a href="https://docs.mongodb.com/manual/reference/aggregation-variables/"><code>$$ROOT</code>, <code>$$CURRENT</code>, <code>$$DESCEND</code>, <code>$$PRUNE</code>, <code>$$KEEP</code>, <code>$$REMOVE</code>, <code>$$NOW</code></a></li>
 </ul>
 </li>
-<li>Aggregation variables; <a href="https://docs.mongodb.com/manual/reference/aggregation-variables/"><code>$$ROOT</code>, <code>$$CURRENT</code>, <code>$$DESCEND</code>, <code>$$PRUNE</code>, <code>$$KEEP</code>, <code>$$REMOVE</code>, <code>$$NOW</code></a></li>
-<li><a href="https://www.mongodb.com/docs/manual/reference/mql/update/">Update</a> support. See <a href="#updating-documents">Updating Documents</a>.</li>
+<li><a href="https://www.mongodb.com/docs/manual/reference/mql/update/">Update</a> support for collections and objects. See <a href="#updating-documents">Updating Documents</a>.</li>
 <li>Lazy data processing pipeline.</li>
-<li>Support custom type value equality when <code>toString</code> is implemented.</li>
+<li>Custom type value equality when <code>toString</code> is implemented.</li>
 </ul>
 <h2 id="api" class="tsd-anchor-link">API<a href="#api" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2><p>Below are the most commonly used objects exported in the default module.</p>
 <ul>
@@ -142,7 +142,7 @@ No default implementation is provided out of the box so users can use a library 
 
 <h2 id="differences-from-mongodb" class="tsd-anchor-link">Differences from MongoDB<a href="#differences-from-mongodb" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2><p>Below is a description of how this library differs from the full MongoDB query engine.</p>
 <ol>
-<li>No concept of a collection. Input must be an iterable or generator function.</li>
+<li>Selectors using <code>&lt;array&gt;.&lt;index&gt;</code> are supported for filter and projection expressions to access specific array elements.</li>
 <li>No support for server specific types, operators, or features dependent on persistence (e.g. <code>merge</code> option for <a href="https://docs.mongodb.com/manual/reference/operator/aggregation/accumulator/">$accumulator</a>);</li>
 <li>No support for geometry operators.</li>
 <li><a href="https://www.mongodb.com/docs/manual/reference/operator/aggregation/merge/">$merge</a> operator enforces unique constraint during processing.</li>

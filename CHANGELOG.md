@@ -1,15 +1,14 @@
 # Changelog
 
-## 7.0.0 / pending
+## 7.0.0 / 2025-11-14
 
-**Added**
+**New**
 
-- Support positional project operator `.$`.
-- Support positional update operator `.$`.
-- Support `updateOne` and `updateMany` functions with all related config.
-- Support multiple operations in update expression. Closes [#570](https://github.com/kofrasa/mingo/issues/570)
-- Support `$sigmoid` arithmetic operator.
-- **BREAKING**: Default module entry point now automatically loads all operators for interfaces (classes and functions).
+- Added support for positional project and update operator `.$`.
+- Added `updateOne` and `updateMany` functions.
+- Added support for multiple operations in update modifier for `update()`. Closes [#570](https://github.com/kofrasa/mingo/issues/570)
+- Added `$sigmoid` arithmetic operator.
+- **BREAKING**: All operators are loaded into context for objects import from default module.
 
 **Removed (BREAKING)**
 
