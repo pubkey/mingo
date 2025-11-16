@@ -1,4 +1,4 @@
-import { ComputeOptions, Options } from "./core/_internal";
+import { ComputeOptions } from "./core/_internal";
 import { Lazy } from "./lazy";
 import * as booleanOperators from "./operators/expression/boolean";
 import * as comparisonOperators from "./operators/expression/comparison";
@@ -17,7 +17,7 @@ import {
   UpdateOperator
 } from "./operators/update/_internal";
 import { Query } from "./query";
-import { Any, AnyObject, CollationSpec } from "./types";
+import { Any, AnyObject, CollationSpec, Options } from "./types";
 import {
   assert,
   cloneDeep,

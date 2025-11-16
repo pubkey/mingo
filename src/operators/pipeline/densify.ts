@@ -1,6 +1,5 @@
-import { Options, PipelineOperator } from "../../core/_internal";
 import { concat, Iterator, IteratorResult, Lazy } from "../../lazy";
-import { AnyObject } from "../../types";
+import { AnyObject, Options, PipelineOperator } from "../../types";
 import {
   assert,
   HashMap,

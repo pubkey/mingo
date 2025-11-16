@@ -1,12 +1,7 @@
 import { Aggregator } from "../../aggregator";
-import {
-  ComputeOptions,
-  Options,
-  PipelineOperator,
-  ProcessingMode
-} from "../../core/_internal";
+import { ComputeOptions, ProcessingMode } from "../../core/_internal";
 import { Iterator } from "../../lazy";
-import { AnyObject, Callback } from "../../types";
+import { AnyObject, Callback, Options, PipelineOperator } from "../../types";
 /**
  * Processes multiple aggregation pipelines within a single stage on the same set of input documents.
  *

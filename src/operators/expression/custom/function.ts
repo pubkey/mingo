@@ -1,9 +1,11 @@
+import { computeValue } from "../../../core/_internal";
 import {
-  computeValue,
+  Any,
+  AnyObject,
+  Callback,
   ExpressionOperator,
   Options
-} from "../../../core/_internal";
-import { Any, AnyObject, Callback } from "../../../types";
+} from "../../../types";
 import { assert } from "../../../util";
 
 interface FunctionExpr {

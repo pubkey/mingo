@@ -1,11 +1,6 @@
-import {
-  AccumulatorOperator,
-  ComputeOptions,
-  computeValue,
-  Options
-} from "../../core/_internal";
+import { ComputeOptions, computeValue } from "../../core/_internal";
 import { Lazy } from "../../lazy";
-import { Any, AnyObject } from "../../types";
+import { AccumulatorOperator, Any, AnyObject, Options } from "../../types";
 import { $sort } from "../pipeline/sort";
 import { $push } from "./push";
 

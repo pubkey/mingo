@@ -1,5 +1,5 @@
-import { Options, PipelineOperator } from "../../core/_internal";
 import { Iterator, Lazy } from "../../lazy";
+import { Options, PipelineOperator } from "../../types";
 import { assert, isEmpty, isString } from "../../util";
 
 /**

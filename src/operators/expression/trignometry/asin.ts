@@ -1,5 +1,4 @@
-import { ExpressionOperator, Options } from "../../../core/_internal";
-import { Any, AnyObject } from "../../../types";
+import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { processOperator } from "./_internal";
 
 /** Returns the inverse sin (arc sine) of a value in radians. */

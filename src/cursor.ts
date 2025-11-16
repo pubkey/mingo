@@ -1,10 +1,17 @@
-import { Options, PipelineOperator, ProcessingMode } from "./core/_internal";
+import { ProcessingMode } from "./core/_internal";
 import { concat, Iterator, Lazy, Source } from "./lazy";
 import { $limit } from "./operators/pipeline/limit";
 import { $project } from "./operators/pipeline/project";
 import { $skip } from "./operators/pipeline/skip";
 import { $sort } from "./operators/pipeline/sort";
-import { Any, AnyObject, CollationSpec, Predicate } from "./types";
+import type {
+  Any,
+  AnyObject,
+  CollationSpec,
+  Options,
+  PipelineOperator,
+  Predicate
+} from "./types";
 import { cloneDeep, has } from "./util";
 
 const OPERATORS: Record<string, PipelineOperator> = { $sort, $skip, $limit };

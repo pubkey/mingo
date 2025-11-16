@@ -1,8 +1,5 @@
-// $sample operator -  https://docs.mongodb.com/manual/reference/operator/aggregation/sample/
-
-import { Options, PipelineOperator } from "../../core/_internal";
 import { Iterator } from "../../lazy";
-import { Any } from "../../types";
+import { Any, Options, PipelineOperator } from "../../types";
 
 /**
  * Randomly selects the specified number of documents from its input.

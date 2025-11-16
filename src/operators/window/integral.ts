@@ -1,5 +1,4 @@
-import { Options } from "../../core/_internal";
-import { Any, AnyObject, Callback } from "../../types";
+import { Any, AnyObject, Callback, Options, WindowOperator } from "../../types";
 import { isNumber } from "../../util";
 import { $push } from "../accumulator/push";
 import { TIMEUNIT_IN_MILLIS } from "../expression/date/_internal";
@@ -8,7 +7,7 @@ import { WindowOperatorInput, WindowTimeUnit } from "./_internal";
 /**
  * Returns the approximation of the area under a curve.
  */
-export const $integral = (
+export const $integral: WindowOperator = (
   _: AnyObject,
   collection: AnyObject[],
   expr: WindowOperatorInput,

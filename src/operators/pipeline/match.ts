@@ -1,7 +1,6 @@
-import { Options, PipelineOperator } from "../../core/_internal";
 import { Iterator } from "../../lazy";
 import { Query } from "../../query";
-import { AnyObject } from "../../types";
+import { AnyObject, Options, PipelineOperator } from "../../types";
 
 /**
  * Filters the document stream to allow only matching documents to pass unmodified into the next pipeline stage.

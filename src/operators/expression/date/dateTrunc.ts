@@ -1,9 +1,5 @@
-import {
-  computeValue,
-  ExpressionOperator,
-  Options
-} from "../../../core/_internal";
-import { AnyObject } from "../../../types";
+import { computeValue } from "../../../core/_internal";
+import { AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, isDate, isNil } from "../../../util";
 import {
   adjustDate,

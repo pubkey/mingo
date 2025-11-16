@@ -1,5 +1,5 @@
-import { computeValue, Options } from "../../../core/_internal";
-import { Any, AnyObject, Callback } from "../../../types";
+import { computeValue } from "../../../core/_internal";
+import { Any, AnyObject, Callback, Options } from "../../../types";
 import { assert } from "../../../util";
 
 /**

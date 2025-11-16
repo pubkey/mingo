@@ -1,5 +1,4 @@
-import { Options, QueryOperator } from "../../../core/_internal";
-import { Any } from "../../../types";
+import { Any, Options, QueryOperator } from "../../../types";
 import { $gte as __gte, processQuery } from "../../_predicates";
 
 /**

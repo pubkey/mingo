@@ -1,11 +1,7 @@
 // Miscellaneous Operators: https://docs.mongodb.com/manual/reference/operator/aggregation/#miscellaneous-operators
 
-import {
-  computeValue,
-  ExpressionOperator,
-  Options
-} from "../../../core/_internal";
-import { AnyObject } from "../../../types";
+import { computeValue } from "../../../core/_internal";
+import { AnyObject, ExpressionOperator, Options } from "../../../types";
 
 /**
  * Randomly select documents at a given rate.

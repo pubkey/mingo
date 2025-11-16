@@ -1,5 +1,5 @@
-import { Options, PipelineOperator } from "../../core/_internal";
 import { Iterator } from "../../lazy";
+import { Options, PipelineOperator } from "../../types";
 
 /**
  * Restricts the number of documents in an aggregation pipeline.

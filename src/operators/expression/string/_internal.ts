@@ -1,5 +1,5 @@
-import { computeValue, Options } from "../../../core/_internal";
-import { Any, AnyObject } from "../../../types";
+import { computeValue } from "../../../core/_internal";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, isNil, isString } from "../../../util";
 
 /* eslint-disable*/
@@ -101,7 +101,11 @@ export function regexSearch(
   const matches = new Array<Any>();
   let offset = 0;
   while ((m = re.exec(input))) {
-    const result: { match: string; idx: number; captures: Array<string|null> } = {
+    const result: {
+      match: string;
+      idx: number;
+      captures: Array<string | null>;
+    } = {
       match: m[0],
       idx: (m.index as number) + offset,
       captures: []

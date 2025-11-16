@@ -1,12 +1,6 @@
-import {
-  ComputeOptions,
-  Options,
-  OpType,
-  PipelineOperator,
-  ProcessingMode
-} from "./core/_internal";
+import { ComputeOptions, OpType, ProcessingMode } from "./core/_internal";
 import { Iterator, Lazy, Source } from "./lazy";
-import type { Any, AnyObject } from "./types";
+import type { Any, AnyObject, Options, PipelineOperator } from "./types";
 import { assert, cloneDeep } from "./util";
 
 /**

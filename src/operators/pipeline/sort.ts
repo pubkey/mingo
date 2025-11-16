@@ -1,6 +1,12 @@
-import { Options, PipelineOperator } from "../../core/_internal";
 import { Iterator } from "../../lazy";
-import { Any, AnyObject, CollationSpec, Comparator } from "../../types";
+import {
+  Any,
+  AnyObject,
+  CollationSpec,
+  Comparator,
+  Options,
+  PipelineOperator
+} from "../../types";
 import {
   assert,
   compare,

@@ -1,12 +1,13 @@
-import {
-  ComputeOptions,
-  Options,
-  OpType,
-  QueryOperator
-} from "./core/_internal";
+import { ComputeOptions, OpType } from "./core/_internal";
 import { Cursor } from "./cursor";
 import { Source } from "./lazy";
-import type { Any, AnyObject, Predicate } from "./types";
+import type {
+  Any,
+  AnyObject,
+  Options,
+  Predicate,
+  QueryOperator
+} from "./types";
 import { assert, cloneDeep, isObject, isOperator, normalize } from "./util";
 
 const TOP_LEVEL_RE = /^\$(and|or|nor|expr|jsonSchema)$/;

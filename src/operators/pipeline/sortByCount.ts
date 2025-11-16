@@ -1,6 +1,5 @@
-import { Options, PipelineOperator } from "../../core/_internal";
 import { Iterator } from "../../lazy";
-import { Any } from "../../types";
+import { Any, Options, PipelineOperator } from "../../types";
 import { $group } from "./group";
 import { $sort } from "./sort";
 

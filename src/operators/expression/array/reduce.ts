@@ -1,10 +1,5 @@
-import {
-  ComputeOptions,
-  computeValue,
-  ExpressionOperator,
-  Options
-} from "../../../core/_internal";
-import { Any, AnyObject } from "../../../types";
+import { ComputeOptions, computeValue } from "../../../core/_internal";
+import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, isArray, isNil } from "../../../util";
 
 /**

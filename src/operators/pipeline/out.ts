@@ -1,6 +1,5 @@
-import type { Options, PipelineOperator } from "../../core/_internal";
 import { Iterator } from "../../lazy";
-import type { AnyObject } from "../../types";
+import type { AnyObject, Options, PipelineOperator } from "../../types";
 import { assert, cloneDeep, isArray, isString } from "../../util";
 
 /**

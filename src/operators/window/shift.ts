@@ -1,12 +1,12 @@
-import { computeValue, Options } from "../../core/_internal";
-import { Any, AnyObject } from "../../types";
+import { computeValue } from "../../core/_internal";
+import { Any, AnyObject, Options, WindowOperator } from "../../types";
 import { WindowOperatorInput } from "./_internal";
 
 /**
  * Returns the value from an expression applied to a document in a specified
  * position relative to the current document in the $setWindowFields stage partition.
  */
-export const $shift = (
+export const $shift: WindowOperator = (
   obj: AnyObject,
   collection: AnyObject[],
   expr: WindowOperatorInput,

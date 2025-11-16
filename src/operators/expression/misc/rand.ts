@@ -1,5 +1,4 @@
-import { Options } from "../../../core/_internal";
-import { Any, AnyObject } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 
 /**
  * Returns a random float between 0 and 1.

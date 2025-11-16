@@ -1,5 +1,4 @@
-import { Options } from "../../core/_internal";
-import { Any, AnyObject, ArrayOrObject } from "../../types";
+import { Any, AnyObject, ArrayOrObject, Options } from "../../types";
 import { isEqual } from "../../util";
 import {
   applyUpdate,

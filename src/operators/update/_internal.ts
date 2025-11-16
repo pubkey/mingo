@@ -1,9 +1,9 @@
-import { ComputeOptions, Context, Options } from "../../core/_internal";
+import { ComputeOptions, Context } from "../../core/_internal";
 import * as booleanOperators from "../../operators/expression/boolean";
 import * as comparisonOperators from "../../operators/expression/comparison";
 import * as queryOperators from "../../operators/query";
 import { Query } from "../../query";
-import { Any, AnyObject, ArrayOrObject, Callback } from "../../types";
+import { Any, AnyObject, ArrayOrObject, Callback, Options } from "../../types";
 import {
   assert,
   cloneDeep,

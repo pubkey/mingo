@@ -1,5 +1,4 @@
-import { Options } from "../../core/_internal";
-import { Any, AnyObject } from "../../types";
+import { Any, AnyObject, Options, WindowOperator } from "../../types";
 import { isNil } from "../../util";
 import { $push } from "../accumulator/push";
 import { WindowOperatorInput, withMemo } from "./_internal";
@@ -7,7 +6,7 @@ import { WindowOperatorInput, withMemo } from "./_internal";
 /**
  * Last observation carried forward. Sets values for null and missing fields in a window to the last non-null value for the field.
  */
-export const $locf = (
+export const $locf: WindowOperator = (
   _: AnyObject,
   collection: AnyObject[],
   expr: WindowOperatorInput,

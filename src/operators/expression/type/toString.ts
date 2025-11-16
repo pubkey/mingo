@@ -1,9 +1,5 @@
-import {
-  computeValue,
-  ExpressionOperator,
-  Options
-} from "../../../core/_internal";
-import { Any, AnyObject } from "../../../types";
+import { computeValue } from "../../../core/_internal";
+import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { isDate, isNil } from "../../../util";
 import { $dateToString } from "../date/dateToString";
 

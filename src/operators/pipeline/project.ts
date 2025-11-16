@@ -1,14 +1,15 @@
+import { ComputeOptions, computeValue, OpType } from "../../core/_internal";
+import { Iterator } from "../../lazy";
 import {
-  ComputeOptions,
-  computeValue,
+  Any,
+  AnyObject,
+  Callback,
   Options,
-  OpType,
   PipelineOperator,
+  Predicate,
   ProjectionOperator,
   QueryOperator
-} from "../../core/_internal";
-import { Iterator } from "../../lazy";
-import { Any, AnyObject, Callback, Predicate } from "../../types";
+} from "../../types";
 import {
   assert,
   ensureArray,

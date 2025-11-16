@@ -1,12 +1,7 @@
 import { Aggregator } from "../../aggregator";
-import {
-  ComputeOptions,
-  computeValue,
-  Options,
-  PipelineOperator
-} from "../../core/_internal";
+import { ComputeOptions, computeValue } from "../../core/_internal";
 import { Iterator } from "../../lazy";
-import { AnyObject } from "../../types";
+import { AnyObject, Options, PipelineOperator } from "../../types";
 import {
   assert,
   hashCode,

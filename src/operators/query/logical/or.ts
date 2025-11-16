@@ -1,6 +1,5 @@
-import { Options, QueryOperator } from "../../../core/_internal";
 import { Query } from "../../../query";
-import { AnyObject, Callback } from "../../../types";
+import { AnyObject, Callback, Options, QueryOperator } from "../../../types";
 import { assert, isArray } from "../../../util";
 
 /**

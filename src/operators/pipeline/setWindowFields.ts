@@ -1,13 +1,14 @@
+import { ComputeOptions, OpType } from "../../core/_internal";
+import { concat, Iterator, Lazy } from "../../lazy";
 import {
   AccumulatorOperator,
-  ComputeOptions,
+  Any,
+  AnyObject,
+  Callback,
   Options,
-  OpType,
   PipelineOperator,
   WindowOperator
-} from "../../core/_internal";
-import { concat, Iterator, Lazy } from "../../lazy";
-import { Any, AnyObject, Callback } from "../../types";
+} from "../../types";
 import { assert, isNumber, isOperator, isString } from "../../util";
 import { $function } from "../expression/custom/function";
 import { $dateAdd } from "../expression/date/dateAdd";

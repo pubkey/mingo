@@ -1,5 +1,4 @@
-import { Options } from "../../core/_internal";
-import { AnyObject, ArrayOrObject } from "../../types";
+import { AnyObject, ArrayOrObject, Options } from "../../types";
 import { has, isArray } from "../../util";
 import { applyUpdate, DEFAULT_OPTIONS, walkExpression } from "./_internal";
 

@@ -1,10 +1,11 @@
+import { ComputeOptions, computeValue } from "../../core/_internal";
 import {
   AccumulatorOperator,
-  ComputeOptions,
-  computeValue,
+  Any,
+  AnyObject,
+  Callback,
   Options
-} from "../../core/_internal";
-import { Any, AnyObject, Callback } from "../../types";
+} from "../../types";
 import { assert } from "../../util";
 
 interface AccumulatorExpr {

@@ -1,5 +1,4 @@
-import { AccumulatorOperator, Options } from "../../core/_internal";
-import { Any, AnyObject } from "../../types";
+import { AccumulatorOperator, Any, AnyObject, Options } from "../../types";
 import { covariance } from "./_internal";
 import { $push } from "./push";
 

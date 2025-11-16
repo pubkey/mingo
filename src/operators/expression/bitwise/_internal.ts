@@ -1,5 +1,5 @@
-import { computeValue, Options } from "../../../core/_internal";
-import { Any, AnyObject } from "../../../types";
+import { computeValue } from "../../../core/_internal";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, isArray, isNil, isNumber } from "../../../util";
 
 export function processBitwise(

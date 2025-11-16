@@ -1,5 +1,5 @@
 import { Aggregator as AggregatorBase } from "./aggregator";
-import { Context, Options, ProcessingMode } from "./core/_internal";
+import { Context, ProcessingMode } from "./core/_internal";
 import { Cursor } from "./cursor";
 import type { Source } from "./lazy";
 import * as accumulatorOperators from "./operators/accumulator";
@@ -9,7 +9,7 @@ import * as projectionOperators from "./operators/projection";
 import * as queryOperators from "./operators/query";
 import * as windowOperators from "./operators/window";
 import { Query as QueryBase } from "./query";
-import type { AnyObject } from "./types";
+import type { AnyObject, Options } from "./types";
 import * as updater from "./updater";
 
 export { Context, ProcessingMode } from "./core";

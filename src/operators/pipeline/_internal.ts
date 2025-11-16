@@ -1,5 +1,4 @@
-import { Options } from "../../core/_internal";
-import { AnyObject } from "../../types";
+import { AnyObject, Options } from "../../types";
 import { $documents } from "./documents";
 
 export function filterDocumentsStage(

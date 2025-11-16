@@ -1,10 +1,6 @@
 import type { ComputeOptions } from "../../core/_internal";
-import {
-  AccumulatorOperator,
-  computeValue,
-  Options
-} from "../../core/_internal";
-import { Any, AnyObject } from "../../types";
+import { computeValue } from "../../core/_internal";
+import { AccumulatorOperator, Any, AnyObject, Options } from "../../types";
 import { assert } from "../../util";
 import { $push } from "./push";
 

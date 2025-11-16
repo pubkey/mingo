@@ -1,5 +1,4 @@
-import { Options } from "../../core/_internal";
-import { Any, AnyObject } from "../../types";
+import { Any, AnyObject, Options, WindowOperator } from "../../types";
 import { assert, isNumber } from "../../util";
 import { $push } from "../accumulator/push";
 import { WindowOperatorInput, withMemo } from "./_internal";
@@ -8,7 +7,7 @@ import { WindowOperatorInput, withMemo } from "./_internal";
  * Returns the exponential moving average of numeric expressions applied to documents
  * in a partition defined in the $setWindowFields stage.
  */
-export const $expMovingAvg = (
+export const $expMovingAvg: WindowOperator = (
   _: AnyObject,
   collection: AnyObject[],
   expr: WindowOperatorInput,

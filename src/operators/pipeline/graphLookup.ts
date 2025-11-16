@@ -1,6 +1,6 @@
-import { computeValue, Options, PipelineOperator } from "../../core/_internal";
+import { computeValue } from "../../core/_internal";
 import { Iterator, Lazy } from "../../lazy";
-import { Any, AnyObject } from "../../types";
+import { Any, AnyObject, Options, PipelineOperator } from "../../types";
 import { flatten, HashMap, isNil, isString, setValue } from "../../util";
 import { $lookup } from "./lookup";
 

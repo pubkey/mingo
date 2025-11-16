@@ -1,5 +1,4 @@
-import { ExpressionOperator, Options } from "../../../core/_internal";
-import { AnyObject } from "../../../types";
+import { AnyObject, ExpressionOperator, Options } from "../../../types";
 import { processBitwise } from "./_internal";
 
 /**

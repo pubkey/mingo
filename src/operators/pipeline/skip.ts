@@ -1,5 +1,5 @@
-import { Options, PipelineOperator } from "../../core/_internal";
 import { Iterator } from "../../lazy";
+import { Options, PipelineOperator } from "../../types";
 
 /**
  * Skips the first n documents where n is the specified skip number and passes the remaining documents unmodified to the pipeline.

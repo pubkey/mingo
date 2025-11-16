@@ -1,6 +1,12 @@
-import { computeValue, Options, PipelineOperator } from "../../core/_internal";
+import { computeValue } from "../../core/_internal";
 import { Iterator, Lazy } from "../../lazy";
-import { Any, AnyObject, Callback } from "../../types";
+import {
+  Any,
+  AnyObject,
+  Callback,
+  Options,
+  PipelineOperator
+} from "../../types";
 import {
   assert,
   compare,

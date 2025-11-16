@@ -1,5 +1,4 @@
-import { Options, WindowOperator } from "../../core/_internal";
-import { Any, AnyObject, Callback } from "../../types";
+import { Any, AnyObject, Callback, Options, WindowOperator } from "../../types";
 import { isNumber } from "../../util";
 import { $push } from "../accumulator/push";
 import { TIMEUNIT_IN_MILLIS } from "../expression/date/_internal";

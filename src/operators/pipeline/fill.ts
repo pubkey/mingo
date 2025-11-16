@@ -1,6 +1,5 @@
-import { Options, PipelineOperator } from "../../core/_internal";
 import { Iterator } from "../../lazy";
-import { Any } from "../../types";
+import { Any, Options, PipelineOperator } from "../../types";
 import { assert, has, isObject } from "../../util";
 import { $ifNull } from "../expression/conditional/ifNull";
 import { $linearFill } from "../window/linearFill";

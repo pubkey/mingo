@@ -1,9 +1,5 @@
-import {
-  computeValue,
-  ExpressionOperator,
-  Options
-} from "../../../core/_internal";
-import { Any, AnyObject } from "../../../types";
+import { computeValue } from "../../../core/_internal";
+import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, isNumber, isString } from "../../../util";
 
 const UTF8_MASK = [0xc0, 0xe0, 0xf0];

@@ -1,5 +1,4 @@
-import { Options, WindowOperator } from "../../core/_internal";
-import { Any, AnyObject } from "../../types";
+import { Any, AnyObject, Options, WindowOperator } from "../../types";
 import { rank, WindowOperatorInput } from "./_internal";
 
 /** Returns the document position relative to other documents in the $setWindowFields stage partition. */

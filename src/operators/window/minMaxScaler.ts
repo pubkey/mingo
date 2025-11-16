@@ -1,5 +1,4 @@
-import { Options } from "../../core/_internal";
-import { Any, AnyObject } from "../../types";
+import { Any, AnyObject, Options, WindowOperator } from "../../types";
 import { assert, isArray, isNumber } from "../../util";
 import { $push } from "../accumulator/push";
 import { WindowOperatorInput, withMemo } from "./_internal";
@@ -11,7 +10,7 @@ import { WindowOperatorInput, withMemo } from "./_internal";
  *
  * See {@link https://docs.mongodb.com/manual/reference/operator/aggregation/minMaxScaler/}
  */
-export const $minMaxScaler = (
+export const $minMaxScaler: WindowOperator = (
   _: AnyObject,
   collection: AnyObject[],
   expr: WindowOperatorInput,

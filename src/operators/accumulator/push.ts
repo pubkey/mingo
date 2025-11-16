@@ -1,10 +1,5 @@
-import {
-  AccumulatorOperator,
-  ComputeOptions,
-  computeValue,
-  Options
-} from "../../core/_internal";
-import { Any } from "../../types";
+import { ComputeOptions, computeValue } from "../../core/_internal";
+import { AccumulatorOperator, Any, Options } from "../../types";
 import { isNil } from "../../util";
 
 /**

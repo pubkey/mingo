@@ -1,5 +1,5 @@
-import { computeValue, Options } from "../../../core/_internal";
-import { Any } from "../../../types";
+import { computeValue } from "../../../core/_internal";
+import { Any, Options } from "../../../types";
 import { assert, isDate, isNil, isNumber } from "../../../util";
 
 export const TIME_UNITS = [

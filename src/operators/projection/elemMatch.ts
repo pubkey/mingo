@@ -1,6 +1,5 @@
-import { Options, ProjectionOperator } from "../../core/_internal";
 import { Query } from "../../query";
-import { Any, AnyObject } from "../../types";
+import { Any, AnyObject, Options, ProjectionOperator } from "../../types";
 import { assert, isArray, resolve } from "../../util";
 
 /**

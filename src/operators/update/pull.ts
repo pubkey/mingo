@@ -1,6 +1,5 @@
-import { Options } from "../../core/_internal";
 import { Query } from "../../query";
-import { Any, AnyObject, ArrayOrObject } from "../../types";
+import { Any, AnyObject, ArrayOrObject, Options } from "../../types";
 import { isObject, isOperator } from "../../util";
 import {
   Action,

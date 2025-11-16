@@ -1,11 +1,12 @@
+import { ComputeOptions, computeValue } from "../../core/_internal";
+import { Iterator, Source } from "../../lazy";
 import {
-  ComputeOptions,
-  computeValue,
+  Any,
+  AnyObject,
+  Callback,
   Options,
   PipelineOperator
-} from "../../core/_internal";
-import { Iterator, Source } from "../../lazy";
-import { Any, AnyObject, Callback } from "../../types";
+} from "../../types";
 import { assert, groupBy, has } from "../../util";
 
 // lookup key for grouping

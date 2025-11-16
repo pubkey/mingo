@@ -1,7 +1,6 @@
 import { Aggregator } from "../../aggregator";
-import { Options, PipelineOperator } from "../../core/_internal";
 import { concat, Iterator, Lazy } from "../../lazy";
-import { AnyObject } from "../../types";
+import { AnyObject, Options, PipelineOperator } from "../../types";
 import { assert, isArray, isString } from "../../util";
 import { filterDocumentsStage } from "./_internal";
 

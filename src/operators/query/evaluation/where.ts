@@ -1,5 +1,4 @@
-import { Options } from "../../../core/_internal";
-import { Any, Callback, Predicate } from "../../../types";
+import { Any, Callback, Options, Predicate } from "../../../types";
 import { assert, isFunction, truthy } from "../../../util/_internal";
 
 /**

@@ -1,11 +1,6 @@
-import {
-  computeValue,
-  Options,
-  PipelineOperator,
-  ProcessingMode
-} from "../../core/_internal";
+import { computeValue, ProcessingMode } from "../../core/_internal";
 import { Iterator, Lazy } from "../../lazy";
-import { Any } from "../../types";
+import { Any, Options, PipelineOperator } from "../../types";
 import { assert, cloneDeep, isArray } from "../../util";
 
 /**

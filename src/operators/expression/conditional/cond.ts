@@ -1,13 +1,11 @@
-/**
-
- */
-
+import { computeValue } from "../../../core/_internal";
 import {
-  computeValue,
+  Any,
+  AnyObject,
+  ArrayOrObject,
   ExpressionOperator,
   Options
-} from "../../../core/_internal";
-import { Any, AnyObject, ArrayOrObject } from "../../../types";
+} from "../../../types";
 import { assert, isArray, isObject, truthy } from "../../../util/_internal";
 
 /**

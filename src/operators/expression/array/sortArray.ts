@@ -1,10 +1,6 @@
-import {
-  computeValue,
-  ExpressionOperator,
-  Options
-} from "../../../core/_internal";
+import { computeValue } from "../../../core/_internal";
 import { Lazy } from "../../../lazy";
-import { Any, AnyObject } from "../../../types";
+import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, compare, isArray, isNil, isObject } from "../../../util";
 import { $sort } from "../../pipeline/sort";
 

@@ -1,6 +1,11 @@
-import { Options, QueryOperator } from "../../../core/_internal";
 import { Query } from "../../../query";
-import { Any, AnyObject, Callback } from "../../../types";
+import {
+  Any,
+  AnyObject,
+  Callback,
+  Options,
+  QueryOperator
+} from "../../../types";
 import { normalize } from "../../../util";
 
 /**

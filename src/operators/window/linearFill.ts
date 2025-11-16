@@ -1,5 +1,4 @@
-import { Options } from "../../core/_internal";
-import { Any, AnyObject, Callback } from "../../types";
+import { Any, AnyObject, Callback, Options, WindowOperator } from "../../types";
 import { isNumber } from "../../util";
 import { $push } from "../accumulator/push";
 import { WindowOperatorInput, withMemo } from "./_internal";
@@ -20,7 +19,7 @@ const interpolate = (
 /**
  * Fills null and missing fields in a window using linear interpolation based on surrounding field values.
  */
-export const $linearFill = (
+export const $linearFill: WindowOperator = (
   _: AnyObject,
   collection: AnyObject[],
   expr: WindowOperatorInput,

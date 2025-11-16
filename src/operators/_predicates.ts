@@ -1,4 +1,4 @@
-import { ComputeOptions, computeValue, Options } from "../core/_internal";
+import { ComputeOptions, computeValue } from "../core/_internal";
 import { Query } from "../query";
 import {
   Any,
@@ -6,6 +6,7 @@ import {
   BsonType,
   Callback,
   JsType,
+  Options,
   Predicate
 } from "../types";
 import {

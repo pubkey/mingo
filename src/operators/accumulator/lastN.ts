@@ -1,10 +1,5 @@
-import {
-  AccumulatorOperator,
-  ComputeOptions,
-  computeValue,
-  Options
-} from "../../core/_internal";
-import { Any, AnyObject } from "../../types";
+import { ComputeOptions, computeValue } from "../../core/_internal";
+import { AccumulatorOperator, Any, AnyObject, Options } from "../../types";
 import { $push } from "./push";
 
 interface InputExpr {

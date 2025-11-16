@@ -1,11 +1,12 @@
+import { ComputeOptions, computeValue } from "../../core/_internal";
+import { Iterator } from "../../lazy";
 import {
-  ComputeOptions,
-  computeValue,
+  Any,
+  AnyObject,
+  ArrayOrObject,
   Options,
   PipelineOperator
-} from "../../core/_internal";
-import { Iterator } from "../../lazy";
-import { Any, AnyObject, ArrayOrObject } from "../../types";
+} from "../../types";
 import { has, isArray, isNil, isObject } from "../../util";
 
 /**
