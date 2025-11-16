@@ -183,6 +183,49 @@ describe("updater", () => {
         }
       });
     });
+
+    it("should update with multiple modifers and return fields", () => {
+      const state = {
+        name: "Pizza Rat's Pizzaria",
+        Borough: "Manhattan"
+      };
+      expect(
+        update(state, { $inc: { violations: 3 }, $set: { Closed: true } })
+      ).toEqual(["Closed", "violations"]);
+
+      expect(state).toEqual({
+        name: "Pizza Rat's Pizzaria",
+        Borough: "Manhattan",
+        violations: 3,
+        Closed: true
+      });
+    });
+
+    it("should fail when multiple modifiers selectors conflict", () => {
+      const state = {
+        items: ["ball", "bat", "gloves"]
+      };
+      expect(() =>
+        update(state, { $set: { items: [] }, $pop: { items: 1 } })
+      ).toThrow();
+
+      expect(state).toEqual({
+        items: ["ball", "bat", "gloves"]
+      });
+    });
+
+    it("should update different nested path of parent selector with multiple modifiers", () => {
+      const state = {
+        items: ["ball", "bat", "gloves"]
+      };
+      expect(
+        update(state, { $set: { "items.0": "lamp" }, $inc: { "items.3": 1 } })
+      ).toEqual(["items.0", "items.3"]);
+
+      expect(state).toEqual({
+        items: ["lamp", "bat", "gloves", 1]
+      });
+    });
   });
 
   describe("updateMany() with expressions", () => {
@@ -537,7 +580,7 @@ describe("updater", () => {
       ]);
     });
 
-    it("should Update Elements Match arrayFilters Criteria", () => {
+    it("Update Elements Match arrayFilters Criteria", () => {
       const students = [
         { _id: 1, grades: [95, 92, 90] },
         { _id: 2, grades: [98, 100, 102] },
@@ -565,7 +608,7 @@ describe("updater", () => {
       ]);
     });
 
-    it("should Update Specific Elements of an Array of Documents", () => {
+    it("Update Specific Elements of an Array of Documents", () => {
       const students = [
         {
           _id: 1,

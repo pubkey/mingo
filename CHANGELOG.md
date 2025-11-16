@@ -1,5 +1,11 @@
 # Changelog
 
+## 7.0.1 / 2025-11-15
+
+**Fixes**
+
+- Fix regression to return all modified field paths for `update()` and `updateOne()`.
+
 ## 7.0.0 / 2025-11-14
 
 **New**

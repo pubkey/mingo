@@ -324,19 +324,24 @@ function updateDocuments(
 
   const matchedCount = foundDocs.length;
   const output = { matchedCount, modifiedCount: 0 };
+  const modifiedFields: string[] = [];
 
   for (const doc of foundDocs) {
     let modified = false;
     for (const [op, expr] of Object.entries(modifier)) {
       const mutate = UPDATE_OPERATORS[op] as UpdateOperator;
-      const modifiedFields = mutate(doc, expr, arrayFilters, opts);
-      if (!modified && modifiedFields.length) {
+      const fields = mutate(doc, expr, arrayFilters, opts);
+      if (fields.length) {
         modified = true;
-        if (firstOnly) Object.assign(output, { modifiedFields, modifiedIndex });
+        if (firstOnly) Array.prototype.push.apply(modifiedFields, fields);
       }
     }
-
     output.modifiedCount += +modified;
+  }
+
+  if (firstOnly && modifiedFields.length) {
+    modifiedFields.sort();
+    Object.assign(output, { modifiedFields, modifiedIndex });
   }
 
   return output;
