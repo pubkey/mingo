@@ -1,12 +1,33 @@
 # Changelog
 
-## 7.0.1 / 2025-11-15
+## 7.0.2 / 2025-11-16
+
+**New**
+
+- Added support for positional operator `.$` for projection and update.
+- Added `updateOne` and `updateMany` functions.
+- Added support for multiple operations in update modifier for `update()`.
+- Added `$sigmoid` arithmetic operator.
+- **BREAKING**
+  - All operators are loaded into context for objects import from default module.
+  - Shared type declarations to moved `types` module.
+
+**Removed (BREAKING)**
+
+- `initOptions` function in `mingo/core`. Use plain object initializer.
+- `useOperators` function in `mingo/core`. Pass a custom `Context` object to options.
+- `getOperator` function in `mingo/core`. Pass a custom `Context` object to options.
+- `createUpdater` function in `mingo/updater`. No longer supported.
+- `mingo/init/{basic,system,context}` modules.
+- `map`, `forEach`, and `count` methods on `Cursor` object.
+
+## 7.0.1 / 2025-11-15 (deprecated)
 
 **Fixes**
 
 - Fix regression to return all modified field paths for `update()` and `updateOne()`.
 
-## 7.0.0 / 2025-11-14
+## 7.0.0 / 2025-11-14 (deprecated)
 
 **New**
 
