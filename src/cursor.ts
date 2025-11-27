@@ -85,7 +85,7 @@ export class Cursor<T> {
 
   /** Returns an iterator with the buffered data included */
   private fetchAll(): Iterator {
-    const buffered = Lazy([...this.#buffer]);
+    const buffered = Lazy(Array.from(this.#buffer));
     this.#buffer.length = 0;
     return concat(buffered, this.fetch());
   }

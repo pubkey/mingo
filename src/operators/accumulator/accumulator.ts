@@ -52,7 +52,7 @@ export const $accumulator: AccumulatorOperator = (
     copts.update({ root: copts?.local?.groupId })
   ) as Any[];
 
-  let state = expr.init.call(null, ...initArgs) as Any;
+  let state = expr.init.apply(null, initArgs) as Any;
 
   for (const doc of collection) {
     // get arguments for document
@@ -63,7 +63,7 @@ export const $accumulator: AccumulatorOperator = (
       copts.update({ root: doc })
     ) as Any[];
     // update the state with each documents value
-    state = expr.accumulate.call(null, ...[state, ...args]) as Any;
+    state = expr.accumulate.apply(null, [state, ...args]) as Any;
   }
 
   return (expr.finalize ? expr.finalize.call(null, state) : state) as Any;
