@@ -91,7 +91,7 @@ export interface Options {
   readonly useStrictMode: boolean;
   /** Enable or disable custom script execution using `$where`, `$accumulator`, and `$function` operators. @default true. */
   readonly scriptEnabled: boolean;
-  /** Hash function to replace the Effective Java default implementation. */
+  /** This option does nothing and will be removed in future versions. @deprecated */
   readonly hashFunction?: HashFunction;
   /** Function to resolve strings to arrays for use with operators that reference other collections such as; `$lookup`, `$out` and `$merge`. */
   readonly collectionResolver?: CollectionResolver;

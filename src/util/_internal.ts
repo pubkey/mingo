@@ -1,14 +1,10 @@
 /**
  * Utility constants and functions
  */
-import {
-  Any,
-  AnyObject,
-  ArrayOrObject,
-  Callback,
-  Comparator,
-  HashFunction
-} from "../types";
+import { Any, AnyObject, ArrayOrObject, Callback, Comparator } from "../types";
+import { hashCode } from "./_hash";
+
+export { hashCode } from "./_hash";
 
 /** Represents an error reported by the mingo library. */
 export class MingoError extends Error {}
@@ -18,20 +14,6 @@ const MISSING = Symbol("missing");
 const ERR_CYCLE_FOUND = "mingo: cycle detected while processing object/array";
 
 type Constructor = new (...args: Any[]) => Any;
-
-/**
- * Uses the simple hash method as described in Effective Java.
- * @see https://stackoverflow.com/a/113600/1370481
- * @param value The value to hash
- * @returns {number}
- */
-const DEFAULT_HASH_FUNCTION: HashFunction = (value: Any): number => {
-  const s = stringify(value);
-  let hash = 0;
-  let i = s.length;
-  while (i) hash = ((hash << 5) - hash) ^ s.charCodeAt(--i);
-  return hash >>> 0;
-};
 
 const isPrimitive = (v: Any): boolean =>
   (typeof v !== "object" && typeof v !== "function") || v === null;
@@ -65,18 +47,22 @@ const SORT_ORDER: Record<string, number> = {
 export function compare<T = Any>(a: T, b: T): number {
   if (a === MISSING) a = undefined;
   if (b === MISSING) b = undefined;
-  const customOrder = 100;
+  const custom = 100;
   const [u, v] = [a, b].map(
     n =>
       SORT_ORDER[isTypedArray(n) ? "arraybuffer" : typeOf(n)] ??
-      customOrder /*custom objects have highest sort order*/
+      custom /*custom objects have highest sort order*/
   );
   // non-equal types compare with sort-order
   if (u !== v) return u - v;
-  // stringify custom types for comparison
-  if (u === customOrder) {
-    a = stringify(a) as T;
-    b = stringify(b) as T;
+  if (u === custom) {
+    // string compare custom types with toString method when both are same type
+    // if not, compare by hash code
+    return a.constructor === b.constructor &&
+      hasCustomString(a) &&
+      hasCustomString(b)
+      ? compare<string>(a.toString(), b.toString())
+      : compare<number>(hashCode(a), hashCode(b));
   }
   return isEqual(a, b) ? 0 : a < b ? -1 : 1;
 }
@@ -88,13 +74,11 @@ export function compare<T = Any>(a: T, b: T): number {
  * Modifying an object after adding to the Map will cause incorrect behaviour.
  */
 export class HashMap<K, V> extends Map<K, V> {
-  // The hash function
-  #hashFn = DEFAULT_HASH_FUNCTION;
   // maps the hashcode to key set
   #keyMap = new Map<number, K[]>();
   // returns a tuple of [<masterKey>, <hash>]. Expects an object key.
   #unpack = (key: K): [K, number] => {
-    const hash = this.#hashFn(key);
+    const hash = hashCode(key);
     return [(this.#keyMap.get(hash) || []).find(k => isEqual(k, key)), hash];
   };
 
@@ -106,10 +90,8 @@ export class HashMap<K, V> extends Map<K, V> {
    * Returns a new {@link HashMap} object.
    * @param fn An optional custom hash function
    */
-  static init<K, V>(fn?: HashFunction) {
-    const m = new HashMap<K, V>();
-    if (fn) m.#hashFn = fn;
-    return m;
+  static init<K, V>() {
+    return new HashMap<K, V>();
   }
 
   clear(): void {
@@ -306,17 +288,10 @@ export function merge(target: Any, input: Any): Any {
  * Returns the intersection of multiple arrays.
  *
  * @param  {Array} input An array of arrays from which to find intersection.
- * @param  {Function} hashFunc Custom function to hash values, default the hashCode method
  * @return {Array} Array of intersecting values.
  */
-export function intersection<T = Any>(
-  input: T[][],
-  hashFunc: HashFunction = DEFAULT_HASH_FUNCTION
-): T[] {
-  const vmaps = [
-    HashMap.init<T, boolean>(hashFunc),
-    HashMap.init<T, boolean>(hashFunc)
-  ];
+export function intersection<T = Any>(input: T[][]): T[] {
+  const vmaps = [HashMap.init<T, boolean>(), HashMap.init<T, boolean>()];
   if (input.length === 0) return [];
   if (input.some(arr => arr.length === 0)) return [];
   if (input.length === 1) return [...input[0]];
@@ -387,34 +362,18 @@ export function isEqual(a: Any, b: Any): boolean {
   // strictly equal must be equal. matches referentially equal values.
   if (a === b || Object.is(a, b)) return true;
   if (a === null || b === null) return false;
-  // primitives types
   if (typeof a !== typeof b) return false;
   if (typeof a !== "object") return false;
+  if (a.constructor !== b.constructor) return false;
   if (isDate(a)) return isDate(b) && +a === +b;
   if (isRegExp(a)) return isRegExp(b) && a.toString() === b.toString();
-  const t = typeOf(a);
-  if (t !== typeOf(b)) return false;
-  switch (t) {
-    case "array":
-      if ((a as Any[]).length !== (b as Any[]).length) return false;
-      for (let i = 0, size = (a as Any[]).length; i < size; i++) {
-        if (!isEqual(a[i], b[i])) return false;
-      }
-      return true;
-    case "object": {
-      const ka = Object.keys(a);
-      const kb = Object.keys(b);
-      if (ka.length !== kb.length) return false;
-      for (const k of ka) {
-        if (!(k in (b as AnyObject) && isEqual(a[k], b[k]))) return false;
-      }
-      return true;
-    }
-    default:
-      // toString() compare all supported types including custom ones.
-      // eslint-disable-next-line @typescript-eslint/no-base-to-string
-      return hasCustomString(a) && a.toString() === b.toString();
+  if (isArray(a) && isArray(b)) {
+    return a.length === b.length && a.every((v, i) => isEqual(v, b[i]));
   }
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
+  if (keysA.length !== keysB.length) return false;
+  return keysA.every(k => k in (b as object) && isEqual(a[k], b[k]));
 }
 
 /**
@@ -422,58 +381,10 @@ export function isEqual(a: Any, b: Any): boolean {
  * @param  {Array} input The input collection
  * @return {Array}
  */
-export function unique<T = Any>(
-  input: T[],
-  hashFunc: HashFunction = DEFAULT_HASH_FUNCTION
-): T[] {
-  const m = HashMap.init<T, boolean>(hashFunc);
+export function unique<T = Any>(input: T[]): T[] {
+  const m = HashMap.init<T, boolean>();
   input.forEach(v => m.set(v, true));
   return Array.from(m.keys());
-}
-
-/**
- * Encode value to string using a simple non-colliding stable scheme.
- * Handles user-defined types by processing keys on first non-empty prototype.
- * If a user-defined type provides a "toString" function, it is used.
- */
-export function stringify(v: Any, refs?: Set<Any>): string {
-  if (v === null) return "null";
-  if (v === undefined) return "undefined";
-  if (isString(v) || isNumber(v) || isBoolean(v)) return JSON.stringify(v);
-  if (isDate(v)) return v.toISOString();
-  if (isRegExp(v) || isSymbol(v) || isFunction(v))
-    return (v as Stringer).toString();
-  if (!(refs instanceof Set)) refs = new Set();
-  if (refs.has(v)) throw new Error(ERR_CYCLE_FOUND);
-  try {
-    refs.add(v);
-    if (isArray(v)) return "[" + v.map(s => stringify(s, refs)).join(",") + "]";
-    if (isObject(v)) {
-      const keys = Object.keys(v).sort();
-      return "{" + keys.map(k => `${k}:${stringify(v[k], refs)}`).join() + "}";
-    }
-    // use toString representation of custom-type
-    const s = hasCustomString(v)
-      ? v.toString()
-      : stringify(getMembersOf(v), refs);
-    return typeOf(v) + "(" + s + ")";
-  } finally {
-    refs.delete(v);
-  }
-}
-
-/**
- * Generate hash code.
- * This selected function is the result of benchmarking various hash functions.
- * This version performs well and can hash 10^6 documents in ~3s with on average 100 collisions.
- *
- * @param value
- * @returns {number|null}
- */
-export function hashCode(value: Any, hashFunc?: HashFunction): number {
-  if (isNil(value)) return null;
-  hashFunc = hashFunc || DEFAULT_HASH_FUNCTION;
-  return hashFunc(value);
 }
 
 /**
@@ -484,13 +395,12 @@ export function hashCode(value: Any, hashFunc?: HashFunction): number {
  */
 export function groupBy<T = Any, K = Any>(
   collection: T[],
-  keyFunc: Callback<K>,
-  hashFunc: HashFunction = DEFAULT_HASH_FUNCTION
+  keyFunc: Callback<K>
 ): Map<K, T[]> {
   if (collection.length < 1) return new Map();
 
   // map of raw key values to matching objects of the same keyFn(obj).
-  const result = HashMap.init<K, T[]>(hashFunc);
+  const result = HashMap.init<K, T[]>();
   for (let i = 0; i < collection.length; i++) {
     const obj = collection[i];
     const key = keyFunc(obj, i) ?? null;

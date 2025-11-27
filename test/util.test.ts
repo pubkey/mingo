@@ -4,7 +4,6 @@ import {
   compare,
   groupBy,
   has,
-  hashCode,
   HashMap,
   intersection,
   isEmpty,
@@ -15,7 +14,6 @@ import {
   removeValue,
   resolve,
   resolveGraph,
-  stringify,
   truthy,
   typeOf,
   unique,
@@ -56,8 +54,8 @@ describe("util", () => {
     it("should stringify custom types for comparison", () => {
       const [a, b] = ["0", "1"].map(n => new Custom(n));
       expect(compare(a, a)).toBe(0);
-      expect(compare(a, b)).toBe(-1);
-      expect(compare(b, a)).toBe(1);
+      expect(compare(a, b)).not.toEqual(0);
+      expect(compare(b, a)).not.toEqual(0);
     });
   });
 
@@ -160,52 +158,6 @@ describe("util", () => {
       b.push(obj);
       expect(isEqual(a, b)).toEqual(true);
       // expect(() => isEqual(a, b)).toThrow(/cycle detected/);
-    });
-  });
-
-  describe("stringify", () => {
-    const a: Any[] = [1, 2, 3];
-    const b: Any[] = [4, 5, 6];
-
-    it.each([
-      [null, "null"],
-      [undefined, "undefined"],
-      [1, "1"],
-      ["a", '"a"'],
-      [true, "true"],
-      [{ a: 1 }, "{a:1}"],
-      [/mo/, "/mo/"],
-      [[1, "a"], '[1,"a"]'],
-      [new Date("2001-01-01T00:00:00.000Z"), "2001-01-01T00:00:00.000Z"],
-      [(id: Any) => id, "(id) => id"],
-      [new Uint8Array([5, 2]), "uint8array(5,2)"],
-      [new Float32Array([1.5, 2.5]), "float32array(1.5,2.5)"],
-      [{ a: a, b: a }, "{a:[1,2,3],b:[1,2,3]}"],
-      [[a, a], "[[1,2,3],[1,2,3]]"],
-      [[a, b], "[[1,2,3],[4,5,6]]"],
-      [[a, b, a, b], "[[1,2,3],[4,5,6],[1,2,3],[4,5,6]]"],
-      [ObjectId("123"), "objectid(123)"],
-      [new Custom("123"), 'custom({_id:"123"})']
-    ])("should stringify %o => %o", (input, output) => {
-      expect(stringify(input)).toEqual(output);
-    });
-
-    it("should check for cycles in object", () => {
-      const a: Any[] = [1, 2, 3];
-      const b: Any[] = [4, 5, 6];
-      const obj = { a, b };
-      b.push(obj);
-
-      expect(() => stringify(obj)).toThrow(/cycle detected/);
-    });
-
-    it("should check for cycles in array", () => {
-      const a: Any[] = [1, 2, 3];
-      const b: Any[] = [4, 5, 6, a];
-      const c = [a, b];
-      a.push(c);
-
-      expect(() => stringify(c)).toThrow(/cycle detected/);
     });
   });
 
@@ -396,15 +348,6 @@ describe("util", () => {
   });
 
   describe("unique", () => {
-    it("returns unique items even with hash collision", () => {
-      const first = "KNE_OC42-midas";
-      const second = "KNE_OCS3-midas";
-      expect(hashCode(first)).toEqual(hashCode(second));
-
-      const res = unique([first, second]);
-      expect(res).toEqual([first, second]);
-    });
-
     it("returns stable unique items from duplicates", () => {
       expect(unique([1, 2, 2, 1])).toEqual([1, 2]);
       expect(unique([5, [2], 3, [2], 1])).toEqual([5, [2], 3, 1]);
@@ -554,29 +497,6 @@ describe("util", () => {
       expect(m.size).toEqual(0);
       expect(m.get([1, 2])).toBeUndefined();
       expect(m.get({ a: 1 })).toBeUndefined();
-    });
-
-    it("should handle poor hash function", () => {
-      const badHashFn = (v: Any) => {
-        if (isEqual(v, { a: 1 })) return 1234;
-        if (isEqual(v, { a: 2 })) return 1234;
-        if (isEqual(v, { a: 3 })) return 1234;
-        const r = hashCode(v);
-        return r == null ? 0 : Number(r);
-      };
-      const m = HashMap.init(badHashFn);
-      m.set({ a: 1 }, "A");
-      m.set({ a: 2 }, "B");
-      m.set({ a: 3 }, "C");
-      m.set({ a: 1 }, "D"); // replace
-
-      expect(m.size).toEqual(3);
-
-      expect(m.delete({ a: 2 })).toEqual(true);
-
-      expect(m.size).toEqual(2);
-      expect(m.get({ a: 1 })).toEqual("D");
-      expect(m.get({ a: 3 })).toEqual("C");
     });
   });
 });

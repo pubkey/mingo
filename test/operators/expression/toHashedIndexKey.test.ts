@@ -34,25 +34,25 @@ describe(testPath(__filename), () => {
     ]);
 
     expect(result).toEqual([
-      { item: "", hashedKey: 1084 },
-      { item: null, hashedKey: null },
-      { item: undefined, hashedKey: null },
-      { item: true, hashedKey: 3023732 },
-      { item: false, hashedKey: 93690805 },
-      { item: 0, hashedKey: 48 },
-      { item: "0", hashedKey: 33200 },
-      { item: 123, hashedKey: 48624 },
-      { item: -123, hashedKey: 1507389 },
-      { item: "123", hashedKey: 31799024 },
-      { item: "-123", hashedKey: 985770179 },
-      { item: 3.14, hashedKey: 1595552 },
-      { item: -3.14, hashedKey: 49462093 },
-      { item: "3.14", hashedKey: 984948708 },
-      { item: "-3.14", hashedKey: 468639063 },
-      { item: [], hashedKey: 2840 },
-      { item: {}, hashedKey: 3928 },
-      { item: [1, 2, 3], hashedKey: 2263927342 },
-      { item: { a: 1, b: 2 }, hashedKey: 1283072046 }
+      { item: "", hashedKey: 1987565545 },
+      { item: null, hashedKey: 3530670207 },
+      { item: undefined, hashedKey: 3241479426 },
+      { item: true, hashedKey: 1427630344 },
+      { item: false, hashedKey: 2545049170 },
+      { item: 0, hashedKey: 2882822322 },
+      { item: "0", hashedKey: 2167639427 },
+      { item: 123, hashedKey: 289662779 },
+      { item: -123, hashedKey: 600755326 },
+      { item: "123", hashedKey: 269761036 },
+      { item: "-123", hashedKey: 3157440593 },
+      { item: 3.14, hashedKey: 1773211978 },
+      { item: -3.14, hashedKey: 352188871 },
+      { item: "3.14", hashedKey: 380010096 },
+      { item: "-3.14", hashedKey: 2994886030 },
+      { item: [], hashedKey: 1423767502 },
+      { item: {}, hashedKey: 1950882977 },
+      { item: [1, 2, 3], hashedKey: 219003440 },
+      { item: { a: 1, b: 2 }, hashedKey: 2141591136 }
     ]);
   });
 });
