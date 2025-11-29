@@ -12,5 +12,4 @@ export const $toHashedIndexKey: ExpressionOperator<number> = (
   obj: AnyObject,
   expr: Any,
   options: Options
-): number =>
-  hashCode(computeValue(obj, expr, null, options), options.hashFunction);
+): number => hashCode(computeValue(obj, expr, null, options));

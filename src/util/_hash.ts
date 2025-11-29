@@ -127,7 +127,7 @@ const feedFunction: FeedHandler = (h, v) => {
   return feedString(feedNumber(h, fn.length), fn.toString());
 };
 
-export function hashCode(value: unknown, seed = 0): number {
+export function hashCode(value: unknown): number {
   const seen: WeakMap<object, number> = new WeakMap();
   let nextId = 1;
 
@@ -187,5 +187,5 @@ export function hashCode(value: unknown, seed = 0): number {
     return handler ? handler(h, v) : h;
   };
 
-  return feed(seed >>> 0, value) >>> 0;
+  return feed(0, value) >>> 0;
 }

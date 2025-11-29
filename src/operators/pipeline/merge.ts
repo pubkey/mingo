@@ -60,9 +60,8 @@ export const $merge: PipelineOperator = (
   const onField = expr.on || options.idKey;
 
   const getHash = isString(onField)
-    ? (o: AnyObject) => hashCode(resolve(o, onField), options.hashFunction)
-    : (o: AnyObject) =>
-        hashCode(onField.map(s => resolve(o, s), options.hashFunction));
+    ? (o: AnyObject) => hashCode(resolve(o, onField))
+    : (o: AnyObject) => hashCode(onField.map(s => resolve(o, s)));
 
   const map = HashMap.init<number, [AnyObject, number]>();
 
