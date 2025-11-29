@@ -321,7 +321,7 @@ function getPositionalFilter(
       for (const [key, pred, leaf] of selectors["$or"]) {
         orMatches.push(...findMatches(o, key, leaf, pred));
       }
-      matches.push(unique(orMatches, (n: number) => n));
+      matches.push(unique(orMatches));
     }
 
     // matching index has passed all conditions

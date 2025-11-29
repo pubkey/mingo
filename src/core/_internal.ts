@@ -122,9 +122,6 @@ export class ComputeOptions implements Options {
   get scriptEnabled() {
     return this.options?.scriptEnabled;
   }
-  get hashFunction() {
-    return this.options?.hashFunction;
-  }
   get collectionResolver() {
     return this.options?.collectionResolver;
   }

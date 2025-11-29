@@ -14,9 +14,4 @@ export const $addToSet: AccumulatorOperator = (
   collection: AnyObject[],
   expr: Any,
   options: Options
-): AnyObject[] => {
-  return unique(
-    $push(collection, expr, options),
-    options?.hashFunction
-  ) as AnyObject[];
-};
+): AnyObject[] => unique($push(collection, expr, options)) as AnyObject[];

@@ -18,5 +18,5 @@ export const $setIntersection: ExpressionOperator = (
     isArray(args) && args.every(isArray),
     "$setIntersection operands must be arrays."
   );
-  return intersection(args, options?.hashFunction);
+  return intersection(args);
 };

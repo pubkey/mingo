@@ -46,11 +46,7 @@ export const $sort: PipelineOperator = (
   return collection.transform((coll: Any[]) => {
     const modifiers = Object.keys(sortKeys);
     for (const key of modifiers.reverse()) {
-      const groups = groupBy(
-        coll,
-        (obj: AnyObject) => resolve(obj, key),
-        options.hashFunction
-      );
+      const groups = groupBy(coll, (obj: AnyObject) => resolve(obj, key));
       const sortedKeys = Array.from(groups.keys()).sort(cmp);
       if (sortKeys[key] === -1) sortedKeys.reverse();
 

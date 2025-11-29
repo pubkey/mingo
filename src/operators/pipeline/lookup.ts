@@ -72,7 +72,7 @@ export const $lookup: PipelineOperator = (
   // handle direct key fields
   if (foreignField && localField) {
     // compute hashtable for joined collection
-    const map = HashMap.init<Any, Any[]>(options.hashFunction);
+    const map = HashMap.init<Any, Any[]>();
     for (const doc of joinColl) {
       // add object for each value in the array.
       ensureArray(resolve(doc, foreignField) ?? null).forEach(v => {
@@ -94,9 +94,7 @@ export const $lookup: PipelineOperator = (
           return [local.some(v => map.has(v)), null];
         }
         // return entire result set.
-        const result = Array.from(
-          new Set(flatten(local.map(v => map.get(v), options.hashFunction)))
-        );
+        const result = Array.from(new Set(flatten(local.map(v => map.get(v)))));
         return [result.length > 0, result];
       }
       const result = map.get(local) ?? null;

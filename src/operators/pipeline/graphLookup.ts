@@ -65,7 +65,7 @@ export const $graphLookup: PipelineOperator = (
     );
     let matches: AnyObject[] = [matchObj];
     let i = -1;
-    const map = HashMap.init<AnyObject, number>(options.hashFunction);
+    const map = HashMap.init<AnyObject, number>();
     do {
       i++;
       matches = flatten(

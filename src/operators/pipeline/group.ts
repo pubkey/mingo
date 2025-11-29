@@ -38,10 +38,8 @@ export const $group: PipelineOperator = (
   const newFields = Object.keys(expr).filter(k => k != ID_KEY);
 
   return collection.transform(((coll: Any[]) => {
-    const partitions = groupBy(
-      coll,
-      obj => computeValue(obj, idExpr, null, options),
-      options.hashFunction
+    const partitions = groupBy(coll, obj =>
+      computeValue(obj, idExpr, null, options)
     );
 
     let i = -1;

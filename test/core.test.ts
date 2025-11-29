@@ -97,7 +97,6 @@ describe("core", () => {
       expect(copts.processingMode).toEqual(ProcessingMode.CLONE_OFF);
       expect(copts.collation).toBeUndefined();
       expect(copts.collectionResolver).toBeUndefined();
-      expect(copts.hashFunction).toBeUndefined();
       expect(copts.jsonSchemaValidator).toBeUndefined();
       expect(copts.variables).toBeUndefined();
       expect(copts.local?.variables).toEqual({ x: 10 });

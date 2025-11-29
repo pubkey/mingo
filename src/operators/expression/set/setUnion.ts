@@ -16,5 +16,5 @@ export const $setUnion: ExpressionOperator = (
   if (isNil(args)) return null;
   assert(isArray(args), "$setUnion operands must be arrays.");
   if (args.some(isNil)) return null;
-  return unique(flatten(args), options?.hashFunction);
+  return unique(flatten(args));
 };

@@ -25,6 +25,12 @@ class Custom {
   constructor(readonly _id: string) {}
 }
 
+class CustomWithToString extends Custom {
+  toString() {
+    return "Custom:" + this._id;
+  }
+}
+
 describe("util", () => {
   describe("compare", () => {
     const items = [
@@ -51,11 +57,18 @@ describe("util", () => {
       });
     }
 
-    it("should stringify custom types for comparison", () => {
+    it("should compare hashes of custom types without toString()", () => {
       const [a, b] = ["0", "1"].map(n => new Custom(n));
       expect(compare(a, a)).toBe(0);
       expect(compare(a, b)).not.toEqual(0);
       expect(compare(b, a)).not.toEqual(0);
+    });
+
+    it("should compare toString() of custom types if provided", () => {
+      const [a, b] = ["0", "1"].map(n => new CustomWithToString(n));
+      expect(compare(a, a)).toBe(0);
+      expect(compare(a, b)).toEqual(-1);
+      expect(compare(b, a)).toEqual(1);
     });
   });
 

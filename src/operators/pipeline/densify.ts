@@ -130,9 +130,7 @@ export const $densify: PipelineOperator = (
   // We cannot use $group to partition fields here since we need extract the raw fields and validate their values.
   // Rather than try to partition upfront, process the collection in sorted order and compute the next document using
   // the last value for the given partition.
-  const nextDensifyValueMap = HashMap.init<string[], DateOrNumber>(
-    options.hashFunction
-  );
+  const nextDensifyValueMap = HashMap.init<string[], DateOrNumber>();
 
   const [lower, upper] = isArray(bounds) ? bounds : [bounds, bounds];
 

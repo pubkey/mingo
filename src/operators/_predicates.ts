@@ -105,8 +105,7 @@ export function $ne(a: Any, b: Any, options?: Options): boolean {
 export function $in(a: Any[], b: Any[], options?: Options): boolean {
   // queries for null should be able to find undefined fields
   if (isNil(a)) return b.some(v => v === null);
-
-  return intersection([ensureArray(a), b], options?.hashFunction).length > 0;
+  return intersection([ensureArray(a), b]).length > 0;
 }
 
 /**

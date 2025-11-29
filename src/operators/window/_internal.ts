@@ -102,8 +102,7 @@ export function rank(
       const values = $push(collection, sortKey, options);
       const groups = groupBy(
         values,
-        ((_: AnyObject, n: number) => values[n]) as Callback,
-        options.hashFunction
+        ((_: AnyObject, n: number) => values[n]) as Callback
       );
       let i = 0;
       let offset = 0;
