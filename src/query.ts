@@ -4,8 +4,10 @@ import { Source } from "./lazy";
 import type {
   Any,
   AnyObject,
+  Criteria,
   Options,
   Predicate,
+  Projection,
   QueryOperator
 } from "./types";
 import { assert, cloneDeep, isObject, isOperator, normalize } from "./util";
@@ -22,10 +24,10 @@ const TOP_LEVEL_RE = /^\$(and|or|nor|expr|jsonSchema)$/;
  * const result = query.test({ name: "John", age: 25 }); // true
  * ```
  */
-export class Query {
+export class Query<T = AnyObject> {
   #compiled: Predicate<Any>[];
+  #condition: Criteria<T>;
   #options: Options;
-  #condition: AnyObject;
 
   /**
    * Creates an instance of the query with the specified condition and options.
@@ -34,9 +36,11 @@ export class Query {
    * @param condition - The query condition object used to define the criteria for matching documents.
    * @param options - Optional configuration settings to customize the query behavior.
    */
-  constructor(condition: AnyObject, options: Partial<Options>) {
+  constructor(condition: Criteria<T>, options: Partial<Options>) {
     this.#condition = cloneDeep(condition);
-    this.#options = ComputeOptions.init(options).update({ condition });
+    this.#options = ComputeOptions.init(options).update({
+      condition: condition
+    });
     this.#compiled = [];
     this.compile();
   }
@@ -94,7 +98,7 @@ export class Query {
    * @param obj - The object to be tested against the compiled predicates.
    * @returns `true` if the object satisfies all predicates, otherwise `false`.
    */
-  test<T>(obj: T): boolean {
+  test(obj: T): boolean {
     return this.#compiled.every(p => p(obj));
   }
 
@@ -107,10 +111,10 @@ export class Query {
    *                      in the returned items.
    * @returns A `Cursor` instance for iterating over the matching items.
    */
-  find<T>(collection: Source, projection?: AnyObject): Cursor<T> {
-    return new Cursor<T>(
+  find<R>(collection: Source, projection?: Projection<R>): Cursor<R> {
+    return new Cursor<R>(
       collection,
-      o => this.test(o),
+      o => this.test(o as T),
       projection || {},
       this.#options
     );

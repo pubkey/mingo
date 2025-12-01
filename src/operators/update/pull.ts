@@ -1,12 +1,7 @@
 import { Query } from "../../query";
 import { Any, AnyObject, ArrayOrObject, Options } from "../../types";
 import { isObject, isOperator } from "../../util";
-import {
-  Action,
-  applyUpdate,
-  DEFAULT_OPTIONS,
-  walkExpression
-} from "./_internal";
+import { applyUpdate, DEFAULT_OPTIONS, walkExpression } from "./_internal";
 
 /** Removes from an existing array all instances of a value or values that match a specified condition. */
 export const $pull = (
@@ -15,13 +10,13 @@ export const $pull = (
   arrayFilters: AnyObject[] = [],
   options: Options = DEFAULT_OPTIONS
 ) => {
-  return walkExpression(expr, arrayFilters, options, ((val, node, queries) => {
+  return walkExpression(expr, arrayFilters, options, (val, node, queries) => {
     // wrap simple values or condition objects
     const wrap = !isObject(val) || Object.keys(val).some(isOperator);
     const query = new Query(wrap ? { k: val } : (val as AnyObject), options);
     const pred = wrap
       ? (v: Any) => query.test({ k: v })
-      : (v: Any) => query.test(v);
+      : (v: Any) => query.test(v as AnyObject);
     return applyUpdate(obj, node, queries, (o: ArrayOrObject, k: string) => {
       const prev = o[k] as Any[];
       const curr = new Array<Any>();
@@ -36,5 +31,5 @@ export const $pull = (
       o[k] = curr;
       return true;
     });
-  }) as Action);
+  });
 };

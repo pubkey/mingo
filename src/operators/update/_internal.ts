@@ -16,6 +16,10 @@ import {
   WalkOptions
 } from "../../util/_internal";
 
+export type SingleKeyRecord<K extends PropertyKey, V> = {
+  [P in K]: Record<P, V>;
+}[K];
+
 export const DEFAULT_OPTIONS: Options = ComputeOptions.init({
   context: Context.init()
     .addQueryOps(queryOperators)
@@ -100,7 +104,7 @@ export const applyUpdate = (
     .some(Boolean);
 };
 
-export type Action<T = Any> = (
+export type Action<T> = (
   val: T,
   pathNode: PathNode,
   queries: Record<string, Query>

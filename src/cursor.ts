@@ -10,7 +10,8 @@ import type {
   CollationSpec,
   Options,
   PipelineOperator,
-  Predicate
+  Predicate,
+  Projection
 } from "./types";
 import { cloneDeep, has } from "./util";
 
@@ -26,7 +27,7 @@ const OPERATORS: Record<string, PipelineOperator> = { $sort, $skip, $limit };
 export class Cursor<T> {
   #source: Source;
   #predicate: Predicate<Any>;
-  #projection: AnyObject;
+  #projection: Projection<T>;
   #options: Options;
   #operators: AnyObject = {};
   #result: Iterator | null = null;
@@ -43,7 +44,7 @@ export class Cursor<T> {
   constructor(
     source: Source,
     predicate: Predicate<Any>,
-    projection: AnyObject,
+    projection: Projection<T>,
     options?: Options
   ) {
     this.#source = source;

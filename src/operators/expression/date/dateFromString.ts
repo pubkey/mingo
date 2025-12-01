@@ -120,7 +120,7 @@ export const $dateFromString: ExpressionOperator<Any> = (
     isNil(dateParts.year) ||
     isNil(dateParts.month) ||
     isNil(dateParts.day) ||
-    !new RegExp("^" + expectedPattern + "[A-Z]?$").exec(args.dateString)
+    !new RegExp("^" + expectedPattern + "[A-Z]?$").test(args.dateString)
   ) {
     return args.onError;
   }

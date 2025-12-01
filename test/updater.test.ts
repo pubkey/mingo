@@ -1,6 +1,7 @@
 import { find, update, updateMany, updateOne } from "../src";
 import { ComputeOptions } from "../src/core/_internal";
 import { clone, Trie } from "../src/operators/update/_internal";
+import { AnyObject } from "../src/types";
 import { isArray } from "../src/util";
 import { ISODate } from "./support";
 
@@ -97,7 +98,7 @@ describe("updater", () => {
 
     it("should allow multiple selectors with same parent conflict", () => {
       const state = { name: { firstname: "John", lastname: "Wick" }, age: 30 };
-      update(state, {
+      update<typeof state>(state, {
         $set: { "name.firstname": "Freddy", "name.lastname": "Mercury" }
       });
       expect(state.name.firstname).toBe("Freddy");
@@ -245,7 +246,9 @@ describe("updater", () => {
     it("should update with multiple modifers and return fields", () => {
       const state = {
         name: "Pizza Rat's Pizzaria",
-        Borough: "Manhattan"
+        Borough: "Manhattan",
+        violations: 0,
+        Closed: false
       };
       expect(
         update(state, { $inc: { violations: 3 }, $set: { Closed: true } })
@@ -296,7 +299,7 @@ describe("updater", () => {
       ];
 
       expect(
-        updateMany(
+        updateMany<AnyObject>(
           employees,
           { salary: { $lt: 100000 }, raiseApplied: { $ne: true } },
           { $inc: { salary: 1000 }, $set: { raiseApplied: true } }
@@ -310,7 +313,7 @@ describe("updater", () => {
       ]);
 
       expect(
-        updateMany(employees, {}, { $unset: { raiseApplied: 1 } })
+        updateMany<AnyObject>(employees, {}, { $unset: { raiseApplied: "" } })
       ).toEqual({ matchedCount: 4, modifiedCount: 3 });
 
       expect(employees).toEqual([
@@ -330,7 +333,7 @@ describe("updater", () => {
       ];
 
       expect(
-        updateMany(
+        updateMany<AnyObject>(
           restaurants,
           { violations: { $gt: 4 } },
           { $set: { Review: true } }
@@ -1108,7 +1111,7 @@ describe("updater", () => {
 
     it("Use the $ Operator to Update the First Match in an Array", () => {
       expect(
-        update(
+        update<(typeof input)[0]>(
           input[0],
           { $set: { "engineering.$.email": "alice@mail.com" } },
           [],

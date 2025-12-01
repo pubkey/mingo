@@ -1,7 +1,6 @@
 import { Any, AnyObject, ArrayOrObject, Options } from "../../types";
 import { compare, has, isEqual, isNumber, isObject, resolve } from "../../util";
 import {
-  Action,
   applyUpdate,
   clone,
   DEFAULT_OPTIONS,
@@ -17,7 +16,7 @@ export const $push = (
   arrayFilters: AnyObject[] = [],
   options: Options = DEFAULT_OPTIONS
 ) => {
-  return walkExpression(expr, arrayFilters, options, ((val, node, queries) => {
+  return walkExpression(expr, arrayFilters, options, (val, node, queries) => {
     const args: {
       $each: Any[];
       $slice?: number;
@@ -69,5 +68,5 @@ export const $push = (
       },
       { descendArray: true, buildGraph: true }
     );
-  }) as Action);
+  });
 };

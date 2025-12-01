@@ -13,11 +13,19 @@ import * as queryOperators from "./operators/query";
 import * as UPDATE_OPERATORS from "./operators/update";
 import {
   buildParams,
+  SingleKeyRecord,
   Trie,
   UpdateOperator
 } from "./operators/update/_internal";
 import { Query } from "./query";
-import { Any, AnyObject, CollationSpec, Options } from "./types";
+import {
+  Any,
+  AnyObject,
+  CollationSpec,
+  Criteria,
+  Options,
+  UpdateExpr
+} from "./types";
 import {
   assert,
   cloneDeep,
@@ -47,10 +55,22 @@ export type PipelineStage =
   | { $replaceRoot: { newRoot: AnyObject } }
   | { $replaceWith: AnyObject };
 
-/*eslint-disable @typescript-eslint/no-empty-object-type */
-/** Expression for update operation to perform */
-export interface Modifier
-  extends Partial<Record<keyof typeof UPDATE_OPERATORS, AnyObject>> {}
+export interface Modifier<T> {
+  $addToSet?: UpdateExpr<T>;
+  $bit?: UpdateExpr<T, SingleKeyRecord<"and" | "or" | "xor", number>>;
+  $currentDate?: UpdateExpr<T, true | { $type: "date" | "timestamp" }>;
+  $inc?: UpdateExpr<T, number>;
+  $max?: UpdateExpr<T>;
+  $min?: UpdateExpr<T>;
+  $mul?: UpdateExpr<T, number>;
+  $pop?: UpdateExpr<T, 1 | -1>;
+  $pull?: UpdateExpr<T>;
+  $pullAll?: UpdateExpr<T, Any[]>;
+  $push?: UpdateExpr<T>;
+  $rename?: UpdateExpr<T, string>;
+  $set?: UpdateExpr<T>;
+  $unset?: UpdateExpr<T, "">;
+}
 
 /**
  * Supported cloning modes.
@@ -84,11 +104,11 @@ export interface UpdateConfig {
  * @param options Update options to override defaults.
  * @returns {string[]} A list of modified field paths in the object.
  */
-export function update(
-  obj: AnyObject,
-  modifier: Modifier,
+export function update<T extends AnyObject>(
+  obj: T,
+  modifier: Modifier<T>,
   arrayFilters?: AnyObject[],
-  condition?: AnyObject,
+  condition?: Criteria<T>,
   options?: {
     cloneMode?: CloneMode;
     queryOptions?: Partial<Options>;
@@ -96,7 +116,7 @@ export function update(
 ): string[] {
   // NOTE: pipeline operators are not supported for this function since they may replace the entire object within the collection.
   const docs = [obj];
-  const res = updateOne(
+  const res = updateOne<T>(
     docs,
     condition || {},
     modifier,
@@ -118,14 +138,14 @@ export function update(
  * @param updateConfig - Optional update config parameters.
  * @param options - Optional settings to control update behavior.
  */
-export function updateMany(
-  documents: AnyObject[],
-  condition: AnyObject,
-  modifier: Modifier | PipelineStage[],
+export function updateMany<T extends AnyObject>(
+  documents: T[],
+  condition: Criteria<T>,
+  modifier: Modifier<T> | PipelineStage[],
   updateConfig: UpdateConfig = {},
   options?: Partial<Options>
 ): { matchedCount: number; modifiedCount: number } {
-  const { modifiedCount, matchedCount } = updateDocuments(
+  const { modifiedCount, matchedCount } = updateDocuments<T>(
     documents,
     condition,
     modifier,
@@ -148,10 +168,10 @@ export function updateMany(
  * @param updateConfig - Optional update config parameters.
  * @param options - Optional settings to control update behavior.
  */
-export function updateOne(
-  documents: AnyObject[],
-  condition: AnyObject,
-  modifier: Modifier | PipelineStage[],
+export function updateOne<T extends AnyObject>(
+  documents: T[],
+  condition: Criteria<T>,
+  modifier: Modifier<T> | PipelineStage[],
   updateConfig: UpdateConfig = {},
   options?: Partial<Options>
 ) {
@@ -173,10 +193,10 @@ export interface UpdateResult {
   readonly modifiedIndex?: number;
 }
 
-function updateDocuments(
-  documents: AnyObject[],
-  condition: AnyObject,
-  modifier: Modifier | PipelineStage[],
+function updateDocuments<T extends AnyObject>(
+  documents: T[],
+  condition: Criteria<T>,
+  modifier: Modifier<T> | PipelineStage[],
   updateConfig: UpdateConfig = {},
   options?: Partial<Options> & { firstOnly?: boolean }
 ): UpdateResult {
@@ -188,7 +208,7 @@ function updateDocuments(
     ...options,
     collation: Object.assign({}, options?.collation, updateConfig?.collation)
   }).update({
-    condition,
+    condition: condition,
     updateConfig: { cloneMode: "copy", ...updateConfig },
     variables: updateConfig.let
   });
@@ -199,13 +219,13 @@ function updateDocuments(
     .addPipelineOps(PIPELINE_OPERATORS);
 
   const filterExists = Object.keys(condition).length > 0;
-  const matchedDocs = new Map<AnyObject, number>();
+  const matchedDocs = new Map<T, number>();
   let docsIter = Lazy(documents);
 
   if (filterExists) {
-    const query = new Query(condition, opts);
+    const query = new Query<T>(condition, opts);
     // find matching documents
-    docsIter = docsIter.filter<AnyObject>((o, i) => {
+    docsIter = docsIter.filter<T>((o, i) => {
       if (query.test(o)) {
         matchedDocs.set(o, i);
         return true;
@@ -219,12 +239,12 @@ function updateDocuments(
 
   // apply first only and sort if specified
   if (firstOnly) {
-    const indexes = new Map<AnyObject, number>();
+    const indexes = new Map<T, number>();
     if (updateConfig.sort) {
       // sorting will mess up the index order which will require a scan to find the position to update.
       // apply minor optimization to get index of first document when no filter is specified.
       if (!filterExists) {
-        docsIter = docsIter.map<AnyObject>((o, i) => {
+        docsIter = docsIter.map<T>((o, i) => {
           indexes.set(o, i);
           return o;
         });
@@ -232,12 +252,12 @@ function updateDocuments(
       docsIter = $sort(docsIter, updateConfig.sort, opts);
     }
     docsIter = docsIter.take(1);
-    const firstDoc = docsIter.collect<AnyObject>()[0];
+    const firstDoc = docsIter.collect<T>()[0];
     modifiedIndex = matchedDocs.get(firstDoc) ?? indexes.get(firstDoc) ?? 0;
   }
 
   // docs to update
-  const foundDocs = docsIter.collect<AnyObject>();
+  const foundDocs = docsIter.collect<T>();
   if (foundDocs.length === 0) return { matchedCount: 0, modifiedCount: 0 };
 
   // USING AGGREGATION PIPELINE OPERATORS
@@ -272,7 +292,7 @@ function updateDocuments(
       updateIter = pipelineOp(updateIter, expr, opts);
     }
 
-    const matches = updateIter.collect<AnyObject>();
+    const matches = updateIter.collect<T>();
 
     // update only modified indexes if documents were filtered
     if (indexes.length) {
@@ -299,7 +319,11 @@ function updateDocuments(
     // find all the modified fields if firstOnly.
     if (firstOnly && output.modifiedCount) {
       const newDoc = documents[indexes[0]];
-      const modifiedFields = getModifiedFields(modifier, oldFirstDoc, newDoc);
+      const modifiedFields = getModifiedFields<T>(
+        modifier,
+        oldFirstDoc,
+        newDoc
+      );
       // modified fields MUST exist since we know the hashes did not match.
       assert(modifiedFields.length, "bug: failed to retrieve modified fields");
       Object.assign(output, { modifiedFields, modifiedIndex });
@@ -319,7 +343,11 @@ function updateDocuments(
 
   // build parameters and add to locals
   opts.update({
-    updateParams: buildParams(Object.values(modifier), arrayFilters, opts)
+    updateParams: buildParams(
+      Object.values(modifier) as AnyObject[],
+      arrayFilters,
+      opts
+    )
   });
 
   const matchedCount = foundDocs.length;
@@ -348,10 +376,10 @@ function updateDocuments(
 }
 
 /** Extracts fields added, changed, or deleted between the old and new document. */
-function getModifiedFields(
+function getModifiedFields<T extends AnyObject>(
   pipeline: PipelineStage[],
-  oldDoc: AnyObject,
-  newDoc: AnyObject
+  oldDoc: T,
+  newDoc: T
 ): string[] {
   const stageFields: string[] = [];
   for (const stage of pipeline) {

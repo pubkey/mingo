@@ -1,4 +1,4 @@
-import { Any, AnyObject, ArrayOrObject, Options } from "../../types";
+import { AnyObject, ArrayOrObject, Options } from "../../types";
 import { isEqual } from "../../util";
 import {
   applyUpdate,
@@ -10,7 +10,7 @@ import {
 /** Replaces the value of a field with the specified value. */
 export const $set = (
   obj: AnyObject,
-  expr: Record<string, Any>,
+  expr: AnyObject,
   arrayFilters: AnyObject[] = [],
   options: Options = DEFAULT_OPTIONS
 ) => {

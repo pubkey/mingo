@@ -8,8 +8,8 @@ const numBytes = new Uint8Array(numBuf);
 // MurmurHash3 core (x86_32)
 const murmurHash3 = (buf: Uint8Array, seed: number): number => {
   let h = seed >>> 0;
-  const c1 = 0xcc9e2d51,
-    c2 = 0x1b873593;
+  const c1 = 0xcc9e2d51;
+  const c2 = 0x1b873593;
   const len = buf.length;
   const view = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
 

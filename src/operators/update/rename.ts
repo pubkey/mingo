@@ -1,11 +1,6 @@
 import { AnyObject, ArrayOrObject, Options } from "../../types";
 import { assert, has } from "../../util";
-import {
-  Action,
-  applyUpdate,
-  DEFAULT_OPTIONS,
-  walkExpression
-} from "./_internal";
+import { applyUpdate, DEFAULT_OPTIONS, walkExpression } from "./_internal";
 import { $set } from "./set";
 
 const isIdPath = (path: string, idKey: string) =>
@@ -28,18 +23,19 @@ export const $rename = (
   }
 
   const res: string[] = [];
-  const changed = walkExpression(expr, arrayFilters, options, ((
-    val,
-    node,
-    queries
-  ) => {
-    return applyUpdate(obj, node, queries, (o: ArrayOrObject, k: string) => {
-      if (!has(o as AnyObject, k)) return false;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      res.push(...$set(obj, { [val]: o[k] }, arrayFilters, options));
-      delete o[k];
-      return true;
-    });
-  }) as Action<string>);
+  const changed = walkExpression<string>(
+    expr,
+    arrayFilters,
+    options,
+    (val, node, queries) => {
+      return applyUpdate(obj, node, queries, (o: ArrayOrObject, k: string) => {
+        if (!has(o as AnyObject, k)) return false;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        res.push(...$set(obj, { [val]: o[k] }, arrayFilters, options));
+        delete o[k];
+        return true;
+      });
+    }
+  );
   return Array.from(new Set(changed.concat(res)));
 };

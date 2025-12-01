@@ -4,8 +4,8 @@ import { assert } from "./util";
 /**
  * A value produced by a generator
  */
-export interface IteratorResult<T = Any> {
-  readonly value?: T;
+export interface IteratorResult {
+  readonly value?: Any;
   readonly done: boolean;
 }
 
@@ -35,7 +35,7 @@ export function concat(...iterators: Iterator[]): Iterator {
   let index = 0;
   return Lazy(() => {
     while (index < iterators.length) {
-      const o = iterators[index].next<Any>();
+      const o = iterators[index].next();
       if (!o.done) return o;
       index++;
     }
@@ -118,8 +118,8 @@ export class Iterator {
     return this;
   }
 
-  next<T = Any>(): IteratorResult<T> {
-    return this.#getNext() as IteratorResult<T>;
+  next(): IteratorResult {
+    return this.#getNext();
   }
 
   // Iteratees methods
@@ -128,7 +128,7 @@ export class Iterator {
    * Transform each item in the sequence to a new value
    * @param {Function} f
    */
-  map<T = Any, R = Any>(f: (o: T, n: number) => R): Iterator {
+  map<R, T = R>(f: (o: T, n: number) => R): Iterator {
     return this.push("map", f);
   }
 
@@ -136,7 +136,7 @@ export class Iterator {
    * Select only items matching the given predicate
    * @param {Function} f
    */
-  filter<T = Any>(f: (o: T, n: number) => boolean): Iterator {
+  filter<T>(f: (o: T, n: number) => boolean): Iterator {
     return this.push("filter", f as Callback<T>);
   }
 
@@ -192,11 +192,11 @@ export class Iterator {
    * @param f The callback function.
    * @returns {Boolean} Returns false if the callback returned false to break the loop, otherwise true.
    */
-  each<T = Any>(f: Callback<T>): boolean {
+  each<T>(f: Callback<T>): boolean {
     for (;;) {
       const o = this.next();
       if (o.done) break;
-      if ((f(o.value) as Any) === false) return false;
+      if (f(o.value) === false) return false;
     }
     return true;
   }
@@ -207,7 +207,7 @@ export class Iterator {
    * @param f The reducing function
    * @param initialValue The initial value
    */
-  reduce<T = Any>(f: Callback<T>, initialValue?: T): T {
+  reduce<T>(f: Callback<T>, initialValue?: T): T {
     let o = this.next();
 
     if (initialValue === undefined && !o.done) {

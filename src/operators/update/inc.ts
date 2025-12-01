@@ -9,23 +9,28 @@ export const $inc = (
   arrayFilters: AnyObject[] = [],
   options: Options = DEFAULT_OPTIONS
 ) => {
-  return walkExpression(expr, arrayFilters, options, (val, node, queries) => {
-    if (!node.position) {
-      const n = resolve(obj, node.selector);
-      assert(
-        n === undefined || isNumber(n),
-        `cannot apply $inc to a value of non-numeric type`
+  return walkExpression<number>(
+    expr,
+    arrayFilters,
+    options,
+    (val, node, queries) => {
+      if (!node.position) {
+        const n = resolve(obj, node.selector);
+        assert(
+          n === undefined || isNumber(n),
+          `cannot apply $inc to a value of non-numeric type`
+        );
+      }
+      return applyUpdate(
+        obj,
+        node,
+        queries,
+        (o: ArrayOrObject, k: number) => {
+          o[k] = ((o[k] ||= 0) as number) + val;
+          return true;
+        },
+        { buildGraph: true }
       );
     }
-    return applyUpdate(
-      obj,
-      node,
-      queries,
-      (o: ArrayOrObject, k: number) => {
-        o[k] = ((o[k] ||= 0) as number) + (val as number);
-        return true;
-      },
-      { buildGraph: true }
-    );
-  });
+  );
 };

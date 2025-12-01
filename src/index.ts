@@ -9,7 +9,7 @@ import * as projectionOperators from "./operators/projection";
 import * as queryOperators from "./operators/query";
 import * as windowOperators from "./operators/window";
 import { Query as QueryBase } from "./query";
-import type { AnyObject, Options } from "./types";
+import type { AnyObject, Criteria, Options, Projection } from "./types";
 import * as updater from "./updater";
 
 export { Context, ProcessingMode } from "./core";
@@ -31,8 +31,8 @@ const makeOpts = (options?: Partial<Options>) =>
       : CONTEXT
   }) as Options;
 
-export class Query extends QueryBase {
-  constructor(condition: AnyObject, options?: Partial<Options>) {
+export class Query<T = AnyObject> extends QueryBase<T> {
+  constructor(condition: Criteria<T>, options?: Partial<Options>) {
     super(condition, makeOpts(options));
   }
 }
@@ -46,20 +46,20 @@ export class Aggregator extends AggregatorBase {
 /**
  * Finds documents in a collection that match the specified criteria.
  *
- * @template T - The type of the documents in the collection.
+ * @template R - The type of the documents in the collection.
  * @param collection - The source collection to search.
  * @param condition - The query criteria to filter the documents.
  * @param projection - Optional. Specifies the fields to include or exclude in the returned documents.
  * @param options - Optional. Additional options to customize the query behavior.
  * @returns A `Cursor` object that allows iteration over the matching documents.
  */
-export function find<T>(
+export function find<R = AnyObject, T = AnyObject>(
   collection: Source,
-  condition: AnyObject,
-  projection?: AnyObject,
+  condition: Criteria<T>,
+  projection?: Projection<R>,
   options?: Partial<Options>
-): Cursor<T> {
-  return new Query(condition, makeOpts(options)).find<T>(
+): Cursor<R> {
+  return new Query<T>(condition, makeOpts(options)).find<R>(
     collection,
     projection
   );
@@ -81,11 +81,11 @@ export function aggregate(
   return new Aggregator(pipeline, makeOpts(options)).run(collection);
 }
 
-export function update(
-  obj: AnyObject,
-  modifier: updater.Modifier,
+export function update<T extends AnyObject>(
+  obj: T,
+  modifier: updater.Modifier<T>,
   arrayFilters?: AnyObject[],
-  condition?: AnyObject,
+  condition?: Criteria<T>,
   options?: {
     cloneMode?: updater.CloneMode;
     queryOptions?: Partial<Options>;
@@ -97,10 +97,10 @@ export function update(
   });
 }
 
-export function updateMany(
-  documents: AnyObject[],
-  condition: AnyObject,
-  modifer: updater.Modifier | updater.PipelineStage[],
+export function updateMany<T extends AnyObject>(
+  documents: T[],
+  condition: Criteria<T>,
+  modifer: updater.Modifier<T> | updater.PipelineStage[],
   updateConfig: updater.UpdateConfig = {},
   options?: Partial<Options>
 ) {
@@ -113,10 +113,10 @@ export function updateMany(
   );
 }
 
-export function updateOne(
-  documents: AnyObject[],
-  condition: AnyObject,
-  modifier: updater.Modifier | updater.PipelineStage[],
+export function updateOne<T extends AnyObject>(
+  documents: T[],
+  condition: Criteria<T>,
+  modifier: updater.Modifier<T> | updater.PipelineStage[],
   updateConfig: updater.UpdateConfig = {},
   options?: Partial<Options>
 ) {
