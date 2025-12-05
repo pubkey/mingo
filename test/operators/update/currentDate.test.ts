@@ -6,11 +6,13 @@ describe("operators/update/currentDate", () => {
     const past = state.lastModified;
     expect(
       $currentDate(state, {
-        lastModified: true,
-        "cancellation.date": true
+        lastModified: { $type: "timestamp" },
+        startDate: true,
+        endDate: { $type: "date" }
       })
-    ).toEqual(["lastModified", "cancellation.date"]);
+    ).toEqual(["endDate", "lastModified", "startDate"]);
     expect(state.lastModified).toBeGreaterThan(past);
-    expect(state["cancellation"]).toEqual({ date: state.lastModified });
+    expect(state["startDate"]).toEqual(state["endDate"]);
+    expect(state["startDate"]).toBeInstanceOf(Date);
   });
 });

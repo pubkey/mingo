@@ -1,4 +1,6 @@
+import { ComputeOptions } from "../../core/_internal";
 import { AnyObject, ArrayOrObject, Options } from "../../types";
+import { isObject } from "../../util";
 import { applyUpdate, DEFAULT_OPTIONS, walkExpression } from "./_internal";
 
 type CurrentDateType = true | { $type: "date" | "timestamp" };
@@ -10,18 +12,32 @@ export const $currentDate = (
   arrayFilters: AnyObject[] = [],
   options: Options = DEFAULT_OPTIONS
 ) => {
-  const now = Date.now();
+  const copts =
+    options instanceof ComputeOptions ? options : ComputeOptions.init(options);
+
+  assert(
+    Object.values(expr).every(
+      v =>
+        v === true ||
+        (isObject(v) && (v.$type === "date" || v.$type === "timestamp"))
+    ),
+    `$currentDate: $type must be either 'date' or 'timestamp' if specified.`
+  );
+
   return walkExpression<CurrentDateType>(
     expr,
     arrayFilters,
     options,
-    (_, node, queries) => {
+    (val, node, queries) => {
       return applyUpdate(
         obj,
         node,
         queries,
         (o: ArrayOrObject, k: string | number) => {
-          o[k] = now;
+          o[k] =
+            val === true || val.$type === "date"
+              ? new Date(copts.local.now)
+              : copts.local.now;
           return true;
         },
         { buildGraph: true }

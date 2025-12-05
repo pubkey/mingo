@@ -11,8 +11,8 @@ describe(testPath(__filename), () => {
       metrics: { orders: 2, ratings: 3.5 }
     };
     expect($inc(state, { quantity: -2, "metrics.orders": 1 })).toEqual([
-      "quantity",
-      "metrics.orders"
+      "metrics.orders",
+      "quantity"
     ]);
     expect(state).toEqual({
       _id: 1,

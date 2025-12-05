@@ -142,7 +142,7 @@ export function walkExpression<T>(
     if (callback(val as T, node, queries)) modified.push(node.selector);
   }
 
-  return modified;
+  return modified.sort();
 }
 
 /**

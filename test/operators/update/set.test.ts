@@ -17,7 +17,7 @@ describe("operators/update/set", () => {
         details: { model: "2600", make: "Fashionaires" },
         tags: ["coats", "outerwear", "clothing"]
       })
-    ).toEqual(["quantity", "details", "tags"]);
+    ).toEqual(["details", "quantity", "tags"]);
 
     expect(state).toEqual({
       _id: 100,
@@ -69,7 +69,7 @@ describe("operators/update/set", () => {
         "tags.1": "rain gear",
         "ratings.0.rating": 2
       })
-    ).toEqual(["tags.1", "ratings.0.rating"]);
+    ).toEqual(["ratings.0.rating", "tags.1"]);
     expect(state).toEqual({
       _id: 100,
       quantity: 500,

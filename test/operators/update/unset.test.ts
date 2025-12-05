@@ -4,8 +4,8 @@ describe("operators/update/unset", () => {
   it("unset fields in an object", () => {
     const state = { item: "chisel", sku: "C001", quantity: 4, instock: true };
     expect($unset(state, { quantity: "", instock: "" })).toEqual([
-      "quantity",
-      "instock"
+      "instock",
+      "quantity"
     ]);
     expect(state).toEqual({
       item: "chisel",
