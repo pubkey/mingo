@@ -1,17 +1,12 @@
 import { aggregate } from "../src";
-import {
-  computeValue,
-  Context,
-  Options,
-  ProcessingMode
-} from "../src/core/_internal";
+import { computeValue, Context, ProcessingMode } from "../src/core";
 import * as accumulatorOperators from "../src/operators/accumulator";
 import * as expressionOperators from "../src/operators/expression";
 import * as pipelineOperators from "../src/operators/pipeline";
 import * as projectionOperators from "../src/operators/projection";
 import * as queryOperators from "../src/operators/query";
 import * as windowOperators from "../src/operators/window";
-import { Any, AnyObject, Callback } from "../src/types";
+import { Any, AnyObject, Callback, Options } from "../src/types";
 import complexGrades from "./data/grades_complex";
 import simpleGrades from "./data/grades_simple";
 import person from "./data/person";

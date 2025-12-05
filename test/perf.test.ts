@@ -11,64 +11,32 @@ for (let i = 0; i < 100_000; i++) {
   const books: AnyObject[] = [];
   const authors: AnyObject[] = [];
   for (let j = 0; j < 10; j++) {
-    books.push({
-      id: j,
-      title: `book ${j}`
-    });
-    authors.push({
-      id: j,
-      name: `author ${j}`
-    });
+    books.push({ id: j, title: `book ${j}` });
+    authors.push({ id: j, name: `author ${j}` });
   }
-  items.push({
-    _id: i,
-    name: `item ${i}`,
-    active: true,
-    books,
-    authors
-  });
+  items.push({ _id: i, name: `item ${i}`, active: true, books, authors });
 }
 describe("perf", () => {
   describe("aggregation", () => {
     it("elapsed time should be less than a 30 seconds", () => {
       console.time("AGGREGATE_PERF");
       aggregate(items, [
-        {
-          $match: {
-            active: true
-          }
-        },
+        { $match: { active: true } },
         {
           $project: {
-            booksSize: {
-              $size: "$books"
-            },
-            authorsSize: {
-              $size: "$authors"
-            }
+            booksSize: { $size: "$books" },
+            authorsSize: { $size: "$authors" }
           }
         },
         {
           $group: {
             _id: void 0,
-            maxBooksCount: {
-              $max: "$booksSize"
-            },
-            allBooksSum: {
-              $sum: "$booksSize"
-            },
-            avgBooksCount: {
-              $avg: "$booksSize"
-            },
-            maxAuthorsCount: {
-              $max: "$authorsSize"
-            },
-            allAuthorsSum: {
-              $sum: "$authorsSize"
-            },
-            avgAuthorsCount: {
-              $avg: "$authorsSize"
-            }
+            maxBooksCount: { $max: "$booksSize" },
+            allBooksSum: { $sum: "$booksSize" },
+            avgBooksCount: { $avg: "$booksSize" },
+            maxAuthorsCount: { $max: "$authorsSize" },
+            allAuthorsSum: { $sum: "$authorsSize" },
+            avgAuthorsCount: { $avg: "$authorsSize" }
           }
         }
       ]);
@@ -78,11 +46,10 @@ describe("perf", () => {
 
   describe("sorting", () => {
     function makeid(length: number) {
-      const text: string[] = [];
-      const possible =
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-      for (let i = 0; i < length; i++) {
-        text.push(possible.charAt(Math.floor(Math.random() * possible.length)));
+      const size = Math.round(length / 15);
+      const text = new Array<string>(size);
+      for (let i = 0; i < size; i++) {
+        text[i] = Math.floor(Math.random() * 1e17).toString(16);
       }
       return text.join("");
     }
@@ -95,13 +62,7 @@ describe("perf", () => {
     const mingoSortLocale = new Aggregator([{ $sort: { number: 1 } }], {
       collation: { locale: "en", strength: 1 }
     });
-    const mingoSort = new Aggregator([
-      {
-        $sort: {
-          number: 1
-        }
-      }
-    ]);
+    const mingoSort = new Aggregator([{ $sort: { number: 1 } }]);
 
     const MINGO_SORT = "MINGO SORT";
     const MINGO_SORT_LOCALE = "MINGO SORT WITH LOCALE";
@@ -115,8 +76,9 @@ describe("perf", () => {
         label: string
       ): number => {
         console.time(label);
+        const temp = data.slice();
         const start = performance.now();
-        cb(data);
+        cb(temp);
         const end = performance.now();
         console.timeEnd(label);
         return end - start;
@@ -124,37 +86,31 @@ describe("perf", () => {
 
       // MINGO sort
       expect(
-        measure(arr => mingoSort.run(arr), [...arrayToSort], MINGO_SORT)
+        measure(arr => mingoSort.run(arr), arrayToSort, MINGO_SORT)
       ).toBeLessThan(500);
 
       // with locale
       expect(
-        measure(
-          arr => mingoSortLocale.run(arr),
-          [...arrayToSort],
-          MINGO_SORT_LOCALE
-        )
+        measure(arr => mingoSortLocale.run(arr), arrayToSort, MINGO_SORT_LOCALE)
       ).toBeLessThan(500);
 
       // NATIVE code
-      expect(
-        measure(arr => arr.sort(), [...arrayToSort], NATIVE_SORT)
-      ).toBeLessThan(500);
+      expect(measure(arr => arr.sort(), arrayToSort, NATIVE_SORT)).toBeLessThan(
+        500
+      );
 
       // with locale
       expect(
         measure(
           arr => {
             arr.sort((a: string, b: string) => {
-              const r = a.localeCompare(b, "en", {
-                sensitivity: "base"
-              });
+              const r = a.localeCompare(b, "en", { sensitivity: "base" });
               if (r < 0) return -1;
               if (r > 0) return 1;
               return 0;
             });
           },
-          [...arrayToSort],
+          arrayToSort,
           NATIVE_SORT_LOCALE
         )
       ).toBeLessThan(500);
