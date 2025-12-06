@@ -75,8 +75,8 @@ describe("perf", () => {
         data: string[],
         label: string
       ): number => {
-        console.time(label);
         const temp = data.slice();
+        console.time(label);
         const start = performance.now();
         cb(temp);
         const end = performance.now();
