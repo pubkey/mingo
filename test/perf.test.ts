@@ -1,8 +1,11 @@
 /* eslint-disable-next-line */
 import { performance } from "perf_hooks";
 
-import { AnyObject, Callback } from "../src/types";
-import { aggregate, Aggregator } from "../src";
+import { AnyObject, Callback, Options } from "../src/types";
+import { aggregate } from "../src";
+import { $sort } from "../src/operators/pipeline";
+import { Lazy } from "../src/lazy";
+import { DEFAULT_OPTS } from "./support";
 
 /* eslint-disable no-console */
 
@@ -45,6 +48,8 @@ describe("perf", () => {
   });
 
   describe("sorting", () => {
+    const TIME_LIMIT_MS = 500;
+    const INPUT_SIZE = 10000;
     function makeid(length: number) {
       const size = Math.round(length / 15);
       const text = new Array<string>(size);
@@ -55,65 +60,77 @@ describe("perf", () => {
     }
 
     const arrayToSort: string[] = [];
-    for (let i = 0; i < 5000; i++) {
+    for (let i = 0; i < INPUT_SIZE; i++) {
       arrayToSort.push(makeid(128));
     }
-
-    const mingoSortLocale = new Aggregator([{ $sort: { number: 1 } }], {
-      collation: { locale: "en", strength: 1 }
-    });
-    const mingoSort = new Aggregator([{ $sort: { number: 1 } }]);
 
     const MINGO_SORT = "MINGO SORT";
     const MINGO_SORT_LOCALE = "MINGO SORT WITH LOCALE";
     const NATIVE_SORT = "NATIVE SORT";
     const NATIVE_SORT_LOCALE = "NATIVE SORT WITH LOCALE";
 
-    it("should complete in less than 1 sec", () => {
+    it("should complete in less than 500ms", () => {
       const measure = (
-        cb: Callback<void, string[]>,
-        data: string[],
+        cb: Callback<void, unknown[]>,
+        data: unknown[],
         label: string
       ): number => {
-        const temp = data.slice();
         console.time(label);
         const start = performance.now();
-        cb(temp);
+        cb(data);
         const end = performance.now();
         console.timeEnd(label);
         return end - start;
       };
 
       // MINGO sort
+      const coll = arrayToSort.map(k => {
+        return { k };
+      });
       expect(
-        measure(arr => mingoSort.run(arr), arrayToSort, MINGO_SORT)
-      ).toBeLessThan(500);
+        measure(
+          arr => $sort(Lazy(arr), { k: 1 }, DEFAULT_OPTS).collect(),
+          coll,
+          MINGO_SORT
+        )
+      ).toBeLessThan(TIME_LIMIT_MS);
 
       // with locale
+      const coll2 = arrayToSort.map(k => {
+        return { k };
+      });
       expect(
-        measure(arr => mingoSortLocale.run(arr), arrayToSort, MINGO_SORT_LOCALE)
+        measure(
+          arr =>
+            $sort(
+              Lazy(arr),
+              { k: 1 },
+              Object.assign({}, DEFAULT_OPTS, {
+                collation: { locale: "en", strength: 1 }
+              }) as Options
+            ).collect(),
+          coll2,
+          MINGO_SORT_LOCALE
+        )
       ).toBeLessThan(500);
 
       // NATIVE code
-      expect(measure(arr => arr.sort(), arrayToSort, NATIVE_SORT)).toBeLessThan(
-        500
-      );
+      expect(
+        measure(arr => arr.sort(), arrayToSort.slice(), NATIVE_SORT)
+      ).toBeLessThan(TIME_LIMIT_MS);
 
       // with locale
       expect(
         measure(
-          arr => {
-            arr.sort((a: string, b: string) => {
-              const r = a.localeCompare(b, "en", { sensitivity: "base" });
-              if (r < 0) return -1;
-              if (r > 0) return 1;
-              return 0;
-            });
+          (arr: string[]) => {
+            arr.sort((a, b) =>
+              a.localeCompare(b, "en", { sensitivity: "base" })
+            );
           },
-          arrayToSort,
+          arrayToSort.slice(),
           NATIVE_SORT_LOCALE
         )
-      ).toBeLessThan(500);
+      ).toBeLessThan(TIME_LIMIT_MS);
     });
   });
 });

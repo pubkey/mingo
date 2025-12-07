@@ -12,6 +12,7 @@ import {
   compare,
   groupBy,
   isEmpty,
+  isNumber,
   isObject,
   isString,
   resolve
@@ -47,7 +48,29 @@ export const $sort: PipelineOperator = (
     const modifiers = Object.keys(sortKeys);
     for (const key of modifiers.reverse()) {
       const groups = groupBy(coll, (obj: AnyObject) => resolve(obj, key));
-      const sortedKeys = Array.from(groups.keys()).sort(cmp);
+      const sortedKeys = Array.from(groups.keys());
+
+      // mark if sorted in the optimization branch
+      let nativeSorted = false;
+      // minor optimization to use native sorting for strings or numbers.
+      if (cmp === compare) {
+        let t_str = true;
+        let t_num = true;
+        nativeSorted = sortedKeys.every(
+          v => +(t_str &&= isString(v)) ^ +(t_num &&= isNumber(v))
+        );
+
+        // ~6x faster than Array.sort(cmp).
+        if (t_str) sortedKeys.sort();
+        // ~4x faster than Array.sort(cmp) even with the extra copy.
+        if (t_num) {
+          new Float64Array(sortedKeys as number[])
+            .sort()
+            .forEach((v, i) => (sortedKeys[i] = v));
+        }
+      }
+      if (!nativeSorted) sortedKeys.sort(cmp);
+
       if (sortKeys[key] === -1) sortedKeys.reverse();
 
       // modify collection in place.
