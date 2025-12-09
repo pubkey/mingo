@@ -5,7 +5,7 @@ import { AnyObject, Callback, Options } from "../src/types";
 import { aggregate } from "../src";
 import { $sort } from "../src/operators/pipeline";
 import { Lazy } from "../src/lazy";
-import { DEFAULT_OPTS } from "./support";
+import { DEFAULT_OPTS, makeRandomString } from "./support";
 
 /* eslint-disable no-console */
 
@@ -50,18 +50,14 @@ describe("perf", () => {
   describe("sorting", () => {
     const TIME_LIMIT_MS = 500;
     const INPUT_SIZE = 10000;
-    function makeid(length: number) {
-      const size = Math.round(length / 15);
-      const text = new Array<string>(size);
-      for (let i = 0; i < size; i++) {
-        text[i] = Math.floor(Math.random() * 1e17).toString(16);
-      }
-      return text.join("");
-    }
 
-    const arrayToSort: string[] = [];
+    const arrayToSort: string[] = [
+      // "cad3caf63bc448",
+      // "12de91add975de0",
+      // "aa6950e27fb518"
+    ];
     for (let i = 0; i < INPUT_SIZE; i++) {
-      arrayToSort.push(makeid(128));
+      arrayToSort.push(makeRandomString(10));
     }
 
     const MINGO_SORT = "MINGO SORT";
@@ -70,67 +66,61 @@ describe("perf", () => {
     const NATIVE_SORT_LOCALE = "NATIVE SORT WITH LOCALE";
 
     it("should complete in less than 500ms", () => {
-      const measure = (
+      const doSort = (
         cb: Callback<void, unknown[]>,
         data: unknown[],
         label: string
-      ): number => {
+      ) => {
         console.time(label);
         const start = performance.now();
-        cb(data);
+        const res = cb(data);
         const end = performance.now();
         console.timeEnd(label);
-        return end - start;
+        expect(end - start).toBeLessThan(TIME_LIMIT_MS);
+        return res;
       };
 
-      // MINGO sort
-      const coll = arrayToSort.map(k => {
-        return { k };
-      });
-      expect(
-        measure(
-          arr => $sort(Lazy(arr), { k: 1 }, DEFAULT_OPTS).collect(),
-          coll,
-          MINGO_SORT
-        )
-      ).toBeLessThan(TIME_LIMIT_MS);
+      // MINGO sort - ~7x slower than natve
+      const mingoSort = doSort(
+        arr => $sort(Lazy(arr), { k: 1 }, DEFAULT_OPTS).collect(),
+        arrayToSort.slice(),
+        MINGO_SORT
+      );
 
-      // with locale
-      const coll2 = arrayToSort.map(k => {
-        return { k };
-      });
-      expect(
-        measure(
-          arr =>
-            $sort(
-              Lazy(arr),
-              { k: 1 },
-              Object.assign({}, DEFAULT_OPTS, {
-                collation: { locale: "en", strength: 1 }
-              }) as Options
-            ).collect(),
-          coll2,
-          MINGO_SORT_LOCALE
-        )
-      ).toBeLessThan(500);
+      // with locale -  ~10x faster than native locale
+      const mingoSortLocale = doSort(
+        arr =>
+          $sort(
+            Lazy(arr),
+            { k: 1 },
+            Object.assign({}, DEFAULT_OPTS, {
+              collation: { locale: "en", strength: 1 }
+            }) as Options
+          ).collect(),
+        arrayToSort.slice(),
+        MINGO_SORT_LOCALE
+      );
 
-      // NATIVE code
-      expect(
-        measure(arr => arr.sort(), arrayToSort.slice(), NATIVE_SORT)
-      ).toBeLessThan(TIME_LIMIT_MS);
+      // NATIVE code - fastest
+      const nativeSort = doSort(
+        arr => arr.sort(),
+        arrayToSort.slice(),
+        NATIVE_SORT
+      );
 
-      // with locale
-      expect(
-        measure(
-          (arr: string[]) => {
-            arr.sort((a, b) =>
-              a.localeCompare(b, "en", { sensitivity: "base" })
-            );
-          },
-          arrayToSort.slice(),
-          NATIVE_SORT_LOCALE
-        )
-      ).toBeLessThan(TIME_LIMIT_MS);
+      // with locale - slowest
+      const nativeSortLocale = doSort(
+        (arr: string[]) => {
+          return arr.sort((a, b) =>
+            a.localeCompare(b, "en", { sensitivity: "base" })
+          );
+        },
+        arrayToSort.slice(),
+        NATIVE_SORT_LOCALE
+      );
+
+      expect(mingoSort).toEqual(nativeSort);
+      expect(mingoSortLocale).toEqual(nativeSortLocale);
     });
   });
 });

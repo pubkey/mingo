@@ -49,6 +49,15 @@ class objectId {
 }
 export const ObjectId = (id: string) => new objectId(id);
 
+export function makeRandomString(length: number) {
+  const size = Math.round(length / 15);
+  const text = new Array<string>(size);
+  for (let i = 0; i < size; i++) {
+    text[i] = Math.floor(Math.random() * 1e17).toString(16);
+  }
+  return text.join("");
+}
+
 export function runTest(
   description: string,
   suite: Record<string, Any[]>

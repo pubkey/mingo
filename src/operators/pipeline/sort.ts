@@ -63,14 +63,14 @@ export const $sort: PipelineOperator = (
         // ~6x faster than Array.sort(cmp).
         if (t_str) sortedKeys.sort();
         // ~4x faster than Array.sort(cmp) even with the extra copy.
-        if (t_num) {
+        else if (t_num) {
           new Float64Array(sortedKeys as number[])
             .sort()
             .forEach((v, i) => (sortedKeys[i] = v));
         }
       }
-      if (!nativeSorted) sortedKeys.sort(cmp);
 
+      if (!nativeSorted) sortedKeys.sort(cmp);
       if (sortKeys[key] === -1) sortedKeys.reverse();
 
       // modify collection in place.
