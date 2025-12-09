@@ -33,7 +33,7 @@ class CustomWithToString extends Custom {
 
 describe("util", () => {
   describe("compare", () => {
-    const items = [
+    const items: Any[] = [
       undefined,
       null,
       1,
@@ -49,7 +49,8 @@ describe("util", () => {
     ] as const;
 
     for (let i = 1; i < items.length; i++) {
-      const [a, b] = items.slice(i - 1, i + 1) as Any[];
+      const a = items[i - 1];
+      const b = items[i];
       it(`should compare by sort order (${typeOf(a)} < ${typeOf(b)})`, () => {
         expect(compare(a, a)).toBe(0);
         expect(compare(a, b)).toBe(-1);
@@ -69,6 +70,20 @@ describe("util", () => {
       expect(compare(a, a)).toBe(0);
       expect(compare(a, b)).toEqual(-1);
       expect(compare(b, a)).toEqual(1);
+    });
+
+    it("should treat different typed arrays with same byte representation as equal", () => {
+      const buffer = new ArrayBuffer(4);
+      const u8 = new Uint8Array(buffer);
+      const i8 = new Int8Array(buffer);
+
+      // Fill with identical raw bytes
+      u8[0] = 255; // 0xFF
+      u8[1] = 0;
+      u8[2] = 0;
+      u8[3] = 0;
+
+      expect(compare(u8, i8)).toBe(0);
     });
   });
 

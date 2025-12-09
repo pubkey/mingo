@@ -37,6 +37,28 @@ const SORT_ORDER: Record<string, number> = {
   function: 12
 };
 
+const USER_TYPE = 100;
+type Cmp = string | number;
+const simpleCmp = <T = Cmp>(a: T, b: T) => (a < b ? -1 : a > b ? 1 : 0);
+const typedArraysCmp = (a: ArrayBufferView, b: ArrayBufferView): number => {
+  // Create Uint8Array views over the buffers
+  const bytesA =
+    a instanceof Uint8Array
+      ? a
+      : new Uint8Array(a.buffer, a.byteOffset, a.byteLength);
+  const bytesB =
+    b instanceof Uint8Array
+      ? b
+      : new Uint8Array(b.buffer, b.byteOffset, b.byteLength);
+  const size = Math.min(bytesA.length, bytesB.length);
+  // Compare byte by byte
+  for (let i = 0; i < size; i++) {
+    const r = bytesA[i] - bytesB[i];
+    if (r !== 0) return r;
+  }
+  return simpleCmp(bytesA.length, bytesB.length);
+};
+
 /**
  * Compare function which adheres to MongoDB comparison order.
  *
@@ -44,27 +66,45 @@ const SORT_ORDER: Record<string, number> = {
  * @param b The second value
  * @returns {Number}
  */
-export function compare<T = Any>(a: T, b: T): number {
+export function compare(a: Any, b: Any): number {
   if (a === MISSING) a = undefined;
   if (b === MISSING) b = undefined;
-  const custom = 100;
-  const [u, v] = [a, b].map(
-    n =>
-      SORT_ORDER[isTypedArray(n) ? "arraybuffer" : typeOf(n)] ??
-      custom /*custom objects have highest sort order*/
-  );
-  // non-equal types compare with sort-order
-  if (u !== v) return u - v;
-  if (u === custom) {
-    // string compare custom types with toString method when both are same type
-    // if not, compare by hash code
-    return a.constructor === b.constructor &&
-      hasCustomString(a) &&
-      hasCustomString(b)
-      ? compare<string>(a.toString(), b.toString())
-      : compare<number>(hashCode(a), hashCode(b));
+  const typeA = isTypedArray(a) ? "arraybuffer" : typeOf(a);
+  const typeB = isTypedArray(b) ? "arraybuffer" : typeOf(b);
+  if (typeA === typeB) {
+    // most comparisons wil be nuber or string.
+    if (typeA === "number" || typeA === "string") return simpleCmp(a, b);
+    if (typeA === "date") return simpleCmp(+(a as Date), +(b as Date));
+    if (typeA === "undefined" || typeA === "null") return 0;
+    if (typeA === "regexp")
+      return simpleCmp((a as RegExp).toString(), (b as RegExp).toString());
+    if (typeA == "array" && isArray(a) && isArray(b)) {
+      const maxIndex = Math.min(a.length, b.length);
+      for (let i = 0; i < maxIndex; i++) {
+        const r = compare(a[i], b[i]);
+        if (r !== 0) return r;
+      }
+      return simpleCmp(a.length, b.length);
+    }
+    if (typeA == "arraybuffer")
+      return typedArraysCmp(a as ArrayBufferView, b as ArrayBufferView);
+    const keysA = Object.keys(a as AnyObject).sort();
+    const keysB = Object.keys(b as AnyObject).sort();
+    let r = compare(keysA, keysB);
+    if (r !== 0) return r;
+    for (const k of keysA) {
+      r = compare((a as AnyObject)[k], (b as AnyObject)[k]);
+      if (r != 0) return r;
+    }
+    return 0;
   }
-  return isEqual(a, b) ? 0 : a < b ? -1 : 1;
+  // unequal types
+  const orderA = SORT_ORDER[typeA] ?? USER_TYPE;
+  const orderB = SORT_ORDER[typeB] ?? USER_TYPE;
+  if (orderA !== orderB) return orderA - orderB;
+  return hasCustomString(a) && hasCustomString(b)
+    ? simpleCmp<string>(a.toString(), b.toString())
+    : simpleCmp<number>(hashCode(a), hashCode(b));
 }
 
 /**
@@ -179,7 +219,7 @@ export function typeOf(v: Any): string {
   if (v === null) return "null";
   const t = typeof v;
   // primitives
-  if (t !== "object" && t in SORT_ORDER) return t;
+  if (t !== "object" && SORT_ORDER[t]) return t;
   // fast path for common types
   if (isArray(v)) return "array";
   if (isDate(v)) return "date";
@@ -331,19 +371,6 @@ export function flatten(xs: Any[], depth = 1): Any[] {
   return arr;
 }
 
-/** Returns a map all members of the obect for generating a custom data representation. */
-function getMembersOf(o: Any): AnyObject {
-  const props = {} as AnyObject;
-  while (o) {
-    // Get all properties of the current object and add if not already included
-    for (const k of Object.getOwnPropertyNames(o))
-      if (!(k in props)) props[k] = o[k];
-    // Move to the prototype of the current object
-    o = Object.getPrototypeOf(o);
-  }
-  return props;
-}
-
 type Stringer = { toString(): string };
 const hasCustomString = (o: Any): o is Stringer =>
   o !== null && o !== undefined && o["toString"] !== Object.prototype.toString;
@@ -373,7 +400,7 @@ export function isEqual(a: Any, b: Any): boolean {
   const keysA = Object.keys(a);
   const keysB = Object.keys(b);
   if (keysA.length !== keysB.length) return false;
-  return keysA.every(k => k in (b as object) && isEqual(a[k], b[k]));
+  return keysA.every(k => has(b as AnyObject, k) && isEqual(a[k], b[k]));
 }
 
 /**
@@ -564,7 +591,7 @@ export function filterMissing(obj: ArrayOrObject): void {
       }
     }
   } else if (isObject(obj)) {
-    for (const k in obj) {
+    for (const k of Object.keys(obj)) {
       if (has(obj, k)) {
         filterMissing(obj[k] as ArrayOrObject);
       }
@@ -724,10 +751,10 @@ export function normalize(expr: Any): Any {
  * @param item The search key
  * @param comparator Optional custom compare function
  */
-export function findInsertIndex(
-  sorted: Any[],
-  item: Any,
-  comparator: Comparator = compare
+export function findInsertIndex<T = Any>(
+  sorted: T[],
+  item: T,
+  comparator: Comparator<T> = compare
 ): number {
   // uses binary search
   let lo = 0;
