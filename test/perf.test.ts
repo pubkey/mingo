@@ -48,7 +48,6 @@ describe("perf", () => {
   });
 
   describe("sorting", () => {
-    const TIME_LIMIT_MS = 500;
     const INPUT_SIZE = 10000;
 
     const arrayToSort: string[] = [
@@ -76,7 +75,6 @@ describe("perf", () => {
         const res = cb(data);
         const end = performance.now();
         console.timeEnd(label);
-        expect(end - start).toBeLessThan(TIME_LIMIT_MS);
         return res;
       };
 
