@@ -82,8 +82,8 @@ describe("core", () => {
     });
 
     it("should preserve 'local' on init if defined", () => {
-      expect(copts.local).toHaveProperty("now");
-      expect(copts.local.now).toBeLessThanOrEqual(Date.now());
+      expect(copts.local).toHaveProperty("timestamp");
+      expect(copts.now.getTime()).toBeLessThanOrEqual(Date.now());
       copts.update({ root: null, groupId: 5 });
       expect(copts.local?.groupId).toEqual(5);
       expect(ComputeOptions.init(copts).local?.groupId).toEqual(5);
@@ -110,13 +110,13 @@ describe("core", () => {
     });
 
     it("should preserve value of 'local.now' across init() and update()", () => {
-      const now = copts.local?.now;
-      expect(now).toBeLessThanOrEqual(Date.now());
+      const now = copts.now;
+      expect(now.getTime()).toBeLessThanOrEqual(Date.now());
 
-      const local = { root: false, groupId: 5, now: 200 };
+      const local = { root: false, groupId: 5, timestamp: 200 };
       copts.update(local);
       expect(copts.local?.groupId).toEqual(5);
-      expect(copts.local?.now).toEqual(now);
+      expect(copts.local?.timestamp).toEqual(now.getTime());
     });
   });
 

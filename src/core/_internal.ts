@@ -51,7 +51,7 @@ interface Locals {
   /** Local user-defind variables. */
   variables?: AnyObject;
   /** The current timestamp */
-  readonly now?: number;
+  readonly timestamp?: number;
   /** Depth of field selector in Query condition. */
   readonly depth?: number;
   /** Query condition */
@@ -69,7 +69,7 @@ export class ComputeOptions implements Options {
     readonly options: Options,
     locals?: Locals
   ) {
-    this.#locals = Object.assign({ now: Date.now() }, locals);
+    this.#locals = locals ? { ...locals } : {};
   }
 
   /**
@@ -97,7 +97,7 @@ export class ComputeOptions implements Options {
   update(locals?: Omit<Locals, "now">): ComputeOptions {
     Object.assign(this.#locals, locals, {
       // DO NOT override timestamp
-      now: this.#locals.now,
+      timestamp: this.#locals.timestamp,
       // merge variables.
       variables: { ...this.#locals?.variables, ...locals?.variables }
     });
@@ -106,6 +106,13 @@ export class ComputeOptions implements Options {
 
   get local() {
     return this.#locals;
+  }
+  get now() {
+    // defer setting the current time until accessed.`
+    if (!this.#locals?.timestamp)
+      Object.assign(this.#locals, { timestamp: Date.now() });
+
+    return new Date(this.#locals.timestamp);
   }
   get idKey() {
     return this.options.idKey;
@@ -292,7 +299,7 @@ function computeExpression(obj: Any, expr: Any, options: ComputeOptions): Any {
           ctx = undefined;
           break;
         case "$$NOW":
-          ctx = new Date(options.local?.now);
+          ctx = new Date(options.now);
           break;
       }
       expr = expr.slice(arr[0].length + 1); //  +1 for '.'

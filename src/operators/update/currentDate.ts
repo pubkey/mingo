@@ -36,8 +36,8 @@ export const $currentDate = (
         (o: ArrayOrObject, k: string | number) => {
           o[k] =
             val === true || val.$type === "date"
-              ? new Date(copts.local.now)
-              : copts.local.now;
+              ? copts.now
+              : copts.now.getTime();
           return true;
         },
         { buildGraph: true }
