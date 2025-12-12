@@ -290,11 +290,11 @@ describe(testPath(__filename), () => {
       }
     };
     // It should return two user objects
-    const results = find(data, criteria).all();
+    const results = find<UserResult>(data, criteria).all();
 
     expect(results.length).toEqual(2);
-    expect((results[0] as UserResult).user.username).toEqual("User1");
-    expect((results[1] as UserResult).user.username).toEqual("User2");
+    expect(results[0].user.username).toEqual("User1");
+    expect(results[1].user.username).toEqual("User2");
   });
 
   it("can match $all with strings, numbers and empty lists", () => {
