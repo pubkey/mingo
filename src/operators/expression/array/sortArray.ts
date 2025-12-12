@@ -29,7 +29,7 @@ export const $sortArray: ExpressionOperator = (
     return $sort(Lazy(input), sortBy, options).collect();
   }
 
-  const result = [...input];
+  const result = input.slice();
   result.sort(compare);
   if (sortBy === -1) result.reverse();
   return result;

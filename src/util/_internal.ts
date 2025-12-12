@@ -334,7 +334,7 @@ export function intersection<T = Any>(input: T[][]): T[] {
   const vmaps = [HashMap.init<T, boolean>(), HashMap.init<T, boolean>()];
   if (input.length === 0) return [];
   if (input.some(arr => arr.length === 0)) return [];
-  if (input.length === 1) return [...input[0]];
+  if (input.length === 1) return input[0].slice();
   // start with last array to ensure stableness.
   input[input.length - 1].forEach(v => vmaps[0].set(v, true));
   // process collection backwards.
@@ -540,7 +540,7 @@ export function resolveGraph(
   if (isArray(obj)) {
     // obj is an array
     const isIndex = /^\d+$/.test(key);
-    const arr = isIndex && options?.preserveIndex ? [...obj] : [];
+    const arr = isIndex && options?.preserveIndex ? obj.slice() : [];
     if (isIndex) {
       const index = parseInt(key);
       let value = getValue(obj, index) as ArrayOrObject;

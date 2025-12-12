@@ -26,7 +26,7 @@ export const $bucket: PipelineOperator = (
   expr: InputExpr,
   options: Options
 ): Iterator => {
-  const bounds = [...expr.boundaries];
+  const bounds = expr.boundaries.slice();
   const defaultKey = expr.default;
   const lower = bounds[0]; // inclusive
   const upper = bounds[bounds.length - 1]; // exclusive

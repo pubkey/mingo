@@ -1,4 +1,4 @@
-import { AnyObject, ArrayOrObject, Options } from "../../types";
+import { Any, AnyObject, ArrayOrObject, Options } from "../../types";
 import { assert, has } from "../../util";
 import { applyUpdate, DEFAULT_OPTIONS, walkExpression } from "./_internal";
 import { $set } from "./set";
@@ -30,8 +30,10 @@ export const $rename = (
     (val, node, queries) => {
       return applyUpdate(obj, node, queries, (o: ArrayOrObject, k: string) => {
         if (!has(o as AnyObject, k)) return false;
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        res.push(...$set(obj, { [val]: o[k] }, arrayFilters, options));
+        Array.prototype.push.apply(
+          res,
+          $set(obj, { [val]: o[k] as Any }, arrayFilters, options)
+        );
         delete o[k];
         return true;
       });

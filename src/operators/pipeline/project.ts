@@ -271,7 +271,7 @@ function getPositionalFilter(
   // we split the selector into the (parent, leaf) eg. "a.b.c" -> ["a.b", "c"].
   // then we use the 'leaf' as the selector to the compiled predicate for the case of nested objects in array paths.
   // since we always need to send an object to the predicate, for non-objects we wrap in an object with the 'leaf' as the key.
-  const stack: [string, Any, string?][] = [...Object.entries(condition)];
+  const stack: [string, Any, string?][] = Object.entries(condition).slice();
   const selectors: Partial<
     Record<"$and" | "$or", [string, Predicate, string][]>
   > = { $and: [], $or: [] };
