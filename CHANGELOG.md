@@ -1,5 +1,26 @@
 # Changelog
 
+## 7.1.0 / 2025-12-12
+
+**New**
+- Support type specification for `$currentDate`.
+  - Returns `Date` for value`{ "$type": "date }`.
+  - Returns `number` (milliseconds since epoch) for value `{ "$type": "timestamp" }`.
+- Support full/abbreviated (`%b` and `%B`) months in `$dateFromString` (#585).
+
+**Fixes**
+
+- `$currentDate` returns `Date` instead of timestamp when value is `true`.
+- Respect configurable `idKey` in update operators (#586).
+- Make non-primitive comparisons use consistent order.
+
+**Improvements**
+- Optimize document sorting by strings and numbers for pipeline `$sort` operator.
+- Use standard internal hashCode based on murmurHash3.
+
+**Deprecated**
+- Option `hashFunction` is no longer supported.
+
 ## 7.0.2 / 2025-11-16
 
 **New**
