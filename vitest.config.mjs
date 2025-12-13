@@ -5,10 +5,10 @@ export default defineConfig({
     globals: true, // Optional: enables global `describe`, `it`, etc.
     environment: "node",
     coverage: {
-      reporter: ["text", "html"],
-      include: ["src/**/*.ts"],
       enabled: true,
       lines: 100,
-    },
+      reporter: ["text", "lcov"],
+      include: ["src/**/*.ts"]
+    }
   }
 });
