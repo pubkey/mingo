@@ -4,6 +4,7 @@ import {
   compare,
   groupBy,
   has,
+  hashCode,
   HashMap,
   intersection,
   isEmpty,
@@ -19,7 +20,7 @@ import {
   unique,
   walk
 } from "../src/util/_internal";
-import { ObjectId } from "./support";
+import { makeRandomString, ObjectId } from "./support";
 
 class Custom {
   constructor(readonly _id: string) {}
@@ -525,6 +526,69 @@ describe("util", () => {
       expect(m.size).toEqual(0);
       expect(m.get([1, 2])).toBeUndefined();
       expect(m.get({ a: 1 })).toBeUndefined();
+    });
+  });
+
+  describe("hashCode", () => {
+    const smallObject = { a: 1, b: "x", c: true };
+
+    const mediumObject = {
+      id: 123,
+      name: "Alice",
+      tags: ["dev", "ops", "infra"],
+      meta: { active: true, score: 99.5 },
+      created: new Date()
+    };
+
+    const deepObject = {
+      level1: {
+        level2: {
+          level3: {
+            arr: [1, 2, 3, { nested: "value" }]
+          }
+        }
+      }
+    };
+
+    const cycleObject = { name: "cycle", self: undefined };
+    cycleObject.self = cycleObject;
+
+    const samples = [
+      undefined,
+      null,
+      NaN,
+      Infinity,
+      -Infinity,
+      0,
+      1,
+      -1,
+      "0",
+      3.14,
+      -3.14,
+      true,
+      false,
+      ObjectId("123"), // custom class
+      smallObject,
+      mediumObject,
+      deepObject,
+      cycleObject,
+      new Uint8Array(1024),
+      (a: number) => a * 2, // function
+      Array.from({ length: 200 }, (_, i) => i),
+      makeRandomString(24),
+      123456789,
+      12345678901234567890n, //bigint
+      new Date(),
+      new Set(),
+      new Map(),
+      /abc/gi
+    ];
+
+    it("should hash values of different types", () => {
+      const result = samples.map(hashCode);
+      const set = new Set(result);
+      expect(result.length).toEqual(set.size);
+      expect(hashCode(0)).toEqual(hashCode(-0));
     });
   });
 });

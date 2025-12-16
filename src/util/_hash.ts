@@ -86,11 +86,6 @@ function hashBigInt(b: bigint): number {
   return h >>> 0;
 }
 
-function hashSymbol(sym: symbol): number {
-  const desc = sym.description ?? "";
-  return mix(hashString(desc), 0x9e3779b1);
-}
-
 type Fn = (...v: unknown[]) => unknown;
 function hashFunction(fn: Fn): number {
   let h = hashString((fn.name || "") + fn.toString());
@@ -165,14 +160,17 @@ function hashObject(obj: object, seen: WeakSet<object>): number {
 // Dispatcher with Type Tagging
 // ------------------------------------------------------------
 const BOOLEAN_HASH = [0xdeadbeef, 0x1234abcd].map(b => mix(Tag.Boolean, b));
+const NULL_HASH = mix(Tag.Null, 0);
+const UNDEF_HASH = mix(Tag.Undefined, 0);
 
 function internalHash(value: unknown, seen: WeakSet<object>): number {
-  if (value === null) return mix(Tag.Null, 0);
-  if (value === undefined) return mix(Tag.Undefined, 0);
+  if (value === null) return NULL_HASH;
 
   const t = typeof value;
 
   switch (t) {
+    case "undefined":
+      return UNDEF_HASH;
     case "boolean":
       return BOOLEAN_HASH[+value];
     case "number":
