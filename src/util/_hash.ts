@@ -66,24 +66,24 @@ function hashString(str: string): number {
 }
 
 function hashBigInt(b: bigint): number {
-  let x = b < 0n ? -b : b;
   let h = 0;
+  // Preserve sign
+  const isNegative = b < 0n;
+  let x = isNegative ? -b : b;
 
-  // Reuse a fixed-size buffer (32 bytes = 256 bits)
-  const buf = new Uint8Array(32);
-  let i = 31;
-
-  while (x > 0n && i >= 0) {
-    buf[i--] = Number(x & 0xffn);
-    x >>= 8n;
+  // Special case: zero
+  if (x === 0n) {
+    h = mix(h, 0);
+  } else {
+    // Stream bytes from least significant to most significant
+    while (x > 0n) {
+      const byte = Number(x & 0xffn);
+      h = mix(h, byte);
+      x >>= 8n;
+    }
   }
-
-  const start = i + 1;
-  for (let j = start; j < 32; j++) {
-    h = mix(h, buf[j]);
-  }
-
-  return h >>> 0;
+  // Mix in sign bit
+  return mix(h, +isNegative) >>> 0;
 }
 
 type Fn = (...v: unknown[]) => unknown;

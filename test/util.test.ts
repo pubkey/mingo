@@ -553,6 +553,15 @@ describe("util", () => {
     const cycleObject = { name: "cycle", self: undefined };
     cycleObject.self = cycleObject;
 
+    const cycleArray: unknown[] = Array.from({ length: 10 }, (_, i) => i);
+    cycleArray[0] = cycleArray;
+
+    class Node {
+      public next: Node;
+    }
+    const cycleNode = new Node();
+    cycleNode.next = cycleNode;
+
     const samples = [
       undefined,
       null,
@@ -572,12 +581,19 @@ describe("util", () => {
       mediumObject,
       deepObject,
       cycleObject,
-      new Uint8Array(1024),
+      cycleArray,
+      cycleNode,
+      Uint8Array.from({ length: 256 }, () => (Math.random() * 256) | 0),
       (a: number) => a * 2, // function
       Array.from({ length: 200 }, (_, i) => i),
       makeRandomString(24),
       123456789,
-      12345678901234567890n, //bigint
+      -123456789,
+      // bigints
+      0n,
+      12345678901234567890n,
+      -12345678901234567890n,
+      // native objects
       new Date(),
       new Set(),
       new Map(),
@@ -588,7 +604,12 @@ describe("util", () => {
       const result = samples.map(hashCode);
       const set = new Set(result);
       expect(result.length).toEqual(set.size);
+    });
+
+    it("should hash equivalent values identically", () => {
       expect(hashCode(0)).toEqual(hashCode(-0));
+      expect(hashCode(0n)).toEqual(hashCode(-0n));
+      expect(hashCode(NaN)).toEqual(hashCode(-NaN));
     });
   });
 });
