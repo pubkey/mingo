@@ -384,6 +384,11 @@ describe("util", () => {
   });
 
   describe("intersection", () => {
+    it("should return empty set for empty inputs", () => {
+      const res = intersection([]);
+      expect(res).toEqual([]);
+    });
+
     it("should find empty intersection when non exists", () => {
       const res = intersection([
         [1, 2, 3],

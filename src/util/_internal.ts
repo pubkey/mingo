@@ -331,10 +331,11 @@ export function merge(target: Any, input: Any): Any {
  * @return {Array} Array of intersecting values.
  */
 export function intersection<T = Any>(input: T[][]): T[] {
-  const vmaps = [HashMap.init<T, boolean>(), HashMap.init<T, boolean>()];
   if (input.length === 0) return [];
   if (input.some(arr => arr.length === 0)) return [];
   if (input.length === 1) return input[0].slice();
+
+  const vmaps = [HashMap.init<T, boolean>(), HashMap.init<T, boolean>()];
   // start with last array to ensure stableness.
   input[input.length - 1].forEach(v => vmaps[0].set(v, true));
   // process collection backwards.
@@ -663,21 +664,16 @@ export function walk(
  *
  * @param obj {AnyObject|Array} the object context
  * @param selector {String} path to field
- * @param value {*} the value to set. if it is function, it is invoked with the old value and must return the new value.
+ * @param value {*} the value to set.
  */
 export function setValue(
   obj: ArrayOrObject,
   selector: string,
   value: Any
 ): void {
-  walk(
-    obj,
-    selector,
-    ((item: AnyObject, key: string) => {
-      item[key] = isFunction(value) ? (value as Callback)(item[key]) : value;
-    }) as Callback<void>,
-    { buildGraph: true }
-  );
+  walk(obj, selector, (item: AnyObject, key: string) => (item[key] = value), {
+    buildGraph: true
+  });
 }
 
 /**
