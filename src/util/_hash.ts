@@ -139,14 +139,14 @@ function hashObject(obj: object, seen: WeakSet<object>): number {
   if (Object.getPrototypeOf(obj) === Object.prototype) {
     for (const k in obj) SCRATCH_KEYS.push(k);
   } else {
-    SCRATCH_KEYS.push("constructor");
+    Array.prototype.push.apply(SCRATCH_KEYS, Object.keys(obj));
     for (const k of Object.getOwnPropertyNames(Object.getPrototypeOf(obj))) {
       if (typeof obj[k] !== "function") SCRATCH_KEYS.push(k);
     }
   }
   SCRATCH_KEYS.sort();
 
-  let h = 1;
+  let h = hashString(obj?.constructor?.name);
   for (const k of SCRATCH_KEYS) {
     h = mix(h, hashString(k));
     h = mix(h, internalHash(obj[k], seen));
