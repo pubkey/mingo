@@ -25,6 +25,10 @@ describe("Cursor", () => {
 
     cursor.sort({ name: 1 }).collation({ locale: "en" });
 
+    // ensure multiple calls do not change internal buffer.
+    expect(cursor.hasNext()).toEqual(true);
+    expect(cursor.hasNext()).toEqual(true);
+    expect(cursor.hasNext()).toEqual(true);
     expect(cursor.next()).toStrictEqual({ name: "Alice" });
     expect(cursor.hasNext()).toEqual(true);
     expect(cursor.next()).toStrictEqual({ name: "Bob" });
@@ -35,5 +39,21 @@ describe("Cursor", () => {
     expect(cursor.next()).toEqual(undefined);
     expect(cursor.hasNext()).toEqual(false);
     expect(cursor.all()).toStrictEqual([]);
+  });
+
+  it("ensure multiple hasNext() calls do not exhaust internal buffer.", () => {
+    const cursor = new Query({}).find([
+      { name: "John" },
+      { name: "Bob" },
+      { name: "Casey" },
+      { name: "Alice" }
+    ]);
+
+    // ensure multiple calls do not change internal buffer.
+    expect(cursor.hasNext()).toEqual(true);
+    expect(cursor.hasNext()).toEqual(true);
+    expect(cursor.hasNext()).toEqual(true);
+    expect(cursor.hasNext()).toEqual(true);
+    expect(cursor.all().length).toEqual(4);
   });
 });
