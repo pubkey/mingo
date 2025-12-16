@@ -1,10 +1,11 @@
-import { Query } from "../src";
+import { ProcessingMode, Query } from "../src";
 import * as samples from "./support";
 
 describe("Cursor", () => {
   // create a query with no criteria
   const query = new Query({});
   const newCursor = () => query.find(samples.simpleGradesData);
+  const options = { processingMode: ProcessingMode.CLONE_OUTPUT };
 
   it("should pass all navigation methods", () => {
     const cursor = newCursor();
@@ -16,7 +17,7 @@ describe("Cursor", () => {
   });
 
   it("can sort with collation", () => {
-    const cursor = new Query({}).find([
+    const cursor = new Query({}, options).find([
       { name: "John" },
       { name: "Bob" },
       { name: "Casey" },
@@ -42,7 +43,7 @@ describe("Cursor", () => {
   });
 
   it("ensure multiple hasNext() calls do not exhaust internal buffer.", () => {
-    const cursor = new Query({}).find([
+    const cursor = new Query({}, options).find([
       { name: "John" },
       { name: "Bob" },
       { name: "Casey" },

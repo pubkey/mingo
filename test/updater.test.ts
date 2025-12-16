@@ -96,6 +96,17 @@ describe("updater", () => {
       Object.assign(obj, { name: "John", age: 30 });
     });
 
+    it("branch coverage enforcement", () => {
+      const res = update(
+        { name: "Bob" },
+        { $set: { name: "Tom" } },
+        [],
+        {},
+        { cloneMode: "deep", queryOptions: { idKey: "_id" } }
+      );
+      expect(res).toEqual(["name"]);
+    });
+
     it("should allow multiple selectors with same parent conflict", () => {
       const state = { name: { firstname: "John", lastname: "Wick" }, age: 30 };
       update<typeof state>(state, {

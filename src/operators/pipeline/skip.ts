@@ -16,5 +16,6 @@ export const $skip: PipelineOperator = (
   expr: number,
   _options: Options
 ): Iterator => {
+  assert(expr >= 0, "$skip value must be a non-negative integer");
   return collection.drop(expr);
 };

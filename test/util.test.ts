@@ -41,8 +41,8 @@ describe("util", () => {
       1,
       "a",
       Symbol(),
-      {},
-      [],
+      { a: 1, b: 2 },
+      [1, 2, 3],
       new Uint8Array(0),
       false,
       new Date(),
@@ -51,14 +51,23 @@ describe("util", () => {
     ] as const;
 
     for (let i = 1; i < items.length; i++) {
-      const a = items[i - 1];
-      const b = items[i];
-      it(`should compare by sort order (${typeOf(a)} < ${typeOf(b)})`, () => {
-        expect(compare(a, a)).toBe(0);
-        expect(compare(a, b)).toBe(-1);
-        expect(compare(b, a)).toBe(1);
+      const prev = items[i - 1];
+      const next = items[i];
+      it(`should compare by sort order (${typeOf(prev)} < ${typeOf(next)})`, () => {
+        expect(compare(prev, prev)).toBe(0);
+        expect(compare(prev, next)).toBe(-1);
+        expect(compare(next, prev)).toBe(1);
       });
     }
+
+    it("should compare objects by keys then values", () => {
+      // keys
+      expect(compare({ a: 1, b: 2 }, { a: 1, c: 1 })).toEqual(-1);
+      expect(compare({ a: 1, c: 1 }, { a: 1, b: 2 })).toEqual(1);
+      // values
+      expect(compare({ a: 1, c: 2 }, { a: 1, c: 5 })).toEqual(-1);
+      expect(compare({ a: 1, c: 5 }, { a: 1, c: 2 })).toEqual(1);
+    });
 
     it("should compare special internal type MISSING as undefined", () => {
       expect(compare(MISSING, undefined)).toEqual(0);
@@ -84,6 +93,12 @@ describe("util", () => {
       const u8 = new Uint8Array([255, 0, 0, 1]);
       const i8 = new Int8Array([255, 0, 0, 1]);
       expect(compare(u8, i8)).toBe(0);
+    });
+
+    it("should compare typed arrays by byte order", () => {
+      const u8 = new Uint8Array([255, 1, 0, 1]);
+      const i8 = new Int8Array([255, 0, 0, 1]);
+      expect(compare(u8, i8)).toBe(1);
     });
   });
 
@@ -171,6 +186,7 @@ describe("util", () => {
         { date: { year: 2013, month: 9, day: 25 } },
         true
       ],
+      [{ a: 1, b: 1 }, { a: 1, b: 1, c: undefined }, false], // different key lengths
       [() => void {}, () => void {}, false],
       [RegExp, RegExp, true],
       [ObjectId("100"), ObjectId("100"), true]

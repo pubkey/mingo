@@ -96,12 +96,14 @@ export function compare(a: Any, b: Any): number {
       return simpleCmp(x.length, y.length);
     }
     case "object": {
-      const keysA = Object.keys(a as AnyObject).sort();
-      const keysB = Object.keys(b as AnyObject).sort();
+      const objA = a as AnyObject;
+      const objB = b as AnyObject;
+      const keysA = Object.keys(objA).sort();
+      const keysB = Object.keys(objB).sort();
       let order = compare(keysA, keysB);
       if (order !== 0) return order;
       for (const k of keysA) {
-        order = compare((a as AnyObject)[k], (b as AnyObject)[k]);
+        order = compare(objA[k], objB[k]);
         if (order != 0) return order;
       }
       return 0;

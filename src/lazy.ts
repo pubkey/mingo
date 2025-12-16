@@ -145,7 +145,8 @@ export class Iterator {
    * @param {Number} n A number greater than 0
    */
   take(n: number): Iterator {
-    return n > 0 ? this.filter((_: Any) => !(n === 0 || n-- === 0)) : this;
+    assert(n >= 0, "value must be a non‑negative integer");
+    return this.filter((_: Any) => n-- > 0);
   }
 
   /**
@@ -153,7 +154,8 @@ export class Iterator {
    * @param {Number} n Number of items to drop greater than 0
    */
   drop(n: number): Iterator {
-    return n > 0 ? this.filter((_: Any) => n === 0 || n-- === 0) : this;
+    assert(n >= 0, "value must be a non‑negative integer");
+    return this.filter((_: Any) => n-- <= 0);
   }
 
   // Transformations
