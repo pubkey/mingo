@@ -10,7 +10,7 @@ export { hashCode } from "./_hash";
 export class MingoError extends Error {}
 
 // special value to identify missing items. treated differently from undefined
-const MISSING = Symbol("missing");
+export const MISSING = Symbol("missing");
 const ERR_CYCLE_FOUND = "mingo: cycle detected while processing object/array";
 
 type Constructor = new (...args: Any[]) => Any;
@@ -37,24 +37,18 @@ const SORT_ORDER: Record<string, number> = {
   function: 12
 };
 
-const USER_TYPE = 100;
+const USER_TYPE = Object.keys(SORT_ORDER).length * 2;
 type Cmp = string | number;
 const simpleCmp = <T = Cmp>(a: T, b: T) => (a < b ? -1 : a > b ? 1 : 0);
 const typedArraysCmp = (a: ArrayBufferView, b: ArrayBufferView): number => {
   // Create Uint8Array views over the buffers
-  const bytesA =
-    a instanceof Uint8Array
-      ? a
-      : new Uint8Array(a.buffer, a.byteOffset, a.byteLength);
-  const bytesB =
-    b instanceof Uint8Array
-      ? b
-      : new Uint8Array(b.buffer, b.byteOffset, b.byteLength);
+  const bytesA = new Uint8Array(a.buffer, a.byteOffset, a.byteLength);
+  const bytesB = new Uint8Array(b.buffer, b.byteOffset, b.byteLength);
   const size = Math.min(bytesA.length, bytesB.length);
   // Compare byte by byte
   for (let i = 0; i < size; i++) {
-    const r = bytesA[i] - bytesB[i];
-    if (r !== 0) return r;
+    const order = simpleCmp(bytesA[i], bytesB[i]);
+    if (order !== 0) return order;
   }
   return simpleCmp(bytesA.length, bytesB.length);
 };
@@ -71,40 +65,52 @@ export function compare(a: Any, b: Any): number {
   if (b === MISSING) b = undefined;
   const typeA = isTypedArray(a) ? "arraybuffer" : typeOf(a);
   const typeB = isTypedArray(b) ? "arraybuffer" : typeOf(b);
-  if (typeA === typeB) {
-    // most comparisons wil be nuber or string.
-    if (typeA === "number" || typeA === "string") return simpleCmp(a, b);
-    if (typeA === "date") return simpleCmp(+(a as Date), +(b as Date));
-    if (typeA === "undefined" || typeA === "null") return 0;
-    if (typeA === "regexp")
-      return simpleCmp((a as RegExp).toString(), (b as RegExp).toString());
-    if (typeA == "array" && isArray(a) && isArray(b)) {
-      const maxIndex = Math.min(a.length, b.length);
-      for (let i = 0; i < maxIndex; i++) {
-        const r = compare(a[i], b[i]);
-        if (r !== 0) return r;
-      }
-      return simpleCmp(a.length, b.length);
-    }
-    if (typeA == "arraybuffer")
-      return typedArraysCmp(a as ArrayBufferView, b as ArrayBufferView);
-    const keysA = Object.keys(a as AnyObject).sort();
-    const keysB = Object.keys(b as AnyObject).sort();
-    let r = compare(keysA, keysB);
-    if (r !== 0) return r;
-    for (const k of keysA) {
-      r = compare((a as AnyObject)[k], (b as AnyObject)[k]);
-      if (r != 0) return r;
-    }
-    return 0;
+  if (typeA !== typeB) {
+    // unequal types
+    const orderA = SORT_ORDER[typeA] ?? USER_TYPE;
+    const orderB = SORT_ORDER[typeB] ?? USER_TYPE;
+    if (orderA !== orderB) return simpleCmp(orderA, orderB);
   }
-  // unequal types
-  const orderA = SORT_ORDER[typeA] ?? USER_TYPE;
-  const orderB = SORT_ORDER[typeB] ?? USER_TYPE;
-  if (orderA !== orderB) return orderA - orderB;
-  return hasCustomString(a) && hasCustomString(b)
-    ? simpleCmp<string>(a.toString(), b.toString())
-    : simpleCmp<number>(hashCode(a), hashCode(b));
+  // most comparisons wil be nuber or string.
+  switch (typeA) {
+    case "undefined":
+    case "null":
+      return 0;
+    case "number":
+    case "string":
+      return simpleCmp(a, b);
+    case "date":
+      return simpleCmp(+(a as Date), +(b as Date));
+    case "regexp":
+      return simpleCmp((a as RegExp).toString(), (b as RegExp).toString());
+    case "arraybuffer":
+      return typedArraysCmp(a as ArrayBufferView, b as ArrayBufferView);
+    case "array": {
+      const x = a as Any[];
+      const y = b as Any[];
+      const size = Math.min(x.length, y.length);
+      for (let i = 0; i < size; i++) {
+        const order = compare(x[i], y[i]);
+        if (order !== 0) return order;
+      }
+      return simpleCmp(x.length, y.length);
+    }
+    case "object": {
+      const keysA = Object.keys(a as AnyObject).sort();
+      const keysB = Object.keys(b as AnyObject).sort();
+      let order = compare(keysA, keysB);
+      if (order !== 0) return order;
+      for (const k of keysA) {
+        order = compare((a as AnyObject)[k], (b as AnyObject)[k]);
+        if (order != 0) return order;
+      }
+      return 0;
+    }
+    default:
+      return hasCustomString(a) && hasCustomString(b)
+        ? simpleCmp<string>(a.toString(), b.toString())
+        : simpleCmp<number>(hashCode(a), hashCode(b));
+  }
 }
 
 /**

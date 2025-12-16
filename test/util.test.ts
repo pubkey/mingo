@@ -11,6 +11,7 @@ import {
   isEqual,
   isObject,
   isObjectLike,
+  MISSING,
   normalize,
   removeValue,
   resolve,
@@ -59,6 +60,12 @@ describe("util", () => {
       });
     }
 
+    it("should compare special internal type MISSING as undefined", () => {
+      expect(compare(MISSING, undefined)).toEqual(0);
+      expect(compare(undefined, MISSING)).toEqual(0);
+      expect(compare(MISSING, MISSING)).toEqual(0);
+    });
+
     it("should compare hashes of custom types without toString()", () => {
       const [a, b] = ["0", "1"].map(n => new Custom(n));
       expect(compare(a, a)).toBe(0);
@@ -74,16 +81,8 @@ describe("util", () => {
     });
 
     it("should treat different typed arrays with same byte representation as equal", () => {
-      const buffer = new ArrayBuffer(4);
-      const u8 = new Uint8Array(buffer);
-      const i8 = new Int8Array(buffer);
-
-      // Fill with identical raw bytes
-      u8[0] = 255; // 0xFF
-      u8[1] = 0;
-      u8[2] = 0;
-      u8[3] = 0;
-
+      const u8 = new Uint8Array([255, 0, 0, 1]);
+      const i8 = new Int8Array([255, 0, 0, 1]);
       expect(compare(u8, i8)).toBe(0);
     });
   });
