@@ -190,15 +190,9 @@ export class Iterator {
   /**
    * Execute the callback for each value.
    * @param f The callback function.
-   * @returns {Boolean} Returns false if the callback returned false to break the loop, otherwise true.
    */
-  each<T>(f: Callback<T>): boolean {
-    for (;;) {
-      const o = this.next();
-      if (o.done) break;
-      if (f(o.value) === false) return false;
-    }
-    return true;
+  each<T>(f: Callback<T>): void {
+    for (let o = this.next(); o.done !== true; o = this.next()) f(o.value);
   }
 
   /**
