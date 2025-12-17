@@ -117,6 +117,70 @@ describe("util", () => {
       const i8 = new Int8Array([255, 0, 0, 1]);
       expect(compare(u8, i8)).toBe(1);
     });
+
+    it("should compare regex in correct order", () => {
+      const input = [/abc/, /abc/m, /abc/i, /abd/, /zzz/, /ab/];
+      expect(input.sort(compare)).toEqual([
+        /ab/,
+        /abc/,
+        /abc/i,
+        /abc/m,
+        /abd/,
+        /zzz/
+      ]);
+    });
+
+    it("should compare arrays in correct order", () => {
+      const input = [
+        null,
+        [1, 2],
+        [1, 2, 0],
+        [1],
+        [[1, 2]],
+        [1, 3],
+        [1, null],
+        [1, "a"],
+        [],
+        [2],
+        [[1]],
+        ["a"]
+      ];
+      // This is inconsistent with MongoDB at this time.
+      const output = [
+        null,
+        [],
+        [1],
+        [1, null],
+        [1, 2],
+        [1, 2, 0],
+        [1, 3],
+        [1, "a"],
+        [2],
+        ["a"],
+        [[1]],
+        [[1, 2]]
+      ];
+      // FIXME: https://github.com/kofrasa/mingo/issues/590
+      // figure out how to proceed with handling array sorting. Options
+      // 1) use MongoDB semantics all the time.
+      // 2) use custom semantics and document.
+      // 3) use MongoDB semantics for under strictMode only.
+      expect(input.sort(compare)).toEqual(output);
+
+      // MongoDB 8.0.1 (expected)
+      // [],
+      // null,
+      // [1, null],
+      // [1, 2, 0],
+      // [1],
+      // [1, 2],
+      // [1, 3],
+      // [1, "a"],
+      // [2],
+      // ["a"],
+      // [[1]],
+      // [[1, 2]]
+    });
   });
 
   describe("normalize", () => {
