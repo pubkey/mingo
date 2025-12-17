@@ -47,7 +47,10 @@ describe("util", () => {
       false,
       new Date(),
       /a/,
-      () => void 0
+      () => void 0,
+      // compare custom types with toString
+      new CustomWithToString("abc"),
+      new CustomWithToString("efg")
     ] as const;
 
     for (let i = 1; i < items.length; i++) {
@@ -75,11 +78,11 @@ describe("util", () => {
       expect(compare(MISSING, MISSING)).toEqual(0);
     });
 
-    it("should compare hashes of custom types without toString()", () => {
+    it("should compare data memebers of custom types without toString()", () => {
       const [a, b] = ["0", "1"].map(n => new Custom(n));
       expect(compare(a, a)).toBe(0);
-      expect(compare(a, b)).not.toEqual(0);
-      expect(compare(b, a)).not.toEqual(0);
+      expect(compare(a, b)).toEqual(-1);
+      expect(compare(b, a)).toEqual(1);
     });
 
     it("should compare toString() of custom types if provided", () => {
@@ -87,6 +90,20 @@ describe("util", () => {
       expect(compare(a, a)).toBe(0);
       expect(compare(a, b)).toEqual(-1);
       expect(compare(b, a)).toEqual(1);
+    });
+
+    it("should compare different custom types by constructor name for consistent ordering", () => {
+      Array.from<[Any, Any, number]>([
+        // native type still first in sort order
+        [new CustomWithToString("0"), new RegExp(/as/), 1],
+        [new CustomWithToString("0"), new Date(), 1],
+        // custom types use constructor names
+        [new CustomWithToString("0"), new Custom("0"), 1],
+        [new CustomWithToString("0"), new Error(), -1]
+      ]).forEach(([a, b, r]) => {
+        expect(compare(a, b)).toEqual(r);
+        expect(compare(b, a)).toEqual(-r);
+      });
     });
 
     it("should treat different typed arrays with same byte representation as equal", () => {
@@ -189,7 +206,9 @@ describe("util", () => {
       [{ a: 1, b: 1 }, { a: 1, b: 1, c: undefined }, false], // different key lengths
       [() => void {}, () => void {}, false],
       [RegExp, RegExp, true],
-      [ObjectId("100"), ObjectId("100"), true]
+      [ObjectId("100"), ObjectId("100"), true],
+      [new Custom("123"), new Custom("123"), true],
+      [new Custom("123"), new Custom("456"), false]
     ])("should check: %o == %o", (a, b, c) => {
       expect(isEqual(a, b)).toEqual(c);
     });

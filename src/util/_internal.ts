@@ -71,7 +71,9 @@ export function compare(a: Any, b: Any): number {
     const orderB = SORT_ORDER[typeB] ?? USER_TYPE;
     if (orderA !== orderB) return simpleCmp(orderA, orderB);
   }
-  // most comparisons wil be nuber or string.
+  // capture "not equal" result to use in if-expressions when order evaluates to 1 or -1.
+  let neq = 0;
+
   switch (typeA) {
     case "undefined":
     case "null":
@@ -82,36 +84,43 @@ export function compare(a: Any, b: Any): number {
     case "date":
       return simpleCmp(+(a as Date), +(b as Date));
     case "regexp":
-      return simpleCmp((a as RegExp).toString(), (b as RegExp).toString());
+      if ((neq = simpleCmp((a as RegExp).source, (b as RegExp).source)))
+        return neq;
+      if ((neq = simpleCmp((a as RegExp).flags, (b as RegExp).flags)))
+        return neq;
+      return 0;
     case "arraybuffer":
       return typedArraysCmp(a as ArrayBufferView, b as ArrayBufferView);
     case "array": {
       const x = a as Any[];
       const y = b as Any[];
       const size = Math.min(x.length, y.length);
-      for (let i = 0; i < size; i++) {
-        const order = compare(x[i], y[i]);
-        if (order !== 0) return order;
-      }
+      for (let i = 0; i < size; i++)
+        if ((neq = compare(x[i], y[i]))) return neq;
       return simpleCmp(x.length, y.length);
     }
-    case "object": {
-      const objA = a as AnyObject;
-      const objB = b as AnyObject;
-      const keysA = Object.keys(objA).sort();
-      const keysB = Object.keys(objB).sort();
-      let order = compare(keysA, keysB);
-      if (order !== 0) return order;
-      for (const k of keysA) {
-        order = compare(objA[k], objB[k]);
-        if (order != 0) return order;
+    default: {
+      if (typeA !== "object") {
+        let customCmp = a?.constructor === b?.constructor;
+        customCmp = customCmp && hasCustomString(a);
+        // short-cut when objects are the same type and have toString().
+        if (customCmp)
+          return simpleCmp((a as Str).toString(), (b as Str).toString());
+        // use constructor name order if different types
+        if ((neq = simpleCmp(a?.constructor?.name, b?.constructor?.name)))
+          return neq;
+        // last resort. treat as plain object
+        a = toPlainObject(a as object);
+        b = toPlainObject(b as object);
       }
+      // plain objects
+      const keysA = Object.keys(a as object).sort();
+      const keysB = Object.keys(b as object).sort();
+      if ((neq = compare(keysA, keysB))) return neq;
+      for (const k of keysA)
+        if ((neq = compare((a as object)[k], (b as object)[k]))) return neq;
       return 0;
     }
-    default:
-      return hasCustomString(a) && hasCustomString(b)
-        ? simpleCmp<string>(a.toString(), b.toString())
-        : simpleCmp<number>(hashCode(a), hashCode(b));
   }
 }
 
@@ -384,11 +393,22 @@ type Stringer = { toString(): string };
 const hasCustomString = (o: Any): o is Stringer =>
   o !== null && o !== undefined && o["toString"] !== Object.prototype.toString;
 
+const toPlainObject = (o: object): AnyObject => {
+  if (o?.constructor === Object) return o as AnyObject;
+  const obj: AnyObject = { constructor: o.constructor?.name };
+  for (const k of Object.keys(o)) obj[k] = o[k];
+  for (const k of Object.getOwnPropertyNames(Object.getPrototypeOf(o))) {
+    if (typeof o[k] !== "function") obj[k] = o[k];
+  }
+  return obj;
+};
+
+type Str = { toString: () => string };
+
 /**
  * Determine whether two values are the same or strictly equivalent.
  * Checking whether values are the same only applies to built in objects.
- * For user-defined objects this checks for only referential equality so
- * two different instances with the same values are not equal.
+ * For custom objects, they are equal only of their toString() representation are equal if defined.
  *
  * @param a The first value
  * @param b The second value
@@ -402,9 +422,16 @@ export function isEqual(a: Any, b: Any): boolean {
   if (typeof a !== "object") return false;
   if (a.constructor !== b.constructor) return false;
   if (isDate(a)) return isDate(b) && +a === +b;
-  if (isRegExp(a)) return isRegExp(b) && a.toString() === b.toString();
+  if (isRegExp(a))
+    return isRegExp(b) && a.source === b.source && a.flags === b.flags;
   if (isArray(a) && isArray(b)) {
     return a.length === b.length && a.every((v, i) => isEqual(v, b[i]));
+  }
+  if (a?.constructor !== Object) {
+    if (hasCustomString(a))
+      return (a as Str)?.toString() === (b as Str)?.toString();
+    a = toPlainObject(a);
+    b = toPlainObject(b as object);
   }
   const keysA = Object.keys(a);
   const keysB = Object.keys(b);
