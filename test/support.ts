@@ -141,14 +141,3 @@ export function runTestPipeline(
     });
   });
 }
-
-/**
- * Check if a date is in daylight saving time (DST).
- * @param date The date to check.
- * @returns True if the date is in DST, false otherwise.
- */
-export function isDST(date: Date): boolean {
-  const jan = new Date(date.getFullYear(), 0, 1).getTimezoneOffset();
-  const jul = new Date(date.getFullYear(), 6, 1).getTimezoneOffset();
-  return Math.max(jan, jul) !== date.getTimezoneOffset();
-}

@@ -1,4 +1,5 @@
-import { isDST, runTest, testPath } from "../../../support";
+import { isDST } from "../../../../src/operators/expression/date/_internal";
+import { runTest, testPath } from "../../../support";
 
 const date = new Date("2014-01-01T08:15:39.736Z");
 

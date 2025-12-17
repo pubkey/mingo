@@ -43,6 +43,17 @@ export const DAYS_PER_WEEK = 7;
 export const isLeapYear = (y: number): boolean =>
   (y & 3) == 0 && (y % 100 != 0 || y % 400 == 0);
 
+/**
+ * Check if a date is in daylight saving time (DST).
+ * @param date The date to check.
+ * @returns True if the date is in DST, false otherwise.
+ */
+export function isDST(date: Date): boolean {
+  const jan = new Date(date.getFullYear(), 0, 1).getTimezoneOffset();
+  const jul = new Date(date.getFullYear(), 6, 1).getTimezoneOffset();
+  return Math.max(jan, jul) !== date.getTimezoneOffset();
+}
+
 const DAYS_IN_YEAR = [365 /*common*/, 366 /*leap*/] as const;
 
 const YEAR_DAYS_OFFSET = [
@@ -186,7 +197,7 @@ export function parseTimezone(tzstr?: string): number {
     const date = new Date();
     const utcDate = new Date(date.toLocaleString("en-US", { timeZone: "UTC" }));
     const tzDate = new Date(date.toLocaleString("en-US", { timeZone: tzstr }));
-    return (tzDate.getTime() - utcDate.getTime()) / 6e4;
+    return (tzDate.getTime() - utcDate.getTime()) / 6e4 + +isDST(date);
   }
 
   const m = DATE_SYM_TABLE["%z"].re.exec(tzstr);
