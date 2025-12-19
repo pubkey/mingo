@@ -43,20 +43,19 @@ export const $project: PipelineOperator = (
   options: Options
 ): Iterator => {
   if (isEmpty(expr)) return collection;
-  const metadata = validateProjection(expr, options);
-  return collection.map(
-    createHandler(expr, ComputeOptions.init(options), metadata)
-  );
+  const meta = validateProjection(expr, options);
+  const handler = createHandler(expr, ComputeOptions.init(options), meta);
+  return collection.map(handler);
 };
 
-type Handler = (_: AnyObject) => Any;
-type Handler2 = (_target: AnyObject, _current: AnyObject) => Any;
+// handler for transforming the 'target' object based on the 'current'.
+type SelectorHandler = (_target: AnyObject, _current: AnyObject) => void;
 
 /**
  * Creates a precompiled handler for projection operation.
  * @param expr  The projection expression
  * @param options The options
- * @param isRoot Indicates whether the handler is for the root object.
+ * @param meta Metadata about the validated projection expression.
  * @returns
  */
 function createHandler(
@@ -67,20 +66,21 @@ function createHandler(
     inclusions: string[];
     positional: number;
   }
-): Handler {
+): (_: AnyObject) => Any {
   const idKey = options.idKey;
-  const handlers: Record<string, Handler2> = {};
+  const { exclusions, inclusions } = meta;
+  const handlers: Record<string, SelectorHandler> = {};
   const resolveOpts = {
     preserveMissing: true
   };
 
-  for (const k of meta.exclusions) {
+  for (const k of exclusions) {
     handlers[k] = (t: AnyObject, _: AnyObject) => {
       removeValue(t, k, { descendArray: true });
     };
   }
 
-  for (const selector of meta.inclusions) {
+  for (const selector of inclusions) {
     const v = resolve(expr, selector) ?? expr[selector];
     // get predicate for field if used as a positional projection "<array-selector>.$".
     if (selector.endsWith(".$") && v === 1) {
@@ -152,7 +152,6 @@ function createHandler(
     }
   }
 
-  const { exclusions, inclusions } = meta;
   const onlyIdKeyExcluded =
     exclusions.length === 1 && exclusions.includes(idKey);
   const noIdKeyExcluded = !exclusions.includes(idKey);

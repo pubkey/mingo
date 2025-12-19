@@ -570,6 +570,60 @@ runTestPipeline("operators/pipeline/project", [
         age: 25
       }
     ]
+  },
+
+  {
+    message: "should exclude nested paths specified by object graph (#589)",
+    input: [
+      {
+        name: "Alice",
+        address: {
+          street: "AliceStreet",
+          number: 31
+        },
+        age: 30
+      },
+      {
+        name: "Bob",
+        address: {
+          street: "BobStreet",
+          number: 22
+        },
+        age: 21
+      },
+      {
+        name: "Charlie",
+        address: {
+          street: "CharlieStreet",
+          number: 26
+        },
+        age: 25
+      }
+    ],
+    pipeline: [{ $project: { address: { number: 0 } } }],
+    expected: [
+      {
+        address: {
+          street: "AliceStreet"
+        },
+        name: "Alice",
+        age: 30
+      },
+      {
+        address: {
+          street: "BobStreet"
+        },
+        name: "Bob",
+        age: 21
+      },
+      {
+        address: {
+          street: "CharlieStreet"
+        },
+        name: "Charlie",
+        age: 25
+      }
+    ]
   }
 ]);
 
