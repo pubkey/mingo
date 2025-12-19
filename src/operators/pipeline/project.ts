@@ -17,12 +17,10 @@ import {
   has,
   intersection,
   isArray,
-  isBoolean,
   isEmpty,
   isNumber,
   isObject,
   isOperator,
-  isString,
   merge,
   normalize,
   removeValue,
@@ -31,6 +29,7 @@ import {
   setValue,
   unique
 } from "../../util/_internal";
+import { validateProjection } from "./_internal";
 
 /**
  * Reshapes each document in the stream, such as by adding new fields or removing existing fields.
@@ -44,11 +43,14 @@ export const $project: PipelineOperator = (
   options: Options
 ): Iterator => {
   if (isEmpty(expr)) return collection;
-  checkExpression(expr, options);
-  return collection.map(createHandler(expr, ComputeOptions.init(options)));
+  const metadata = validateProjection(expr, options);
+  return collection.map(
+    createHandler(expr, ComputeOptions.init(options), metadata)
+  );
 };
 
 type Handler = (_: AnyObject) => Any;
+type Handler2 = (_target: AnyObject, _current: AnyObject) => Any;
 
 /**
  * Creates a precompiled handler for projection operation.
@@ -60,178 +62,129 @@ type Handler = (_: AnyObject) => Any;
 function createHandler(
   expr: AnyObject,
   options: ComputeOptions,
-  isRoot: boolean = true
+  meta: {
+    exclusions: string[];
+    inclusions: string[];
+    positional: number;
+  }
 ): Handler {
   const idKey = options.idKey;
-  const expressionKeys = Object.keys(expr);
-  const excludedKeys = new Array<string>();
-  const includedKeys = new Array<string>();
-  const handlers: Record<string, Handler> = {};
-  const positional: Record<string, Callback<void>> = {};
+  const handlers: Record<string, Handler2> = {};
+  const resolveOpts = {
+    preserveMissing: true
+  };
 
-  for (const key of expressionKeys) {
-    // get expression associated with key
-    const subExpr = expr[key];
+  for (const k of meta.exclusions) {
+    handlers[k] = (t: AnyObject, _: AnyObject) => {
+      removeValue(t, k, { descendArray: true });
+    };
+  }
 
-    if (isNumber(subExpr) || isBoolean(subExpr)) {
-      // positive number or true
-      if (subExpr) {
-        // get predicate for field if used as a positional projection "<array-selector>.$".
-        if (isRoot && key.endsWith(".$")) {
-          // ensure there is query condition
-          const condition = options?.local?.condition;
-          assert(
-            condition,
-            "positional operator '.$' couldn't find matching element in the array."
-          );
-          const field = key.slice(0, -2);
-          positional[field] = getPositionalFilter(field, condition, options);
-          includedKeys.push(field);
-        } else {
-          includedKeys.push(key);
-        }
-      } else {
-        excludedKeys.push(key);
-      }
-    } else if (isArray(subExpr)) {
-      handlers[key] = (o: AnyObject) =>
-        subExpr.map(
-          v => computeValue(o, v, null, options.update({ root: o })) ?? null
-        );
-    } else if (isObject(subExpr)) {
-      const subExprKeys = Object.keys(subExpr);
-      const operator = subExprKeys.length == 1 ? subExprKeys[0] : "";
-      // first try projection operator as used in Query.find() queries
-      const projectFn = options.context.getOperator(
+  for (const selector of meta.inclusions) {
+    const v = resolve(expr, selector) ?? expr[selector];
+    // get predicate for field if used as a positional projection "<array-selector>.$".
+    if (selector.endsWith(".$") && v === 1) {
+      // ensure there is query condition
+      const condition = options?.local?.condition;
+      assert(
+        condition,
+        "positional operator '.$' couldn't find matching element in the array."
+      );
+      const field = selector.slice(0, -2);
+      handlers[field] = getPositionalFilter(field, condition, options);
+      continue;
+    }
+
+    // handle computable values
+    if (isArray(v)) {
+      handlers[selector] = (t: AnyObject, o: AnyObject) => {
+        options.update({ root: o });
+        const newVal = v.map(e => computeValue(o, e, null, options) ?? null);
+        setValue(t, selector, newVal);
+      };
+    } else if (isNumber(v) || v === true) {
+      handlers[selector] = (t: AnyObject, o: AnyObject) => {
+        options.update({ root: o });
+        const extractedVal = resolveGraph(o, selector, resolveOpts);
+        merge(t, extractedVal);
+      };
+    } else if (isObject(v) == false) {
+      handlers[selector] = (t: AnyObject, o: AnyObject) => {
+        options.update({ root: o });
+        const newVal = computeValue(o, v, null, options);
+        setValue(t, selector, newVal);
+      };
+    } else {
+      // value is an object so must be an operator.
+      const opKeys = Object.keys(v);
+      assert(
+        opKeys.length === 1 && isOperator(opKeys[0]),
+        "Not a valid operator"
+      );
+      // handle operators
+      const operator = opKeys[0];
+      const opExpr = v[operator] as Any;
+
+      // get the projection operator as used in Query.find() queries
+      const fn = options.context.getOperator(
         OpType.PROJECTION,
         operator
       ) as ProjectionOperator;
-      if (projectFn) {
-        // check if this $slice operator is used with $expr instead of Query.find()
-        // we assume $slice is used with $expr if any of its arguments are not a number
-        const foundSlice = operator === "$slice";
-        if (foundSlice && !ensureArray(subExpr[operator]).every(isNumber)) {
-          handlers[key] = (o: AnyObject) =>
-            computeValue(o, subExpr, key, options.update({ root: o }));
-        } else {
-          handlers[key] = (o: AnyObject) =>
-            projectFn(o, subExpr[operator], key, options.update({ root: o }));
-        }
-      } else if (isOperator(operator)) {
-        // pipeline projection
-        handlers[key] = (o: AnyObject) =>
-          computeValue(o, subExpr[operator], operator, options);
+
+      // $slice can either be the projection operator or expression operator with different syntax
+      const foundSlice = operator === "$slice";
+      // when no projection operator or $slice expression operator: [<array-expression>, <number>, <number>]
+      if (!fn || (foundSlice && !ensureArray(opExpr).every(isNumber))) {
+        // handle expression operator
+        handlers[selector] = (t: AnyObject, o: AnyObject) => {
+          options.update({ root: o });
+          const newval = computeValue(o, opExpr, operator, options);
+          setValue(t, selector, newval);
+        };
       } else {
-        // repeat for nested expression
-        checkExpression(subExpr as AnyObject, options);
-        assert(subExprKeys.length > 0, `Invalid empty sub-projection: ${key}`);
-        handlers[key] = (o: AnyObject) => {
-          // ensure that the root object is passed down.
-          if (isRoot) options.update({ root: o });
-          const target = resolve(o, key);
-          const fn = createHandler(subExpr as AnyObject, options, false);
-          if (isArray(target)) return target.map(fn);
-          if (isObject(target)) return fn(target as AnyObject);
-          const res = fn(o);
-          if (has(o, key)) return res;
-          // when the key does not exist in the source object, the result is only valid if
-          // it is a non-object or non-empty object. an empty object indicates no projected fields.
-          return !isObject(res) || Object.keys(res).length ? res : undefined;
+        // handle projection operator
+        handlers[selector] = (t: AnyObject, o: AnyObject) => {
+          options.update({ root: o });
+          const newval = fn(o, opExpr, selector, options);
+          setValue(t, selector, newval);
         };
       }
-    } else {
-      handlers[key] =
-        isString(subExpr) && subExpr[0] === "$"
-          ? (o: AnyObject) => computeValue(o, subExpr, key, options)
-          : (_: AnyObject) => subExpr;
     }
   }
 
-  const handlerKeys = Object.keys(handlers);
-  // the exclude keys includes.
-  const idKeyExcluded = excludedKeys.includes(idKey);
+  const { exclusions, inclusions } = meta;
+  const onlyIdKeyExcluded =
+    exclusions.length === 1 && exclusions.includes(idKey);
+  const noIdKeyExcluded = !exclusions.includes(idKey);
+  const noInclusions = !inclusions.length;
 
-  // implicitly add the 'idKey' only for root object.
-  const idKeyImplicit =
-    isRoot && !idKeyExcluded && !includedKeys.includes(idKey);
-
-  // ResolveOptions for resolveGraph().
-  const opts = {
-    preserveMissing: true
-  };
+  // We start with all the fields in the object and prune as we go for these cases.
+  //  1) When the only projection is to exclude the ID_KEY (i.e. no explicit inclusions).
+  //  2) When there are explicit exclusions but not just for the ID_KEY.
+  const allKeysIncluded =
+    (noInclusions && onlyIdKeyExcluded) ||
+    (noInclusions && exclusions.length && !onlyIdKeyExcluded);
 
   return (o: AnyObject) => {
     const newObj = {};
 
-    for (const k of includedKeys) {
-      // get value with object graph
-      const pathObj = resolveGraph(o, k, opts) ?? {};
-      // add the value at the path
-      merge(newObj, pathObj);
-      // handle positional projection fields.
-      if (has(positional, k)) {
-        positional[k](newObj);
-      }
+    if (allKeysIncluded) Object.assign(newObj, o);
+
+    // process each selector with their corresponding handler.
+    for (const k in handlers) {
+      handlers[k](newObj, o);
     }
 
-    // filter out all missing values preserved to support correct merging
-    if (includedKeys.length) filterMissing(newObj);
+    // filter out all missing values preserved to support correct merging if we explicitly included fields.
+    if (!noInclusions) filterMissing(newObj);
 
-    for (const k of handlerKeys) {
-      const value = handlers[k](o);
-      if (value === undefined) {
-        removeValue(newObj, k, { descendArray: true });
-      } else {
-        setValue(newObj, k, value);
-      }
-    }
-
-    // if the only excluded key is the ID key
-    if (excludedKeys.length === 1 && idKeyExcluded) {
-      // ..and no keys were found during processing, then we merge in all the keys. the exluded key will be removed below.
-      if (Object.keys(newObj).length === 0) Object.assign(newObj, o);
-    } else if (excludedKeys.length) {
-      // if there are excluded keys (ID key inclusive or not),
-      // .. we first ensure every key exists in the object but correctly overriden with the new values.
-      Object.assign(newObj, { ...o, ...newObj });
-    }
-
-    // remove all excluded keys from newObj
-    for (const k of excludedKeys) {
-      removeValue(newObj, k, { descendArray: true });
-    }
-
-    // if the ID key was not explicitly included or excluded, we always add it to the final result.
-    if (idKeyImplicit && has(o, idKey)) {
+    // if the ID key was not explicitly excluded, and does not exist in new object we always add it to the final result.
+    if (noIdKeyExcluded && !has(newObj, idKey) && has(o, idKey)) {
       newObj[idKey] = resolve(o, idKey);
     }
+
     return newObj;
   };
-}
-
-function checkExpression(expr: AnyObject, options: Options): void {
-  let exclusions = false;
-  let inclusions = false;
-  let positional = 0;
-  for (const [k, v] of Object.entries(expr)) {
-    assert(!k.startsWith("$"), "Field names may not start with '$'.");
-    if (k.endsWith(".$")) {
-      assert(
-        ++positional < 2,
-        "Cannot specify more than one positional projection per query."
-      );
-    }
-    if (k === options?.idKey) continue;
-    if (v === 0 || v === false) {
-      exclusions = true;
-    } else if (v === 1 || v === true) {
-      inclusions = true;
-    }
-    assert(
-      !(exclusions && inclusions),
-      "Projection cannot have a mix of inclusion and exclusion."
-    );
-  }
 }
 
 const findMatches = (
@@ -244,7 +197,7 @@ const findMatches = (
   if (!isArray(arr)) arr = resolve(arr, leaf) as AnyObject[];
   assert(isArray(arr), "must resolve to array");
   const matches: number[] = [];
-  // note: each value is passed in as an arry to support $elemMatch operator.
+  // note: each value is passed in as an arary to support $elemMatch operator.
   arr.forEach((e, i) => pred({ [leaf]: [e] }) && matches.push(i));
   return matches;
 };
@@ -310,7 +263,7 @@ function getPositionalFilter(
   const parent = field.substring(0, sep) || field;
   const leaf = field.substring(sep + 1);
 
-  return (o: AnyObject) => {
+  return (t: AnyObject, o: AnyObject) => {
     const matches: number[][] = [];
     for (const [key, pred, leaf] of selectors["$and"]) {
       matches.push(findMatches(o, key, leaf, pred));
@@ -330,6 +283,6 @@ function getPositionalFilter(
     if (parent != leaf && !isObject(first)) {
       first = { [leaf]: first };
     }
-    setValue(o, parent, [first]);
+    setValue(t, parent, [first]);
   };
 }

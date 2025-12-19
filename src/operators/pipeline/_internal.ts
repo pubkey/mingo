@@ -1,4 +1,6 @@
 import { AnyObject, Options } from "../../types";
+import { isNumber, isObject } from "../../util";
+import { PathValidator } from "../../util/_internal";
 import { $documents } from "./documents";
 
 export function filterDocumentsStage(
@@ -14,4 +16,83 @@ export function filterDocumentsStage(
     documents: $documents(null, docs, options).collect(),
     pipeline: pipeline.slice(1)
   };
+}
+
+interface ProjectMetadata {
+  exclusions: string[];
+  inclusions: string[];
+  positional: number;
+}
+
+export function validateProjection(
+  expr: AnyObject,
+  options: Options,
+  isRoot: boolean = true
+): ProjectMetadata {
+  const res: ProjectMetadata = {
+    exclusions: [],
+    inclusions: [],
+    positional: 0
+  };
+
+  const keys = Object.keys(expr);
+  assert(keys.length, "Invalid empty sub-projection");
+
+  const idKey = options?.idKey;
+  let idKeyExcluded = false;
+
+  for (const k of keys) {
+    // validate operators are respected
+    if (k.startsWith("$")) {
+      assert(
+        !isRoot && keys.length === 1,
+        `FieldPath field names may not start with '$', given '${k}'.`
+      );
+      // operators represent the leaves of the traversals so return empty result.
+      return res;
+    }
+    // validate positional projections
+    if (k.endsWith(".$")) res.positional++;
+
+    const v = expr[k];
+
+    if (v === false || (isNumber(v) && v === 0)) {
+      if (k === idKey) {
+        idKeyExcluded = true;
+      } else res.exclusions.push(k);
+    } else if (!isObject(v)) {
+      res.inclusions.push(k);
+    } else {
+      const s = validateProjection(v as AnyObject, options, false);
+      if (!s.inclusions.length && !s.exclusions.length) {
+        // if we got nothing back it means we hit a leaf to be included.
+        if (!res.inclusions.includes(k)) res.inclusions.push(k);
+      } else {
+        s.inclusions.forEach(s => res.inclusions.push(`${k}.${s}`));
+        s.exclusions.forEach(s => res.exclusions.push(`${k}.${s}`));
+      }
+      res.positional += s.positional;
+    }
+    assert(
+      !(res.exclusions.length && res.inclusions.length),
+      "Cannot do exclusion and inclusion in projection."
+    );
+    assert(
+      res.positional <= 1,
+      "Cannot specify more than one positional projection."
+    );
+  }
+
+  // process the idKey
+  if (idKeyExcluded) {
+    res.exclusions.push(idKey);
+  }
+  if (isRoot) {
+    const p = new PathValidator();
+    res.exclusions.forEach(k => assert(p.add(k), `Path collision at ${k}.`));
+    res.inclusions.forEach(k => assert(p.add(k), `Path collision at ${k}.`));
+    res.exclusions.sort();
+    res.inclusions.sort();
+  }
+  return res;
 }

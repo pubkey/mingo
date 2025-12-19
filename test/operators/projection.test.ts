@@ -432,4 +432,16 @@ describe(testPath(__filename), () => {
       ]);
     });
   });
+
+  describe("path collision", () => {
+    it("should error when projected paths collide", () => {
+      const data = [
+        { _id: 1, user: { name: "Alice", age: 30 } },
+        { _id: 2, user: { name: "Bob", age: 25 } }
+      ];
+      expect(() => find(data, {}, { user: 1, "user.name": 1 }).all()).toThrow(
+        /Path collision/
+      );
+    });
+  });
 });

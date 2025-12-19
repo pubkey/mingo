@@ -11,6 +11,7 @@ import {
   isDate,
   isObject,
   isRegExp,
+  PathValidator,
   resolve,
   walk,
   WalkOptions
@@ -163,7 +164,7 @@ export function buildParams(
   );
   const { condition } = options.local;
   const queryKeys = condition && Object.keys(condition);
-  const conflictDetector = new Trie();
+  const conflictDetector = new PathValidator();
 
   for (const expr of exprList) {
     for (const selector of Object.keys(expr)) {
@@ -251,41 +252,3 @@ export type UpdateOperator = (
   arrayFilters: AnyObject[],
   options: Options
 ) => string[];
-
-interface TrieNode {
-  children: Map<string, TrieNode>;
-  isTerminal: boolean;
-}
-
-/** Simple to trie for validating path conflicts */
-export class Trie {
-  private root: TrieNode;
-
-  constructor() {
-    this.root = {
-      children: new Map<string, TrieNode>(),
-      isTerminal: false
-    };
-  }
-
-  add(selector: string): boolean {
-    const parts = selector.split(".");
-    let current = this.root;
-
-    for (const part of parts) {
-      if (current.isTerminal) return false;
-
-      if (!current.children.has(part)) {
-        current.children.set(part, {
-          children: new Map<string, TrieNode>(),
-          isTerminal: false
-        });
-      }
-
-      current = current.children.get(part);
-    }
-    // selector path already exists (i.e. either terminal or has children)
-    if (current.isTerminal || current.children.size) return false;
-    return (current.isTerminal = true);
-  }
-}

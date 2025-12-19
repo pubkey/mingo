@@ -13,6 +13,7 @@ import {
   isObjectLike,
   MISSING,
   normalize,
+  PathValidator,
   removeValue,
   resolve,
   resolveGraph,
@@ -34,6 +35,32 @@ class CustomWithToString extends Custom {
 }
 
 describe("util", () => {
+  describe("PathValidator", () => {
+    it("should detect conflicts for overlapping paths: nested -> root", () => {
+      const trie = new PathValidator();
+      expect(trie.add("name.firstname")).toBe(true);
+      expect(trie.add("name.lastname")).toBe(true);
+      expect(trie.add("name")).toBe(false);
+      expect(trie.add("age")).toBe(true);
+    });
+
+    it("should detect conflicts for overlapping paths: root -> nested", () => {
+      const trie = new PathValidator();
+      expect(trie.add("name")).toBe(true);
+      expect(trie.add("name.firstname")).toBe(false);
+      expect(trie.add("address")).toBe(true);
+      expect(trie.add("address.street.name")).toBe(false);
+    });
+
+    it("should not detect conflict for non-overlapping paths", () => {
+      const trie = new PathValidator();
+      expect(trie.add("name.firstname")).toBe(true);
+      expect(trie.add("name.lastname")).toBe(true);
+      expect(trie.add("address.street")).toBe(true);
+      expect(trie.add("address.city")).toBe(true);
+    });
+  });
+
   describe("compare", () => {
     const items: Any[] = [
       undefined,

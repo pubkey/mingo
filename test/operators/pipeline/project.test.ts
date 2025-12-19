@@ -1,5 +1,11 @@
+import { validateProjection } from "../../../src/operators/pipeline/_internal";
 import { Any, AnyObject } from "../../../src/types";
-import * as samples from "../../support";
+import {
+  DEFAULT_OPTS,
+  runTestPipeline,
+  studentsData,
+  testPath
+} from "../../support";
 
 const productsData = [
   { _id: 1, item: "abc1", description: "product 1", qty: 300 },
@@ -9,7 +15,7 @@ const productsData = [
   { _id: 5, item: "VWZ2", description: "product 5", qty: 180 }
 ];
 
-samples.runTestPipeline("operators/pipeline/project", [
+runTestPipeline("operators/pipeline/project", [
   {
     message: "can project and rename fields with $project",
     pipeline: [
@@ -25,7 +31,7 @@ samples.runTestPipeline("operators/pipeline/project", [
       },
       { $limit: 1 }
     ],
-    input: samples.studentsData,
+    input: studentsData,
     expected: (result: AnyObject[]) => {
       const fields = Object.keys(result[0]);
       expect(fields.length).toEqual(4);
@@ -34,7 +40,6 @@ samples.runTestPipeline("operators/pipeline/project", [
       expect(Object.keys(temp).length).toEqual(1);
     }
   },
-
   {
     input: productsData,
     pipeline: [
@@ -56,7 +61,6 @@ samples.runTestPipeline("operators/pipeline/project", [
     ],
     message: "can project with $eq operator"
   },
-
   {
     message: "can project literal data for any type except number",
     input: [
@@ -76,10 +80,8 @@ samples.runTestPipeline("operators/pipeline/project", [
       }
     ]
   },
-
   {
     input: productsData,
-    // $cmp
     pipeline: [
       {
         $project: {
@@ -99,10 +101,9 @@ samples.runTestPipeline("operators/pipeline/project", [
     ],
     message: "can project with $cmp operator"
   },
-
   {
     message: "can exclude arbitrary field",
-    input: samples.studentsData,
+    input: studentsData,
     pipeline: [
       {
         $project: {
@@ -117,25 +118,16 @@ samples.runTestPipeline("operators/pipeline/project", [
       expect(result[0]).toHaveProperty("scores");
     }
   },
-
   {
     message: "can exclude '_id' field",
-    input: samples.studentsData,
-    pipeline: [
-      {
-        $project: {
-          _id: 0
-        }
-      },
-      { $limit: 1 }
-    ],
+    input: studentsData,
+    pipeline: [{ $project: { _id: 0 } }, { $limit: 1 }],
     expected: (result: Any[]) => {
       expect(result[0]).not.toHaveProperty("_id");
       expect(result[0]).toHaveProperty("name");
       expect(result[0]).toHaveProperty("scores");
     }
   },
-
   {
     input: [
       { _id: 1, quizzes: [10, 6, 7], labs: [5, 8], final: 80, midterm: 75 },
@@ -158,7 +150,6 @@ samples.runTestPipeline("operators/pipeline/project", [
     ],
     message: "can $project new field with group operator"
   },
-
   {
     message: "exclude fields from embedded documents",
     input: [
@@ -184,7 +175,6 @@ samples.runTestPipeline("operators/pipeline/project", [
       }
     ]
   },
-
   {
     message: "exclude fields from embedded documents using nested array syntax",
     input: [
@@ -210,7 +200,6 @@ samples.runTestPipeline("operators/pipeline/project", [
       }
     ]
   },
-
   // Project with $$REMOVE
   // See: https://docs.mongodb.com/manual/reference/operator/aggregation/project/#remove-example
   {
@@ -363,12 +352,14 @@ samples.runTestPipeline("operators/pipeline/project", [
     pipeline: [{ $project: { myArray: ["$x", "$y"] } }],
     expected: [{ _id: 1, myArray: [1, 1] }]
   },
+
   {
     message: "project new array fields with mssing fields",
     input: [{ _id: 1, x: 1, y: 1 }],
     pipeline: [{ $project: { myArray: ["$x", "$y", "$someField"] } }],
     expected: [{ _id: 1, myArray: [1, 1, null] }]
   },
+
   // test from https://github.com/kofrasa/mingo/issues/119
   {
     message: "should project new array fields (see #119)",
@@ -382,6 +373,7 @@ samples.runTestPipeline("operators/pipeline/project", [
     ],
     expected: [{ myArray: ["hi"] }]
   },
+
   {
     message: "should project with $slice expression operator",
     input: [
@@ -521,5 +513,146 @@ samples.runTestPipeline("operators/pipeline/project", [
         week: 0
       }
     ]
+  },
+
+  {
+    message: "should not create non-existent paths for excluded keys (#589)",
+    input: [
+      {
+        name: "Alice",
+        address: {
+          street: "AliceStreet",
+          number: 31
+        },
+        age: 30
+      },
+      {
+        name: "Bob",
+        address: {
+          street: "BobStreet",
+          number: 22
+        },
+        age: 21
+      },
+      {
+        name: "Charlie",
+        address: {
+          street: "CharlieStreet",
+          number: 26
+        },
+        age: 25
+      }
+    ],
+    pipeline: [{ $project: { newField: { nested: 0 } } }],
+    expected: [
+      {
+        name: "Alice",
+        address: {
+          street: "AliceStreet",
+          number: 31
+        },
+        age: 30
+      },
+      {
+        name: "Bob",
+        address: {
+          street: "BobStreet",
+          number: 22
+        },
+        age: 21
+      },
+      {
+        name: "Charlie",
+        address: {
+          street: "CharlieStreet",
+          number: 26
+        },
+        age: 25
+      }
+    ]
   }
 ]);
+
+describe(testPath(__filename) + ": More Tests", () => {
+  describe("validateProjection", () => {
+    const opts = DEFAULT_OPTS;
+    // valid projections
+    it.each([
+      // top-level
+      { x: "name", y: "Asd" },
+      { x: "name", y: 10 },
+      { x: "name", y: true },
+      { x: "name", y: -12 },
+      // nested
+      { key: { x: "name", y: "Asd" } },
+      { key: { x: "name", y: 1 } },
+      { key: { x: "name", y: true } },
+      { key: { x: "$name", y: "Asd" } },
+      { key: { x: "$name", y: [] } }
+    ])("should accept %o", expr => {
+      expect(() => validateProjection(expr, opts, true)).not.toThrow();
+    });
+
+    // invalid projections
+    it.each([
+      // top-level
+      { x: "name", y: 0 },
+      { x: "name", y: false },
+      { x: "name", y: -12, z: 0 },
+      { x: "$name", y: {} },
+      // nested
+      { key: { x: "name", y: 0 } },
+      { key: { x: "name", y: false } },
+      { key: { x: "$name", y: {} } },
+      { key: { x: "$name", y: {}, z: 0 } }
+    ])("should reject %j", expr => {
+      expect(() => validateProjection(expr, opts, true)).toThrow();
+    });
+
+    it("rejects empty projection", () => {
+      expect(() =>
+        validateProjection({ x: "$name", y: {} }, opts, true)
+      ).toThrow(/Invalid empty sub-projection/);
+    });
+
+    it("rejects invalid operator projection", () => {
+      expect(() =>
+        validateProjection({ x: "$name", y: { $and: [], age: 1 } }, opts, true)
+      ).toThrow(/FieldPath field names may not start/);
+    });
+
+    it("rejects mixed inclusions and exclusion", () => {
+      expect(() =>
+        validateProjection({ x: "$name", y: 0 }, opts, true)
+      ).toThrow(/Cannot do exclusion and inclusion in projection./);
+    });
+
+    it("rejects multiple positional projections", () => {
+      expect(() =>
+        validateProjection(
+          { x: "name", "field.$": 1, nested: { "sneaky.$": 1 } },
+          opts,
+          true
+        )
+      ).toThrow(/Cannot specify more than one positional projection./);
+    });
+
+    it("should return accurate metadata", () => {
+      const input = {
+        year: { $year: "$date" },
+        month: { $month: "$date" },
+        day: { $dayOfMonth: "$date" },
+        hour: { $hour: "$date" },
+        minutes: { $minute: "$date" },
+        seconds: { $second: "$date" },
+        milliseconds: { $millisecond: "$date" },
+        dayOfYear: { $dayOfYear: "$date" },
+        dayOfWeek: { $dayOfWeek: "$date" },
+        week: { $week: "$date" }
+      };
+      const res = validateProjection(input, opts, true);
+      expect(res.inclusions).toEqual(Object.keys(input).sort());
+      expect(res.exclusions).toEqual([]);
+    });
+  });
+});

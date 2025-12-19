@@ -1,37 +1,11 @@
 import { find, update, updateMany, updateOne } from "../src";
 import { ComputeOptions } from "../src/core/_internal";
-import { clone, Trie } from "../src/operators/update/_internal";
+import { clone } from "../src/operators/update/_internal";
 import { AnyObject } from "../src/types";
 import { isArray } from "../src/util";
 import { ISODate } from "./support";
 
 describe("updater", () => {
-  describe("Trie: Conflict Detection", () => {
-    it("should detect conflicts for overlapping paths: nested -> root", () => {
-      const trie = new Trie();
-      expect(trie.add("name.firstname")).toBe(true);
-      expect(trie.add("name.lastname")).toBe(true);
-      expect(trie.add("name")).toBe(false);
-      expect(trie.add("age")).toBe(true);
-    });
-
-    it("should detect conflicts for overlapping paths: root -> nested", () => {
-      const trie = new Trie();
-      expect(trie.add("name")).toBe(true);
-      expect(trie.add("name.firstname")).toBe(false);
-      expect(trie.add("address")).toBe(true);
-      expect(trie.add("address.street.name")).toBe(false);
-    });
-
-    it("should not detect conflict for non-overlapping paths", () => {
-      const trie = new Trie();
-      expect(trie.add("name.firstname")).toBe(true);
-      expect(trie.add("name.lastname")).toBe(true);
-      expect(trie.add("address.street")).toBe(true);
-      expect(trie.add("address.city")).toBe(true);
-    });
-  });
-
   describe("_id Immutability", () => {
     const ERR_MSG = /would modify the immutable field '_id'/;
 

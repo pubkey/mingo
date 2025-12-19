@@ -14,7 +14,6 @@ import * as UPDATE_OPERATORS from "./operators/update";
 import {
   buildParams,
   SingleKeyRecord,
-  Trie,
   UpdateOperator
 } from "./operators/update/_internal";
 import { Query } from "./query";
@@ -35,6 +34,7 @@ import {
   isEqual,
   resolve
 } from "./util";
+import { PathValidator } from "./util/_internal";
 
 const PIPELINE_OPERATORS = {
   $addFields,
@@ -402,11 +402,11 @@ function getModifiedFields<T extends AnyObject>(
     }
   }
   const stageFieldsSet = new Set(stageFields.sort());
-  const conflictDetector = new Trie();
+  const pathValidator = new PathValidator();
   const modifiedFields: string[] = [];
   for (const key of stageFieldsSet) {
     if (
-      conflictDetector.add(key) &&
+      pathValidator.add(key) &&
       !isEqual(resolve(newDoc, key), resolve(oldDoc, key))
     ) {
       modifiedFields.push(key);
@@ -416,7 +416,7 @@ function getModifiedFields<T extends AnyObject>(
   // this addresses cases where the entire object is replaced.
   for (const key of Object.keys(oldDoc)) {
     if (stageFieldsSet.has(key)) continue;
-    if (!conflictDetector.add(key) || !isEqual(newDoc[key], oldDoc[key])) {
+    if (!pathValidator.add(key) || !isEqual(newDoc[key], oldDoc[key])) {
       // (1) conflict detected because child keys already exists.
       //     since we don't know the state of sibling fields we must replace with top-level field instead.
       // (2) no conflict so we must check values and key only if not equal.
@@ -424,6 +424,6 @@ function getModifiedFields<T extends AnyObject>(
     }
   }
   // sort the final list and pick only the parent key paths.
-  const topLevelFilter = new Trie();
-  return modifiedFields.sort().filter(key => topLevelFilter.add(key));
+  const topLevelValidator = new PathValidator();
+  return modifiedFields.sort().filter(key => topLevelValidator.add(key));
 }

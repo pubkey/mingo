@@ -802,3 +802,41 @@ export function findInsertIndex<T = Any>(
   }
   return lo;
 }
+
+interface PathNode {
+  children: Map<string, PathNode>;
+  isTerminal: boolean;
+}
+
+/** Simple to trie for validating path conflicts */
+export class PathValidator {
+  private root: PathNode;
+
+  constructor() {
+    this.root = {
+      children: new Map<string, PathNode>(),
+      isTerminal: false
+    };
+  }
+
+  add(selector: string): boolean {
+    const parts = selector.split(".");
+    let current = this.root;
+
+    for (const part of parts) {
+      if (current.isTerminal) return false;
+
+      if (!current.children.has(part)) {
+        current.children.set(part, {
+          children: new Map<string, PathNode>(),
+          isTerminal: false
+        });
+      }
+
+      current = current.children.get(part);
+    }
+    // selector path already exists (i.e. either terminal or has children)
+    if (current.isTerminal || current.children.size) return false;
+    return (current.isTerminal = true);
+  }
+}
