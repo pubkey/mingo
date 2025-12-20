@@ -64,12 +64,14 @@ describe("util", () => {
   describe("compare", () => {
     const items: Any[] = [
       undefined,
+      [],
       null,
       1,
       "a",
       Symbol(),
+      // array are compared element-wise
+      [Symbol("sym")],
       { a: 1, b: 2 },
-      [1, 2, 3],
       new Uint8Array(0),
       false,
       new Date(),
@@ -157,56 +159,50 @@ describe("util", () => {
       ]);
     });
 
-    it("should compare arrays in correct order", () => {
-      const input = [
-        null,
-        [1, 2],
-        [1, 2, 0],
-        [1],
-        [[1, 2]],
-        [1, 3],
-        [1, null],
-        [1, "a"],
-        [],
-        [2],
-        [[1]],
-        ["a"]
-      ];
-      // This is inconsistent with MongoDB at this time.
-      const output = [
-        null,
-        [],
-        [1],
-        [1, null],
-        [1, 2],
-        [1, 2, 0],
-        [1, 3],
-        [1, "a"],
-        [2],
-        ["a"],
-        [[1]],
-        [[1, 2]]
-      ];
-      // FIXME: https://github.com/kofrasa/mingo/issues/590
-      // figure out how to proceed with handling array sorting. Options
-      // 1) use MongoDB semantics all the time.
-      // 2) use custom semantics and document.
-      // 3) use MongoDB semantics for under strictMode only.
-      expect(input.sort(compare)).toEqual(output);
+    describe("array comparison", () => {
+      it("should compare arrays by smallest element within", () => {
+        const array = [
+          [1, 2],
+          [1, 2, 0],
+          [1],
+          [[1, 2]],
+          [1, 3],
+          [1, "a"],
+          [],
+          [2],
+          [[1]],
+          ["a"],
+          [1, null],
+          null
+        ].sort(compare);
+        expect(array).toEqual([
+          [],
+          [1, null],
+          null, // same order as [1, null] but stable sort keeps original order
+          [1, 2, 0],
+          [1],
+          [1, 2],
+          [1, 3],
+          [1, "a"],
+          [2],
+          ["a"],
+          [[1]],
+          [[1, 2]]
+        ]);
+      });
 
-      // MongoDB 8.0.1 (expected)
-      // [],
-      // null,
-      // [1, null],
-      // [1, 2, 0],
-      // [1],
-      // [1, 2],
-      // [1, 3],
-      // [1, "a"],
-      // [2],
-      // ["a"],
-      // [[1]],
-      // [[1, 2]]
+      it("should compare array element-wise against other values", () => {
+        expect(compare([1], 5)).toEqual(-1);
+        expect(compare([5], 5)).toEqual(0);
+        expect(compare([10], 5)).toEqual(1);
+        // nested array
+        expect(compare([[]], 5)).toEqual(1);
+        expect(compare([[1]], 5)).toEqual(1);
+        expect(compare([[10]], 5)).toEqual(1);
+
+        expect(compare([[]], true)).toEqual(-1);
+        expect(compare([[false]], true)).toEqual(-1);
+      });
     });
   });
 

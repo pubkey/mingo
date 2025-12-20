@@ -41,7 +41,6 @@ const USER_TYPE = Object.keys(SORT_ORDER).length * 2;
 type Cmp = string | number;
 const simpleCmp = <T = Cmp>(a: T, b: T) => (a < b ? -1 : a > b ? 1 : 0);
 const typedArraysCmp = (a: ArrayBufferView, b: ArrayBufferView): number => {
-  // Create Uint8Array views over the buffers
   const bytesA = new Uint8Array(a.buffer, a.byteOffset, a.byteLength);
   const bytesB = new Uint8Array(b.buffer, b.byteOffset, b.byteLength);
   const size = Math.min(bytesA.length, bytesB.length);
@@ -53,26 +52,41 @@ const typedArraysCmp = (a: ArrayBufferView, b: ArrayBufferView): number => {
   return simpleCmp(bytesA.length, bytesB.length);
 };
 
-/**
- * Compare function which adheres to MongoDB comparison order.
- *
- * @param a The first value
- * @param b The second value
- * @returns {Number}
- */
-export function compare(a: Any, b: Any): number {
+function mingoCmp(a: Any, b: Any, descendArray: boolean = false): number {
+  // capture "not equal" result to use in if-expressions when order evaluates to 1 or -1.
+  let neq = 0;
+
   if (a === MISSING) a = undefined;
   if (b === MISSING) b = undefined;
+  if (a === b || Object.is(a, b)) return 0;
   const typeA = isTypedArray(a) ? "arraybuffer" : typeOf(a);
   const typeB = isTypedArray(b) ? "arraybuffer" : typeOf(b);
+  // unequal types
   if (typeA !== typeB) {
-    // unequal types
+    // undefined is smallest, empty array is next smallest.
+    if (typeA == "undefined") return -1;
+    if (typeB == "undefined") return 1;
+    if (descendArray && typeA == "array" && !(a as Any[]).length) return -1;
+    if (descendArray && typeB == "array" && !(b as Any[]).length) return 1;
+    if (descendArray) {
+      if (isArray(a)) {
+        const sorted = a.slice().sort(mingoCmp);
+        neq = 1;
+        for (const v of sorted)
+          if ((neq = Math.min(neq, mingoCmp(v, b))) < 0) return neq;
+        return neq;
+      } else if (isArray(b)) {
+        const sorted = b.slice().sort(mingoCmp);
+        neq = -1;
+        for (const v of sorted)
+          if ((neq = Math.max(neq, mingoCmp(a, v))) > 0) return neq;
+        return neq;
+      }
+    }
     const orderA = SORT_ORDER[typeA] ?? USER_TYPE;
     const orderB = SORT_ORDER[typeB] ?? USER_TYPE;
     if (orderA !== orderB) return simpleCmp(orderA, orderB);
   }
-  // capture "not equal" result to use in if-expressions when order evaluates to 1 or -1.
-  let neq = 0;
 
   switch (typeA) {
     case "undefined":
@@ -81,8 +95,9 @@ export function compare(a: Any, b: Any): number {
     case "number":
     case "string":
       return simpleCmp(a, b);
+    case "boolean":
     case "date":
-      return simpleCmp(+(a as Date), +(b as Date));
+      return simpleCmp(+(a as Date | boolean), +(b as Date | boolean));
     case "regexp":
       if ((neq = simpleCmp((a as RegExp).source, (b as RegExp).source)))
         return neq;
@@ -92,11 +107,11 @@ export function compare(a: Any, b: Any): number {
     case "arraybuffer":
       return typedArraysCmp(a as ArrayBufferView, b as ArrayBufferView);
     case "array": {
-      const x = a as Any[];
-      const y = b as Any[];
+      const x = (a as Any[]).slice().sort(mingoCmp);
+      const y = (b as Any[]).slice().sort(mingoCmp);
       const size = Math.min(x.length, y.length);
       for (let i = 0; i < size; i++)
-        if ((neq = compare(x[i], y[i]))) return neq;
+        if ((neq = mingoCmp(x[i], y[i]))) return neq;
       return simpleCmp(x.length, y.length);
     }
     default: {
@@ -116,12 +131,73 @@ export function compare(a: Any, b: Any): number {
       // plain objects
       const keysA = Object.keys(a as object).sort();
       const keysB = Object.keys(b as object).sort();
-      if ((neq = compare(keysA, keysB))) return neq;
+      if ((neq = mingoCmp(keysA, keysB))) return neq;
       for (const k of keysA)
-        if ((neq = compare((a as object)[k], (b as object)[k]))) return neq;
+        if ((neq = mingoCmp((a as object)[k], (b as object)[k]))) return neq;
       return 0;
     }
   }
+}
+
+/**
+ * Compare function which adheres to MongoDB comparison order.
+ *
+ * @param a The first value
+ * @param b The second value
+ * @returns {Number}
+ */
+export function compare(a: Any, b: Any): number {
+  return mingoCmp(a, b, true);
+}
+
+type Stringer = { toString(): string };
+const hasCustomString = (o: Any): o is Stringer =>
+  o !== null && o !== undefined && o["toString"] !== Object.prototype.toString;
+
+const toPlainObject = (o: object): AnyObject => {
+  if (o?.constructor === Object) return o as AnyObject;
+  const obj: AnyObject = { constructor: o.constructor?.name };
+  for (const k of Object.keys(o)) obj[k] = o[k];
+  for (const k of Object.getOwnPropertyNames(Object.getPrototypeOf(o))) {
+    if (typeof o[k] !== "function") obj[k] = o[k];
+  }
+  return obj;
+};
+
+type Str = { toString: () => string };
+
+/**
+ * Determine whether two values are the same or strictly equivalent.
+ * Checking whether values are the same only applies to built in objects.
+ * For custom objects, they are equal only of their toString() representation are equal if defined.
+ *
+ * @param a The first value
+ * @param b The second value
+ * @return True if values are equivalent, false otherwise.
+ */
+export function isEqual(a: Any, b: Any): boolean {
+  // strictly equal must be equal. matches referentially equal values.
+  if (a === b || Object.is(a, b)) return true;
+  if (a === null || b === null) return false;
+  if (typeof a !== typeof b) return false;
+  if (typeof a !== "object") return false;
+  if (a.constructor !== b.constructor) return false;
+  if (isDate(a)) return isDate(b) && +a === +b;
+  if (isRegExp(a))
+    return isRegExp(b) && a.source === b.source && a.flags === b.flags;
+  if (isArray(a) && isArray(b)) {
+    return a.length === b.length && a.every((v, i) => isEqual(v, b[i]));
+  }
+  if (a?.constructor !== Object) {
+    if (hasCustomString(a))
+      return (a as Str)?.toString() === (b as Str)?.toString();
+    a = toPlainObject(a);
+    b = toPlainObject(b as object);
+  }
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
+  if (keysA.length !== keysB.length) return false;
+  return keysA.every(k => has(b as AnyObject, k) && isEqual(a[k], b[k]));
 }
 
 /**
@@ -387,56 +463,6 @@ export function flatten(xs: Any[], depth = 1): Any[] {
   }
   flatten2(xs, depth);
   return arr;
-}
-
-type Stringer = { toString(): string };
-const hasCustomString = (o: Any): o is Stringer =>
-  o !== null && o !== undefined && o["toString"] !== Object.prototype.toString;
-
-const toPlainObject = (o: object): AnyObject => {
-  if (o?.constructor === Object) return o as AnyObject;
-  const obj: AnyObject = { constructor: o.constructor?.name };
-  for (const k of Object.keys(o)) obj[k] = o[k];
-  for (const k of Object.getOwnPropertyNames(Object.getPrototypeOf(o))) {
-    if (typeof o[k] !== "function") obj[k] = o[k];
-  }
-  return obj;
-};
-
-type Str = { toString: () => string };
-
-/**
- * Determine whether two values are the same or strictly equivalent.
- * Checking whether values are the same only applies to built in objects.
- * For custom objects, they are equal only of their toString() representation are equal if defined.
- *
- * @param a The first value
- * @param b The second value
- * @return True if values are equivalent, false otherwise.
- */
-export function isEqual(a: Any, b: Any): boolean {
-  // strictly equal must be equal. matches referentially equal values.
-  if (a === b || Object.is(a, b)) return true;
-  if (a === null || b === null) return false;
-  if (typeof a !== typeof b) return false;
-  if (typeof a !== "object") return false;
-  if (a.constructor !== b.constructor) return false;
-  if (isDate(a)) return isDate(b) && +a === +b;
-  if (isRegExp(a))
-    return isRegExp(b) && a.source === b.source && a.flags === b.flags;
-  if (isArray(a) && isArray(b)) {
-    return a.length === b.length && a.every((v, i) => isEqual(v, b[i]));
-  }
-  if (a?.constructor !== Object) {
-    if (hasCustomString(a))
-      return (a as Str)?.toString() === (b as Str)?.toString();
-    a = toPlainObject(a);
-    b = toPlainObject(b as object);
-  }
-  const keysA = Object.keys(a);
-  const keysB = Object.keys(b);
-  if (keysA.length !== keysB.length) return false;
-  return keysA.every(k => has(b as AnyObject, k) && isEqual(a[k], b[k]));
 }
 
 /**
