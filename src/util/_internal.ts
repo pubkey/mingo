@@ -58,6 +58,7 @@ function mingoCmp(a: Any, b: Any, descendArray: boolean = false): number {
 
   if (a === MISSING) a = undefined;
   if (b === MISSING) b = undefined;
+  // null, undefined, same object ref, same primitive value
   if (a === b || Object.is(a, b)) return 0;
   const typeA = isTypedArray(a) ? "arraybuffer" : typeOf(a);
   const typeB = isTypedArray(b) ? "arraybuffer" : typeOf(b);
@@ -89,13 +90,9 @@ function mingoCmp(a: Any, b: Any, descendArray: boolean = false): number {
   }
 
   switch (typeA) {
-    case "undefined":
-    case "null":
-      return 0;
     case "number":
     case "string":
       return simpleCmp(a, b);
-    case "boolean":
     case "date":
       return simpleCmp(+(a as Date | boolean), +(b as Date | boolean));
     case "regexp":
@@ -155,7 +152,6 @@ const hasCustomString = (o: Any): o is Stringer =>
   o !== null && o !== undefined && o["toString"] !== Object.prototype.toString;
 
 const toPlainObject = (o: object): AnyObject => {
-  if (o?.constructor === Object) return o as AnyObject;
   const obj: AnyObject = { constructor: o.constructor?.name };
   for (const k of Object.keys(o)) obj[k] = o[k];
   for (const k of Object.getOwnPropertyNames(Object.getPrototypeOf(o))) {
@@ -353,7 +349,6 @@ const isTypedArray = (v: Any): v is ArrayBuffer =>
  * Deep clone an object.
  */
 export const cloneDeep = <T>(v: T, refs?: Set<Any>): T => {
-  // if (structuredClone) return structuredClone(v);
   if (isNil(v) || isBoolean(v) || isNumber(v) || isString(v)) return v;
   if (isDate(v)) return new Date(v) as T;
   if (isRegExp(v)) return new RegExp(v) as T;
@@ -382,40 +377,6 @@ export const cloneDeep = <T>(v: T, refs?: Set<Any>): T => {
   // custom-type. will be treated as immutable so return as is.
   return v;
 };
-
-const isMissing = (v: Any): boolean => v === MISSING;
-
-/**
- * Deep merge objects or arrays. When the inputs have unmergeable types, the right hand value is returned.
- * If inputs are arrays, elements in the same position are merged together.
- * Remaining elements are appended to the target object.
- *
- * @param target Target object to merge into.
- * @param input  Source object to merge from.
- * @private
- */
-export function merge(target: Any, input: Any): Any {
-  // take care of missing inputs
-  if (isMissing(target) || isNil(target)) return input;
-  if (isMissing(input) || isNil(input)) return target;
-  const t = typeOf(target);
-  if (t !== typeOf(input)) return input;
-  if (isArray(target) && isArray(input)) {
-    for (let i = 0; i < input.length; i++) {
-      if (i < target.length) {
-        target[i] = merge(target[i], input[i]);
-      } else {
-        // append remaining items
-        target.push(input[i]);
-      }
-    }
-  } else if (t === "object") {
-    for (const k of Object.keys(input as AnyObject)) {
-      target[k] = merge(target[k], input[k]);
-    }
-  }
-  return target;
-}
 
 /**
  * Returns the intersection of multiple arrays.

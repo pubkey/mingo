@@ -18,10 +18,11 @@ import {
   intersection,
   isArray,
   isEmpty,
+  isNil,
   isNumber,
   isObject,
   isOperator,
-  merge,
+  MISSING,
   normalize,
   removeValue,
   resolve,
@@ -106,7 +107,7 @@ function createHandler(
       handlers[selector] = (t: AnyObject, o: AnyObject) => {
         options.update({ root: o });
         const extractedVal = resolveGraph(o, selector, resolveOpts);
-        merge(t, extractedVal);
+        mergeInto(t, extractedVal);
       };
     } else if (isObject(v) == false) {
       handlers[selector] = (t: AnyObject, o: AnyObject) => {
@@ -284,4 +285,15 @@ function getPositionalFilter(
     }
     setValue(t, parent, [first]);
   };
+}
+
+/** Merge input object into target object replacing all placeholder values. */
+function mergeInto(target: Any, input: Any): Any {
+  if (target === MISSING || isNil(target)) return input;
+  if (isNil(input)) return target;
+  // handle both arrays and objects
+  for (const k of Object.keys(input as object)) {
+    target[k] = mergeInto(target[k], input[k]);
+  }
+  return target;
 }
