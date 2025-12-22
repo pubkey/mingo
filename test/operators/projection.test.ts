@@ -98,6 +98,15 @@ describe(testPath(__filename), () => {
   });
 
   describe("$slice", () => {
+    it("returns elements as is when not an array", () => {
+      const result = find(
+        [{ a: 20 }, { a: true }, { a: "hello" }],
+        {},
+        { a: { $slice: 1 } }
+      ).all();
+      expect(result).toEqual([{ a: 20 }, { a: true }, { a: "hello" }]);
+    });
+
     it("can project $slice with limit", () => {
       const result = find(data, {}, { students: { $slice: 1 } }).all()[0] as {
         students: Any[];

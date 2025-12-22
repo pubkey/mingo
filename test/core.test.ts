@@ -18,24 +18,64 @@ describe("core", () => {
   });
 
   describe("Context", () => {
+    const customOps = {
+      pipeline: { $myPipeline: () => new Iterator([]) },
+      expression: { $myExpression: () => 1 },
+      accumulator: { $myAccumulator: () => 1 },
+      query: { $myQuery: () => () => true },
+      window: { $myWindow: () => 1 },
+      projection: { $myProjection: () => 1 }
+    };
+
     it("should register operators with Context.init()", () => {
-      const customPipelineOps = {
-        $customPipeline: () => new Iterator([])
-      };
-      const customExpressionOps = {
-        $customExpression: () => 42
-      };
+      const ctx = Context.init(customOps);
 
-      const ctx = Context.init({
-        pipeline: customPipelineOps,
-        expression: customExpressionOps
-      });
-
-      expect(ctx.getOperator(OpType.PIPELINE, "$customPipeline")).toEqual(
-        customPipelineOps.$customPipeline
+      expect(ctx.getOperator(OpType.PIPELINE, "$myPipeline")).toEqual(
+        customOps.pipeline.$myPipeline
       );
-      expect(ctx.getOperator(OpType.EXPRESSION, "$customExpression")).toEqual(
-        customExpressionOps.$customExpression
+      expect(ctx.getOperator(OpType.EXPRESSION, "$myExpression")).toEqual(
+        customOps.expression.$myExpression
+      );
+      expect(ctx.getOperator(OpType.ACCUMULATOR, "$myAccumulator")).toEqual(
+        customOps.accumulator.$myAccumulator
+      );
+      expect(ctx.getOperator(OpType.QUERY, "$myQuery")).toEqual(
+        customOps.query.$myQuery
+      );
+      expect(ctx.getOperator(OpType.WINDOW, "$myWindow")).toEqual(
+        customOps.window.$myWindow
+      );
+      expect(ctx.getOperator(OpType.PROJECTION, "$myProjection")).toEqual(
+        customOps.projection.$myProjection
+      );
+    });
+
+    it("should register operators with specific Context methods", () => {
+      const ctx = Context.init()
+        .addPipelineOps(customOps.pipeline)
+        .addExpressionOps(customOps.expression)
+        .addAccumulatorOps(customOps.accumulator)
+        .addQueryOps(customOps.query)
+        .addWindowOps(customOps.window)
+        .addProjectionOps(customOps.projection);
+
+      expect(ctx.getOperator(OpType.PIPELINE, "$myPipeline")).toEqual(
+        customOps.pipeline.$myPipeline
+      );
+      expect(ctx.getOperator(OpType.EXPRESSION, "$myExpression")).toEqual(
+        customOps.expression.$myExpression
+      );
+      expect(ctx.getOperator(OpType.ACCUMULATOR, "$myAccumulator")).toEqual(
+        customOps.accumulator.$myAccumulator
+      );
+      expect(ctx.getOperator(OpType.QUERY, "$myQuery")).toEqual(
+        customOps.query.$myQuery
+      );
+      expect(ctx.getOperator(OpType.WINDOW, "$myWindow")).toEqual(
+        customOps.window.$myWindow
+      );
+      expect(ctx.getOperator(OpType.PROJECTION, "$myProjection")).toEqual(
+        customOps.projection.$myProjection
       );
     });
 

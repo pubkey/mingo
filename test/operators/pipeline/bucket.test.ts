@@ -16,10 +16,8 @@ describe(testPath(__filename), () => {
           $bucket: {
             groupBy: "$score", // Field to group by
             boundaries: [0, 50, 100], // Bucket boundaries
-            default: 150, // Value that is greater than the upper bound (100) and of the same type (number)
-            output: {
-              count: { $sum: 1 } // Count documents in each bucket
-            }
+            default: 150 // Value that is greater than the upper bound (100) and of the same type (number)
+            // default output used when not specified. { count: { $sum: 1 } }
           }
         }
       ]

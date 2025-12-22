@@ -74,8 +74,7 @@ export function $eq(a: Any, b: Any, options?: Options): boolean {
 
   // check
   if (isArray(a)) {
-    const depth =
-      (options instanceof ComputeOptions ? options?.local?.depth : 1) ?? 1;
+    const depth = options instanceof ComputeOptions ? options?.local?.depth : 1;
     return (
       a.some(v => isEqual(v, b)) || flatten(a, depth).some(v => isEqual(v, b))
     );

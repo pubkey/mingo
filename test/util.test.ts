@@ -147,6 +147,21 @@ describe("util", () => {
       expect(compare(u8, i8)).toBe(1);
     });
 
+    it("should compare different refs with same values correctly", () => {
+      const now = Date.now();
+      expect(compare(/abc/, /abc/)).toBe(0);
+      expect(compare([1], [1])).toBe(0);
+      expect(compare({ a: 1 }, { a: 1 })).toBe(0);
+      expect(compare(new Date(now), new Date(now))).toBe(0);
+      // custom types with toString
+      expect(
+        compare(new CustomWithToString("x"), new CustomWithToString("x"))
+      ).toBe(0);
+      expect(compare(new Error("fail"), new Error("fail"))).toBe(0);
+      // custom types without toString
+      expect(compare(new Custom("x"), new Custom("x"))).toBe(0);
+    });
+
     it("should compare regex in correct order", () => {
       const input = [/abc/, /abc/m, /abc/i, /abd/, /zzz/, /ab/];
       expect(input.sort(compare)).toEqual([
