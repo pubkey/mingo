@@ -152,7 +152,7 @@ export const $dateTrunc: ExpressionOperator<Date> = (
         binLowerBoundFromRefPoint,
         timezone
       );
-      const minuteOffset = parseTimezone(timezone);
+      const minuteOffset = parseTimezone(timezone, newDate);
       adjustDate(newDate, -minuteOffset);
       return newDate;
     }

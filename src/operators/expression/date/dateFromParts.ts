@@ -39,7 +39,7 @@ export const $dateFromParts: ExpressionOperator<Date> = (
   options: Options
 ): Date => {
   const args = computeValue(obj, expr, null, options) as DateArgs;
-  const minuteOffset = parseTimezone(args.timezone);
+  const minuteOffset = parseTimezone(args.timezone, new Date());
 
   // assign default and adjust value ranges of the different parts
 

@@ -136,7 +136,7 @@ export const $dateFromString: ExpressionOperator<Any> = (
 
   const minuteOffset = m
     ? tzLetterOffset(m[0]) * MINUTES_PER_HOUR
-    : parseTimezone(args.timezone);
+    : parseTimezone(args.timezone, new Date());
 
   // create the date. month is 0-based in Date
   const d = new Date(

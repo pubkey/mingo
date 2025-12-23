@@ -22,8 +22,7 @@ export const $dateToParts: ExpressionOperator<AnyObject> = (
   };
 
   const d = new Date(args.date);
-  const tz = parseTimezone(args.timezone);
-  adjustDate(d, tz);
+  adjustDate(d, parseTimezone(args.timezone, d));
 
   const timePart = {
     hour: d.getUTCHours(),

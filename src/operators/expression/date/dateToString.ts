@@ -83,7 +83,7 @@ export const $dateToString: ExpressionOperator<string> = (
 
   const date = computeDate(obj, args.date, options);
   let format = args.format || DATE_FORMAT;
-  const minuteOffset = parseTimezone(args.timezone);
+  const minuteOffset = parseTimezone(args.timezone, date);
   const matches = format.match(DATE_FORMAT_SYM_RE);
 
   // adjust the date to reflect timezone

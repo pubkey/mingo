@@ -40,9 +40,8 @@ export const $dateDiff: ExpressionOperator<number> = (
 
   const d1 = new Date(startDate);
   const d2 = new Date(endDate);
-  const minuteOffset = parseTimezone(timezone);
-  adjustDate(d1, minuteOffset);
-  adjustDate(d2, minuteOffset);
+  adjustDate(d1, parseTimezone(timezone, d1));
+  adjustDate(d2, parseTimezone(timezone, d2));
 
   switch (unit) {
     case "year":

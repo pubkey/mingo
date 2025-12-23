@@ -188,20 +188,23 @@ const TIMEZONE_RE = /^[a-zA-Z_]+\/[a-zA-Z_]+$/;
 
 /**
  * Parse and return the timezone string as a number
- * @param tzstr Timezone string matching '+/-hh[:][mm]' or Olson name.
+ * @param timeZone Timezone string matching '+/-hh[:][mm]' or Olson name.
+ * @param date Reference date
  */
-export function parseTimezone(tzstr?: string): number {
-  if (isNil(tzstr)) return 0;
+export function parseTimezone(
+  timeZone: string | undefined,
+  date: Date
+): number {
+  if (isNil(timeZone)) return 0;
 
-  if (TIMEZONE_RE.test(tzstr)) {
-    const date = new Date();
+  if (TIMEZONE_RE.test(timeZone)) {
     const utcDate = new Date(date.toLocaleString("en-US", { timeZone: "UTC" }));
-    const tzDate = new Date(date.toLocaleString("en-US", { timeZone: tzstr }));
-    return (tzDate.getTime() - utcDate.getTime()) / 6e4 + +isDST(date);
+    const tzDate = new Date(date.toLocaleString("en-US", { timeZone }));
+    return Math.round((tzDate.getTime() - utcDate.getTime()) / 6e4);
   }
 
-  const m = DATE_SYM_TABLE["%z"].re.exec(tzstr);
-  assert(!!m, `timezone '${tzstr}' is invalid or not supported.`);
+  const m = DATE_SYM_TABLE["%z"].re.exec(timeZone);
+  assert(!!m, `timezone '${timeZone}' is invalid or not supported.`);
 
   const hr = parseInt(m[2]) || 0;
   const min = parseInt(m[3]) || 0;
@@ -252,9 +255,7 @@ export function computeDate(obj: Any, expr: Any, options: Options): Date {
 
   const date = isDate(d.date) ? new Date(d.date) : new Date(d.date * 1000);
 
-  if (d.timezone) {
-    adjustDate(date, parseTimezone(d.timezone));
-  }
+  if (d.timezone) adjustDate(date, parseTimezone(d.timezone, date));
 
   return date;
 }
