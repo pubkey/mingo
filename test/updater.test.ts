@@ -963,6 +963,47 @@ describe("updater", () => {
         friends: ["Scooby", "Fred"]
       });
     });
+
+    it("should update using $addFields and $replaceRoot", () => {
+      const docs = [
+        {
+          _id: 1,
+          profile: {
+            first: "Ada",
+            last: "Lovelace"
+          },
+          role: "engineer"
+        }
+      ];
+
+      expect(
+        updateOne(docs, {}, [
+          {
+            $addFields: {
+              fullName: { $concat: ["$profile.first", " ", "$profile.last"] }
+            }
+          },
+          {
+            $replaceRoot: {
+              newRoot: {
+                name: "$fullName",
+                role: "$role"
+              }
+            }
+          }
+        ])
+      ).toEqual({
+        matchedCount: 1,
+        modifiedCount: 1,
+        modifiedIndex: 0,
+        modifiedFields: ["_id", "name", "profile"]
+      });
+
+      expect(docs[0]).toEqual({
+        name: "Ada Lovelace",
+        role: "engineer"
+      });
+    });
   });
 
   describe("Positional Operators", () => {
