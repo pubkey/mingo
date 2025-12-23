@@ -1,17 +1,23 @@
 # Changelog
 
 ## 7.1.1 / 2025-12-xx
-- Process Olson timezone correctly by using reference date. (#587)
-- Sort values using correct semantics. (#590).
-- Handle nested projection graphs correctly. (#588, #589).
-- Provide stable comparison of custom data objects.
+
+**Fixes**
+
+- Process Olson timezone names correctly. (#587)
+- Sort values using valid MongoDB semantics. (#590)
+- Properly handle nested projection object graphs and improve validation. (#588, #589)
+- Use consistent internal serialization for custom data objects to make comparison and equality checking stable.
 
 **Improvements**
+
 - Use faster hash implementation.
+- Performance improvements for sort
 
 ## 7.1.0 / 2025-12-12
 
 **New**
+
 - Support type specification for `$currentDate`.
   - Returns `Date` for value`{ "$type": "date }`.
   - Returns `number` (milliseconds since epoch) for value `{ "$type": "timestamp" }`.
@@ -24,10 +30,12 @@
 - Make non-primitive comparisons use consistent order.
 
 **Improvements**
+
 - Optimize document sorting by strings and numbers for pipeline `$sort` operator.
 - Use standard internal hashCode based on murmurHash3.
 
 **Deprecated**
+
 - Option `hashFunction` is no longer supported.
 
 ## 7.0.2 / 2025-11-16
