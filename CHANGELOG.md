@@ -1,5 +1,14 @@
 # Changelog
 
+## 7.1.1 / 2025-12-xx
+- Process Olson timezone correctly by using reference date. (#587)
+- Sort values using correct semantics. (#590).
+- Handle nested projection graphs correctly. (#588, #589).
+- Provide stable comparison of custom data objects.
+
+**Improvements**
+- Use faster hash implementation.
+
 ## 7.1.0 / 2025-12-12
 
 **New**
