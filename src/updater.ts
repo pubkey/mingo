@@ -397,7 +397,7 @@ function getModifiedFields<T extends AnyObject>(
       case "$replaceRoot":
         stageFields.length = 0; // clear existing fields
         stageFields.push(
-          ...Object.keys((stage[op] as { newRoot: AnyObject })?.newRoot || [])
+          ...Object.keys((stage[op] as { newRoot: AnyObject })?.newRoot)
         );
         break;
     }

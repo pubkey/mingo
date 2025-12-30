@@ -187,16 +187,15 @@ export class Context {
     return ctx;
   }
 
-  static from(ctx?: Context): Context {
-    return Context.init((ctx && Object.fromEntries(ctx.#operators)) || {});
-  }
-
-  static merge(first: Context, second: Context): Context {
-    const ctx = Context.from(first);
-    for (const type of Object.values(OpType)) {
-      ctx.addOps(type, second.#operators.get(type));
+  /** Returns a new context with the operators from the provided contexts merged left to right. */
+  static from(...ctx: Context[]): Context {
+    const newCtx = new Context();
+    for (const context of ctx) {
+      for (const type of Object.values(OpType)) {
+        newCtx.addOps(type, context.#operators.get(type));
+      }
     }
-    return ctx;
+    return newCtx;
   }
 
   private addOps(

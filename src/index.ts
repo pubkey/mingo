@@ -27,7 +27,7 @@ const makeOpts = (options?: Partial<Options>) =>
   Object.assign({
     ...options,
     context: options?.context
-      ? Context.merge(CONTEXT, options?.context)
+      ? Context.from(CONTEXT, options?.context)
       : CONTEXT
   }) as Options;
 

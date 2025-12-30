@@ -93,6 +93,7 @@ function mingoCmp(a: Any, b: Any, descendArray: boolean = false): number {
     case "number":
     case "string":
       return simpleCmp(a, b);
+    case "boolean":
     case "date":
       return simpleCmp(+(a as Date | boolean), +(b as Date | boolean));
     case "regexp":
@@ -113,17 +114,14 @@ function mingoCmp(a: Any, b: Any, descendArray: boolean = false): number {
     }
     default: {
       if (typeA !== "object") {
-        let customCmp = a?.constructor === b?.constructor;
-        customCmp = customCmp && hasCustomString(a);
+        const isSameType = a?.constructor === b?.constructor;
         // short-cut when objects are the same type and have toString().
-        if (customCmp)
+        if (isSameType && hasCustomString(a))
           return simpleCmp((a as Str).toString(), (b as Str).toString());
         // use constructor name order if different types
         if ((neq = simpleCmp(a?.constructor?.name, b?.constructor?.name)))
           return neq;
         // last resort. treat as plain object
-        a = toPlainObject(a as object);
-        b = toPlainObject(b as object);
       }
       // plain objects
       const keysA = Object.keys(a as object).sort();
@@ -151,15 +149,6 @@ type Stringer = { toString(): string };
 const hasCustomString = (o: Any): o is Stringer =>
   o !== null && o !== undefined && o["toString"] !== Object.prototype.toString;
 
-const toPlainObject = (o: object): AnyObject => {
-  const obj: AnyObject = { constructor: o.constructor?.name };
-  for (const k of Object.keys(o)) obj[k] = o[k];
-  for (const k of Object.getOwnPropertyNames(Object.getPrototypeOf(o))) {
-    if (typeof o[k] !== "function") obj[k] = o[k];
-  }
-  return obj;
-};
-
 type Str = { toString: () => string };
 
 /**
@@ -184,11 +173,8 @@ export function isEqual(a: Any, b: Any): boolean {
   if (isArray(a) && isArray(b)) {
     return a.length === b.length && a.every((v, i) => isEqual(v, b[i]));
   }
-  if (a?.constructor !== Object) {
-    if (hasCustomString(a))
-      return (a as Str)?.toString() === (b as Str)?.toString();
-    a = toPlainObject(a);
-    b = toPlainObject(b as object);
+  if (a?.constructor !== Object && hasCustomString(a)) {
+    return (a as Str)?.toString() === (b as Str)?.toString();
   }
   const keysA = Object.keys(a);
   const keysB = Object.keys(b);

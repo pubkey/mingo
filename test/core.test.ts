@@ -88,17 +88,11 @@ describe("core", () => {
 
       const clone = Context.from(ctx);
       expect(clone.getOperator(OpType.PIPELINE, "$match")).toEqual($match);
-    });
 
-    it("should merge two contexts with Context.merge()", () => {
-      const ctx1 = Context.init({
-        pipeline: { $match }
-      });
-      const ctx2 = Context.init({
-        expression: { $toString }
-      });
+      const ctx1 = Context.init({ pipeline: { $match } });
+      const ctx2 = Context.init({ expression: { $toString } });
 
-      const res = Context.merge(ctx1, ctx2);
+      const res = Context.from(ctx1, ctx2);
 
       expect(ctx1.getOperator(OpType.PIPELINE, "$match")).toEqual($match);
       expect(ctx2.getOperator(OpType.EXPRESSION, "$toString")).toEqual(

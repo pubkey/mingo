@@ -74,6 +74,7 @@ describe("util", () => {
       { a: 1, b: 2 },
       new Uint8Array(0),
       false,
+      true,
       new Date(),
       /a/,
       () => void 0,
@@ -112,6 +113,13 @@ describe("util", () => {
       expect(compare(a, a)).toBe(0);
       expect(compare(a, b)).toEqual(-1);
       expect(compare(b, a)).toEqual(1);
+    });
+
+    it("should compare booleans correctly", () => {
+      expect(compare(false, false)).toBe(0);
+      expect(compare(false, true)).toBe(-1);
+      expect(compare(true, false)).toBe(1);
+      expect(compare(true, true)).toBe(0);
     });
 
     it("should compare toString() of custom types if provided", () => {
