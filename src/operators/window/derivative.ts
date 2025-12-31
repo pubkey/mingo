@@ -31,7 +31,7 @@ export const $derivative: WindowOperator = (
 
   const [[x1, y1], [x2, y2]] = points;
   // convert from millis to the unit.
-  const deltaX = (x2 - x1) / (TIMEUNIT_IN_MILLIS[unit] || 1);
+  const deltaX = (x2 - x1) / Math.max(TIMEUNIT_IN_MILLIS[unit], 1);
 
   return (y2 - y1) / deltaX;
 };

@@ -1,6 +1,6 @@
 import { aggregate } from "../../../src";
 import { ProcessingMode } from "../../../src/core/_internal";
-import { testPath } from "../../support";
+import { ISODate, testPath } from "../../support";
 
 const options = {
   processingMode: ProcessingMode.CLONE_INPUT
@@ -156,6 +156,64 @@ describe(testPath(__filename), () => {
         date: new Date("2020-05-21T20:00:00Z"),
         price: 97.3,
         expMovingAvgForStock: 99.6625
+      }
+    ]);
+  });
+
+  it("should calculate using available values", () => {
+    const result = aggregate(
+      [
+        { stock: "ABC", date: new Date("2020-05-17T20:00:00Z"), price: "bad" },
+        { stock: "ABC", date: new Date("2020-05-18T20:00:00Z"), price: 13 },
+        { stock: "ABC", date: new Date("2020-05-19T20:00:00Z"), price: 15.4 },
+        { stock: "ABC", date: new Date("2020-05-20T20:00:00Z") },
+        { stock: "ABC", date: new Date("2020-05-21T20:00:00Z"), price: 10.8 }
+      ],
+      [
+        {
+          $setWindowFields: {
+            partitionBy: "$stock",
+            sortBy: { date: 1 },
+            output: {
+              expMovingAvgForStock: {
+                $expMovingAvg: { input: "$price", alpha: 0.75 }
+              }
+            }
+          }
+        }
+      ],
+      options
+    );
+
+    expect(result).toStrictEqual([
+      {
+        date: ISODate("2020-05-17T20:00:00Z"),
+        expMovingAvgForStock: null,
+        price: "bad",
+        stock: "ABC"
+      },
+      {
+        date: ISODate("2020-05-18T20:00:00Z"),
+        expMovingAvgForStock: 13,
+        price: 13,
+        stock: "ABC"
+      },
+      {
+        date: ISODate("2020-05-19T20:00:00Z"),
+        expMovingAvgForStock: 14.8,
+        price: 15.4,
+        stock: "ABC"
+      },
+      {
+        date: ISODate("2020-05-20T20:00:00Z"),
+        expMovingAvgForStock: 14.8,
+        stock: "ABC"
+      },
+      {
+        date: ISODate("2020-05-21T20:00:00Z"),
+        expMovingAvgForStock: 11.8,
+        price: 10.8,
+        stock: "ABC"
       }
     ]);
   });
