@@ -1,5 +1,5 @@
 import { aggregate } from "../../../src";
-import { testPath } from "../../../test/support";
+import { testPath } from "../../support";
 
 describe(testPath(__filename), () => {
   it("returns initial value when no documents are present", () => {
