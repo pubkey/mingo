@@ -14,7 +14,7 @@ export const $rename = (
   options: Options = DEFAULT_OPTIONS
 ) => {
   // validate target fields are not id field (source fields validated in walkExpression)
-  const idKey = options.idKey ?? "_id";
+  const idKey = options.idKey;
   for (const target of Object.values(expr)) {
     assert(
       !isIdPath(target, idKey),

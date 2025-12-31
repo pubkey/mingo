@@ -47,7 +47,7 @@ export const $push = (
         if (args.$sort) {
           /* eslint-disable @typescript-eslint/no-unsafe-assignment */
           const sortKey = isObject(args.$sort)
-            ? Object.keys(args.$sort || {}).pop()
+            ? Object.keys(args.$sort)[0]
             : "";
           const order: number = !sortKey ? args.$sort : args.$sort[sortKey];
           const f = !sortKey

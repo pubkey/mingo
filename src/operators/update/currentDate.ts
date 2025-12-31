@@ -12,8 +12,7 @@ export const $currentDate = (
   arrayFilters: AnyObject[] = [],
   options: Options = DEFAULT_OPTIONS
 ) => {
-  const copts =
-    options instanceof ComputeOptions ? options : ComputeOptions.init(options);
+  const copts = options as ComputeOptions;
 
   assert(
     Object.values(expr).every(

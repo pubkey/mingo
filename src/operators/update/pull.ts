@@ -20,14 +20,13 @@ export const $pull = (
     return applyUpdate(obj, node, queries, (o: ArrayOrObject, k: string) => {
       const prev = o[k] as Any[];
       const curr = new Array<Any>();
-      const found = prev
-        .map(v => {
-          const b = pred(v);
-          if (!b) curr.push(v);
-          return b;
-        })
-        .some(Boolean);
-      if (!found) return false;
+      let ok = false;
+      prev.forEach(v => {
+        const b = pred(v);
+        if (!b) curr.push(v);
+        ok ||= b;
+      });
+      if (!ok) return false;
       o[k] = curr;
       return true;
     });
