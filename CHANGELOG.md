@@ -1,6 +1,6 @@
 # Changelog
 
-## 7.1.1 / 2025-12-xx
+## 7.1.1 / 2025-12-31
 
 **Fixes**
 
@@ -8,6 +8,8 @@
 - Sort values using valid MongoDB semantics. (#590)
 - Properly handle nested projection object graphs and improve validation. (#588, #589)
 - Use consistent internal serialization for custom data objects to make comparison and equality checking stable.
+- `$replaceRoot` correctly returns only modifield fields in document when used in `updateOne`.
+- `$expMovingAvg` correctly handles missing values in data series.
 
 **Improvements**
 
