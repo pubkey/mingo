@@ -121,7 +121,6 @@ function mingoCmp(a: Any, b: Any, descendArray: boolean = false): number {
         // use constructor name order if different types
         if ((neq = simpleCmp(a?.constructor?.name, b?.constructor?.name)))
           return neq;
-        // last resort. treat as plain object
       }
       // plain objects
       const keysA = Object.keys(a as object).sort();

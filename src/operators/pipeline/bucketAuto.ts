@@ -146,7 +146,7 @@ export const $bucketAuto: PipelineOperator = (
 
     // remove nil entries from arrays
     for (const [k, v] of Object.entries(outFields)) {
-      if (isArray(v)) outFields[k] = v.filter(v => v !== undefined);
+      if (isArray(v)) outFields[k] = v.filter(v => !isNil(v));
     }
 
     return {

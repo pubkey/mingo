@@ -16,6 +16,7 @@ export const $avg: AccumulatorOperator = (
   options: Options
 ): number => {
   const data = $push(collection, expr, options).filter(isNumber);
+  if (data.length === 0) return null;
   const sum = data.reduce<number>((acc: number, n: number) => acc + n, 0);
-  return sum / (data.length || 1);
+  return sum / data.length;
 };

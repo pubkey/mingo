@@ -13,7 +13,7 @@ const docs = [
 ];
 
 describe(testPath(__filename), () => {
-  it("passes: Null and Missing Values", () => {
+  it("handle Null and Missing Values", () => {
     const res = aggregate(
       [
         { playerId: "PlayerA", gameId: "G1", score: 1 },
@@ -26,12 +26,7 @@ describe(testPath(__filename), () => {
         {
           $group: {
             _id: "$gameId",
-            firstFiveScores: {
-              $firstN: {
-                input: "$score",
-                n: 5
-              }
-            }
+            firstFiveScores: { $firstN: { input: "$score", n: 5 } }
           }
         }
       ]
@@ -39,7 +34,7 @@ describe(testPath(__filename), () => {
     expect(res).toEqual([
       {
         _id: "G1",
-        firstFiveScores: [1, 2, 3, undefined, null]
+        firstFiveScores: [1, 2, 3, null, null]
       }
     ]);
   });

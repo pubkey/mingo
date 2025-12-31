@@ -7,6 +7,7 @@ import {
   Options
 } from "../../types";
 import { assert } from "../../util";
+import { $push } from "./push";
 
 interface AccumulatorExpr {
   /** Function used to initialize the state. */
@@ -41,8 +42,6 @@ export const $accumulator: AccumulatorOperator = (
     "$accumulator operator requires 'scriptEnabled' option to be true"
   );
 
-  if (collection.length == 0) return expr.initArgs;
-
   const copts = ComputeOptions.init(options);
 
   const initArgs = computeValue(
@@ -52,19 +51,13 @@ export const $accumulator: AccumulatorOperator = (
     copts.update({ root: copts?.local?.groupId })
   ) as Any[];
 
-  let state = expr.init.apply(null, initArgs) as Any;
+  const args = $push(collection, expr.accumulateArgs, copts) as Any[][];
+  args.forEach(arr => arr.forEach((v, i) => (arr[i] = v ?? null)));
+  const initialValue = expr.init.apply(null, initArgs) as Any;
+  const result = args.reduce(
+    (acc, v) => expr.accumulate.apply(null, [acc, ...v]) as Any,
+    initialValue
+  );
 
-  for (const doc of collection) {
-    // get arguments for document
-    const args = computeValue(
-      doc,
-      expr.accumulateArgs,
-      null,
-      copts.update({ root: doc })
-    ) as Any[];
-    // update the state with each documents value
-    state = expr.accumulate.apply(null, [state, ...args]) as Any;
-  }
-
-  return (expr.finalize ? expr.finalize.call(null, state) : state) as Any;
+  return (expr.finalize ? expr.finalize.call(null, result) : result) as Any;
 };
