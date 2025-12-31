@@ -435,6 +435,12 @@ describe("util", () => {
       expect(isEqual(input, other)).toEqual(true);
       if (isObjectLike(input)) expect(input !== other).toEqual(true);
     });
+
+    it("should throw error when cloning cyclic objects", () => {
+      const obj: AnyObject = { a: 1 };
+      obj.self = obj;
+      expect(() => cloneDeep(obj)).toThrow(/cycle detected/);
+    });
   });
 
   describe("resolve", () => {

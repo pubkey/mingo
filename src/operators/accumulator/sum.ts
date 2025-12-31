@@ -1,5 +1,5 @@
 import { AccumulatorOperator, Any, AnyObject, Options } from "../../types";
-import { isArray, isNumber } from "../../util";
+import { isNumber } from "../../util";
 import { $push } from "./push";
 
 /**
@@ -16,10 +16,8 @@ export const $sum: AccumulatorOperator<number> = (
   expr: Any,
   options: Options
 ): number => {
-  if (!isArray(collection)) return 0;
-
   // take a short cut if expr is number literal
   if (isNumber(expr)) return collection.length * expr;
   const nums = $push(collection, expr, options).filter(isNumber);
-  return nums.reduce((acc, n) => acc + n, 0);
+  return nums.reduce((r, n) => r + n, 0);
 };

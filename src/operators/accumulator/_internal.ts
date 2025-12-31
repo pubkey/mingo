@@ -1,6 +1,6 @@
 export function stddev(data: number[], sampled = true): number {
   const sum = data.reduce((acc: number, n: number) => acc + n, 0);
-  const N = data.length || 1;
+  const N = Math.max(data.length, 1);
   const avg = sum / N;
   return Math.sqrt(
     data.reduce((acc: number, n: number) => acc + Math.pow(n - avg, 2), 0) /

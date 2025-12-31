@@ -1,5 +1,5 @@
 import { AccumulatorOperator, Any, AnyObject, Options } from "../../types";
-import { assert, compare, isArray, isEmpty, isNil } from "../../util";
+import { compare, isNil } from "../../util";
 import { $push } from "./push";
 
 /**
@@ -14,13 +14,7 @@ export const $max: AccumulatorOperator = (
   expr: Any,
   options: Options
 ): Any => {
-  const items = $push(collection, expr, options);
-  if (isEmpty(items)) return null;
-  assert(isArray(items), "$max: input must resolve to array");
-  let max = items[0];
-  for (const n of items) {
-    if (isNil(n) || isNaN(n as number)) continue;
-    if (compare(n, max) >= 0) max = n;
-  }
-  return max;
+  const items = $push(collection, expr, options).filter(v => !isNil(v));
+  if (!items.length) return null;
+  return items.reduce((r, v) => (compare(r, v) >= 0 ? r : v));
 };

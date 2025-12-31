@@ -14,7 +14,6 @@ export const $last: AccumulatorOperator = (
   expr: Any,
   options: Options
 ): Any => {
-  if (collection.length === 0) return undefined;
   const obj = collection[collection.length - 1];
   const copts = ComputeOptions.init(options).update({ root: obj });
   return computeValue(obj, expr, null, copts) ?? null;

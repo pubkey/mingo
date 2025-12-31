@@ -33,7 +33,7 @@ export const $integral: WindowOperator = (
     const [x1, y1] = points[k - 1];
     const [x2, y2] = points[k];
     // convert from millis to the unit.
-    const deltaX = (x2 - x1) / (TIMEUNIT_IN_MILLIS[unit] || 1);
+    const deltaX = (x2 - x1) / Math.max(TIMEUNIT_IN_MILLIS[unit], 1);
     result += 0.5 * (y1 + y2) * deltaX;
   }
 
