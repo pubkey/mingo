@@ -140,9 +140,7 @@ function mingoCmp(a: Any, b: Any, descendArray: boolean = false): number {
  * @param b The second value
  * @returns {Number}
  */
-export function compare(a: Any, b: Any): number {
-  return mingoCmp(a, b, true);
-}
+export const compare = (a: Any, b: Any): number => mingoCmp(a, b, true);
 
 type Stringer = { toString(): string };
 const hasCustomString = (o: Any): o is Stringer =>

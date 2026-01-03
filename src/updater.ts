@@ -20,6 +20,7 @@ import { Query } from "./query";
 import {
   Any,
   AnyObject,
+  Callback,
   CollationSpec,
   Criteria,
   Options,
@@ -354,11 +355,16 @@ function updateDocuments<T extends AnyObject>(
   const output = { matchedCount, modifiedCount: 0 };
   const modifiedFields: string[] = [];
 
+  const fns: Callback<string[]>[] = [];
+  for (const [op, expr] of Object.entries(modifier)) {
+    const fn = UPDATE_OPERATORS[op] as UpdateOperator;
+    fns.push(fn(expr, arrayFilters, opts));
+  }
+
   for (const doc of foundDocs) {
     let modified = false;
-    for (const [op, expr] of Object.entries(modifier)) {
-      const mutate = UPDATE_OPERATORS[op] as UpdateOperator;
-      const fields = mutate(doc, expr, arrayFilters, opts);
+    for (const mutate of fns) {
+      const fields = mutate(doc);
       if (fields.length) {
         modified = true;
         if (firstOnly) Array.prototype.push.apply(modifiedFields, fields);

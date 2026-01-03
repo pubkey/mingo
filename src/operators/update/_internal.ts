@@ -247,8 +247,7 @@ export function buildParams(
 export type UpdateParams = ReturnType<typeof buildParams>;
 
 export type UpdateOperator = (
-  obj: AnyObject,
   expr: Any,
   arrayFilters: AnyObject[],
   options: Options
-) => string[];
+) => (obj: AnyObject) => string[];

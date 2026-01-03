@@ -3,7 +3,7 @@ import { $push } from "../../../src/operators/update";
 describe("operators/update/push", () => {
   it("Append a Value to an Array", () => {
     const state = { _id: 1, scores: [44, 78, 38, 80] };
-    $push(state, { scores: 89 });
+    $push({ scores: 89 })(state);
     expect(state).toEqual({ _id: 1, scores: [44, 78, 38, 80, 89] });
   });
 
@@ -16,7 +16,7 @@ describe("operators/update/push", () => {
         { _id: 4, scores: [47, 78, 38, 80, 89] }
       ]
     };
-    $push(state, { "allScores.scores": 95 });
+    $push({ "allScores.scores": 95 })(state);
     expect(state).toEqual({
       _id: 1,
       allScores: [
@@ -37,7 +37,7 @@ describe("operators/update/push", () => {
         { wk: 4, score: 6 }
       ]
     };
-    $push(state, {
+    $push({
       quizzes: {
         $each: [
           { wk: 5, score: 8 },
@@ -47,7 +47,7 @@ describe("operators/update/push", () => {
         $sort: { score: -1 },
         $slice: 3
       }
-    });
+    })(state);
     expect(state).toEqual({
       _id: 5,
       quizzes: [
@@ -64,12 +64,11 @@ describe("operators/update/push", () => {
       name: "Celsoppe"
     };
 
-    $push(state, {
+    $push({
       "attributes.scores.bar": {
         a: 1
       }
-    });
-
+    })(state);
     expect(state).toEqual({
       _id: "1",
       attributes: {
@@ -88,46 +87,19 @@ describe("operators/update/push", () => {
   describe("$slice modifier", () => {
     it("Slice from the End of the Array", () => {
       const state = { _id: 1, scores: [40, 50, 60] };
-      $push(
-        state,
-        {
-          scores: {
-            $each: [80, 78, 86],
-            $slice: -5
-          }
-        },
-        []
-      );
+      $push({ scores: { $each: [80, 78, 86], $slice: -5 } }, [])(state);
       expect(state).toEqual({ _id: 1, scores: [50, 60, 80, 78, 86] });
     });
 
     it("Slice from the Front of the Array", () => {
       const state = { _id: 2, scores: [89, 90] };
-      $push(
-        state,
-        {
-          scores: {
-            $each: [100, 20],
-            $slice: 3
-          }
-        },
-        []
-      );
+      $push({ scores: { $each: [100, 20], $slice: 3 } }, [])(state);
       expect(state).toEqual({ _id: 2, scores: [89, 90, 100] });
     });
 
     it("Update Array Using Slice Only", () => {
       const state = { _id: 3, scores: [89, 70, 100, 20] };
-      $push(
-        state,
-        {
-          scores: {
-            $each: [],
-            $slice: -3
-          }
-        },
-        []
-      );
+      $push({ scores: { $each: [], $slice: -3 } }, [])(state);
       expect(state).toEqual({ _id: 3, scores: [70, 100, 20] });
     });
   });
@@ -135,52 +107,20 @@ describe("operators/update/push", () => {
   describe("$position modifier", () => {
     it("Add Elements at the Start of the Array", () => {
       const state = { _id: 1, scores: [100] };
-
-      $push(
-        state,
-        {
-          scores: {
-            $each: [50, 60, 70],
-            $position: 0
-          }
-        },
-        []
-      );
-
+      $push({ scores: { $each: [50, 60, 70], $position: 0 } }, [])(state);
       expect(state).toEqual({ _id: 1, scores: [50, 60, 70, 100] });
     });
 
     it("Add Elements to the Middle of the Array", () => {
       const state = { _id: 2, scores: [50, 60, 70, 100] };
-
       // now push to middle
-      $push(
-        state,
-        {
-          scores: {
-            $each: [20, 30],
-            $position: 2
-          }
-        },
-        []
-      );
-
+      $push({ scores: { $each: [20, 30], $position: 2 } }, [])(state);
       expect(state).toEqual({ _id: 2, scores: [50, 60, 20, 30, 70, 100] });
     });
 
     it("Use a Negative Index to Add Elements to the Array", () => {
       const state = { _id: 3, scores: [50, 60, 20, 30, 70, 100] };
-      $push(
-        state,
-        {
-          scores: {
-            $each: [90, 80],
-            $position: -2
-          }
-        },
-        []
-      );
-
+      $push({ scores: { $each: [90, 80], $position: -2 } }, [])(state);
       expect(state).toEqual({
         _id: 3,
         scores: [50, 60, 20, 30, 90, 80, 70, 100]
@@ -199,7 +139,6 @@ describe("operators/update/push", () => {
       };
 
       $push(
-        state,
         {
           quizzes: {
             $each: [
@@ -211,7 +150,7 @@ describe("operators/update/push", () => {
           }
         },
         []
-      );
+      )(state);
 
       expect(state).toEqual({
         _id: 1,
@@ -227,13 +166,13 @@ describe("operators/update/push", () => {
 
     it("Sort Array Elements That Are Not Documents", () => {
       const state = { _id: 2, tests: [89, 70, 89, 50] };
-      $push(state, { tests: { $each: [40, 60], $sort: 1 } }, []);
+      $push({ tests: { $each: [40, 60], $sort: 1 } }, [])(state);
       expect(state.tests).toEqual([40, 50, 60, 70, 89, 89]);
     });
 
     it("Update Array Using Sort Only", () => {
       const state = { _id: 3, tests: [89, 70, 100, 20] };
-      expect($push(state, { tests: { $each: [], $sort: -1 } })).toEqual([
+      expect($push({ tests: { $each: [], $sort: -1 } }, [])(state)).toEqual([
         "tests"
       ]);
       expect(state).toEqual({ _id: 3, tests: [100, 89, 70, 20] });

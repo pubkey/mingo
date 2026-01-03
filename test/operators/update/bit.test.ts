@@ -8,11 +8,11 @@ describe("operators/update/bit", () => {
       XOR: [13, 3, 1]
     };
     expect(
-      $bit(state, {
+      $bit({
         "AND.$[]": { and: 10 },
         "OR.$[]": { or: 5 },
         "XOR.$[]": { xor: 5 }
-      })
+      })(state)
     ).toEqual(["AND", "OR", "XOR"]);
     expect(state).toEqual({
       AND: [8, 2, 0],
@@ -22,16 +22,29 @@ describe("operators/update/bit", () => {
   });
 
   it("should build object graph for missing value.", () => {
-    const state = {
-      _id: 1
-    };
+    const state = { _id: 1 };
 
-    $bit(state, {
+    $bit({
       "a.and": { and: 5 },
       "b.or": { or: 5 },
       "c.xor": { xor: 5 }
+    })(state);
+    expect(state).toEqual({
+      _id: 1,
+      a: { and: 0 },
+      b: { or: 5 },
+      c: { xor: 5 }
     });
+  });
 
+  it("should returns null if value is not a number.", () => {
+    const state = { _id: 1 };
+
+    $bit({
+      "a.and": { and: 5 },
+      "b.or": { or: 5 },
+      "c.xor": { xor: 5 }
+    })(state);
     expect(state).toEqual({
       _id: 1,
       a: { and: 0 },

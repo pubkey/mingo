@@ -8,10 +8,9 @@ describe("operators/update/pull", () => {
       vegetables: ["carrots", "celery", "squash", "carrots"]
     };
     expect(
-      $pull(state, {
-        fruits: { $in: ["apples", "oranges"] },
-        vegetables: "carrots"
-      })
+      $pull({ fruits: { $in: ["apples", "oranges"] }, vegetables: "carrots" })(
+        state
+      )
     ).toEqual(["fruits", "vegetables"]);
     expect(state).toEqual({
       _id: 1,
@@ -22,7 +21,7 @@ describe("operators/update/pull", () => {
 
   it("Remove All Items That Match a Specified $pull Condition", () => {
     const state = { _id: 1, votes: [3, 5, 6, 7, 7, 8] };
-    $pull(state, { votes: { $gte: 6 } });
+    $pull({ votes: { $gte: 6 } })(state);
     expect(state).toEqual({ _id: 1, votes: [3, 5] });
   });
 
@@ -34,7 +33,7 @@ describe("operators/update/pull", () => {
         { item: "B", score: 8 }
       ]
     };
-    $pull(state, { results: { score: 8, item: "B" } });
+    $pull({ results: { score: 8, item: "B" } })(state);
     expect(state).toEqual({ _id: 1, results: [{ item: "A", score: 5 }] });
   });
 
@@ -58,7 +57,7 @@ describe("operators/update/pull", () => {
       ]
     };
 
-    $pull(state, { comments: { _id: { $in: ["comment1"] } } });
+    $pull({ comments: { _id: { $in: ["comment1"] } } })(state);
     expect(state).toEqual({
       title: "Tobi",
       author: "Brian",
@@ -72,5 +71,14 @@ describe("operators/update/pull", () => {
         }
       ]
     });
+  });
+
+  it("should not remove items if no match", () => {
+    const state = {
+      _id: 1,
+      results: [1, 3, 5, 7]
+    };
+    $pull({ results: { $mod: [2, 0] } })(state);
+    expect(state).toEqual({ _id: 1, results: [1, 3, 5, 7] });
   });
 });

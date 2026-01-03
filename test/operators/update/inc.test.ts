@@ -10,7 +10,7 @@ describe(testPath(__filename), () => {
       quantity: 10,
       metrics: { orders: 2, ratings: 3.5 }
     };
-    expect($inc(state, { quantity: -2, "metrics.orders": 1 })).toEqual([
+    expect($inc({ quantity: -2, "metrics.orders": 1 })(state)).toEqual([
       "metrics.orders",
       "quantity"
     ]);
@@ -20,6 +20,10 @@ describe(testPath(__filename), () => {
       quantity: 8,
       metrics: { orders: 3, ratings: 3.5 }
     });
+
+    // const obj = { _id: 1, temp: "" };
+    // expect($inc(obj, { "temp": 1 })).toEqual(["temp"]);
+    // expect(obj).toEqual({ _id: 1, temp: "1" });
   });
 
   it("Update All Array Elements that Match Multiple Conditions", () => {
@@ -63,9 +67,9 @@ describe(testPath(__filename), () => {
     for (let i = 0; i < states.length; i++) {
       const state = states[i];
       const expected = results[i];
-      $inc(state, { "grades.$[elem].std": -1 }, [
+      $inc({ "grades.$[elem].std": -1 }, [
         { "elem.grade": { $gte: 80 }, "elem.std": { $gt: 5 } }
-      ]);
+      ])(state);
       expect(state).toEqual(expected);
     }
   });
@@ -80,10 +84,10 @@ describe(testPath(__filename), () => {
         { type: "exam", questions: [25, 10, 23, 0] }
       ]
     };
-    $inc(state, { "grades.$[t].questions.$[score]": 2 }, [
+    $inc({ "grades.$[t].questions.$[score]": 2 }, [
       { "t.type": "quiz" },
       { score: { $gte: 8 } }
-    ]);
+    ])(state);
     expect(state.grades).toEqual([
       { type: "quiz", questions: [12, 10, 5] },
       { type: "quiz", questions: [10, 11, 6] },
@@ -92,9 +96,9 @@ describe(testPath(__filename), () => {
     ]);
 
     // update all values >=8
-    $inc(state, { "grades.$[].questions.$[score]": 2 }, [
-      { score: { $gte: 8 } }
-    ]);
+    $inc({ "grades.$[].questions.$[score]": 2 }, [{ score: { $gte: 8 } }])(
+      state
+    );
     expect(state.grades).toEqual([
       { type: "quiz", questions: [14, 12, 5] },
       { type: "quiz", questions: [12, 13, 6] },
@@ -140,8 +144,9 @@ describe(testPath(__filename), () => {
         ]
       }
     ];
+    const cb = $inc({ "grades.$[].std": -2 });
     states.forEach((s, i) => {
-      $inc(s, { "grades.$[].std": -2 });
+      cb(s);
       expect(s).toEqual(results[i]);
     });
   });
@@ -152,9 +157,7 @@ describe(testPath(__filename), () => {
       name: "Celsoppe"
     };
 
-    $inc(state, {
-      "attributes.scores.bar": 2
-    });
+    $inc({ "attributes.scores.bar": 2 })(state);
 
     expect(state).toEqual({
       _id: "1",

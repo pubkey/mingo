@@ -1,5 +1,5 @@
 import { Any, AnyObject, ArrayOrObject, Options } from "../../types";
-import { has, intersection, isObject, unique } from "../../util";
+import { has, isArray, isObject, unique } from "../../util";
 import {
   applyUpdate,
   clone,
@@ -9,28 +9,35 @@ import {
 
 /** Adds a value to an array unless the value is already present. */
 export const $addToSet = (
-  obj: AnyObject,
   expr: AnyObject,
   arrayFilters: AnyObject[] = [],
   options: Options = DEFAULT_OPTIONS
 ) => {
-  return walkExpression(expr, arrayFilters, options, (val, node, queries) => {
-    const args = { $each: [val] };
-    if (isObject(val) && has(val as AnyObject, "$each")) {
-      Object.assign(args, val);
-    }
-    return applyUpdate(
-      obj,
-      node,
-      queries,
-      (o: ArrayOrObject, k: string) => {
-        const prev = (o[k] ||= []) as Any[];
-        const common = intersection([prev, args.$each]);
-        if (common.length === args.$each.length) return false;
-        o[k] = clone(unique(prev.concat(args.$each)), options);
-        return true;
-      },
-      { buildGraph: true }
-    );
-  });
+  return (obj: AnyObject) => {
+    return walkExpression(expr, arrayFilters, options, (val, node, queries) => {
+      const args = { $each: [val] };
+      if (isObject(val) && has(val as AnyObject, "$each")) {
+        Object.assign(args, val);
+      }
+      return applyUpdate(
+        obj,
+        node,
+        queries,
+        (o: ArrayOrObject, k: string) => {
+          const prev = o[k] as Any[];
+          if (isArray(prev)) {
+            const set = unique([].concat(prev).concat(args.$each));
+            if (set.length === prev.length) return false;
+            o[k] = clone(set, options);
+          } else if (prev === undefined) {
+            o[k] = clone(args.$each, options);
+          } else {
+            return false;
+          }
+          return true;
+        },
+        { buildGraph: true }
+      );
+    });
+  };
 };

@@ -8,7 +8,6 @@ const isIdPath = (path: string, idKey: string) =>
 
 /** Replaces the value of a field with the specified value. */
 export const $rename = (
-  obj: AnyObject,
   expr: Record<string, string>,
   arrayFilters: AnyObject[] = [],
   options: Options = DEFAULT_OPTIONS
@@ -21,23 +20,29 @@ export const $rename = (
       `Performing an update on the path '${target}' would modify the immutable field '${idKey}'.`
     );
   }
-
-  const res: string[] = [];
-  const changed = walkExpression<string>(
-    expr,
-    arrayFilters,
-    options,
-    (val, node, queries) => {
-      return applyUpdate(obj, node, queries, (o: ArrayOrObject, k: string) => {
-        if (!has(o as AnyObject, k)) return false;
-        Array.prototype.push.apply(
-          res,
-          $set(obj, { [val]: o[k] as Any }, arrayFilters, options)
+  return (obj: AnyObject) => {
+    const res: string[] = [];
+    const changed = walkExpression<string>(
+      expr,
+      arrayFilters,
+      options,
+      (val, node, queries) => {
+        return applyUpdate(
+          obj,
+          node,
+          queries,
+          (o: ArrayOrObject, k: string) => {
+            if (!has(o as AnyObject, k)) return false;
+            Array.prototype.push.apply(
+              res,
+              $set({ [val]: o[k] as Any }, arrayFilters, options)(obj)
+            );
+            delete o[k];
+            return true;
+          }
         );
-        delete o[k];
-        return true;
-      });
-    }
-  );
-  return Array.from(new Set(changed.concat(res)));
+      }
+    );
+    return Array.from(new Set(changed.concat(res)));
+  };
 };

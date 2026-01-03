@@ -8,7 +8,7 @@ describe("operators/update/rename", () => {
       mobile: "555-555-5555",
       nmae: { first: "george", last: "washington" }
     };
-    expect($rename(state, { nmae: "name" })).toEqual(["nmae", "name"]);
+    expect($rename({ nmae: "name" })(state)).toEqual(["nmae", "name"]);
     expect(state).toEqual({
       _id: 1,
       alias: ["The American Cincinnatus", "The American Fabius"],
@@ -24,7 +24,7 @@ describe("operators/update/rename", () => {
       mobile: "555-555-5555",
       name: { first: "george", last: "washington" }
     };
-    expect($rename(state, { "name.first": "name.fname" })).toEqual([
+    expect($rename({ "name.first": "name.fname" })(state)).toEqual([
       "name.first",
       "name.fname"
     ]);
@@ -43,7 +43,7 @@ describe("operators/update/rename", () => {
       mobile: "555-555-5555",
       name: { last: "washington", fname: "george" }
     };
-    expect($rename(state, { wife: "spouse" })).toEqual([]);
+    expect($rename({ wife: "spouse" })(state)).toEqual([]);
     expect(state).toEqual({
       _id: 1,
       alias: ["The American Cincinnatus", "The American Fabius"],
@@ -57,7 +57,7 @@ describe("operators/update/rename", () => {
       accounts: [{ n: 100 }, { n: 200 }, { n: 300 }]
     };
     expect(
-      $rename(state, { "accounts.$[elem].n": "first" }, [{ "elem.n": 100 }])
+      $rename({ "accounts.$[elem].n": "first" }, [{ "elem.n": 100 }])(state)
     ).toEqual(["accounts", "first"]);
     expect(state).toEqual({
       accounts: [{}, { n: 200 }, { n: 300 }],
@@ -70,9 +70,9 @@ describe("operators/update/rename", () => {
       accounts: [{ n: 100 }, { n: 200 }, { n: 300 }]
     };
     expect(
-      $rename(state, { "accounts.$[elem].n": "accounts.$[elem].m" }, [
+      $rename({ "accounts.$[elem].n": "accounts.$[elem].m" }, [
         { "elem.n": 200 }
-      ])
+      ])(state)
     ).toEqual(["accounts"]);
     expect(state).toEqual({
       accounts: [{ n: 100 }, { m: 200 }, { n: 300 }]
@@ -83,7 +83,7 @@ describe("operators/update/rename", () => {
     const state = {
       accounts: [{ n: 100 }, { n: 200 }, { n: 300 }]
     };
-    expect($rename(state, { "accounts.2.n": "accounts.2.w" })).toEqual([
+    expect($rename({ "accounts.2.n": "accounts.2.w" })(state)).toEqual([
       "accounts.2.n",
       "accounts.2.w"
     ]);

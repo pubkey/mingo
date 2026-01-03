@@ -12,11 +12,11 @@ describe("operators/update/set", () => {
       ratings: [{ by: "Customer007", rating: 4 }]
     };
     expect(
-      $set(state, {
+      $set({
         quantity: 500,
         details: { model: "2600", make: "Fashionaires" },
         tags: ["coats", "outerwear", "clothing"]
-      })
+      })(state)
     ).toEqual(["details", "quantity", "tags"]);
 
     expect(state).toEqual({
@@ -40,7 +40,7 @@ describe("operators/update/set", () => {
       tags: ["coats", "outerwear", "clothing"],
       ratings: [{ by: "Customer007", rating: 4 }]
     };
-    expect($set(state, { "details.make": "Kustom Kidz" })).toEqual([
+    expect($set({ "details.make": "Kustom Kidz" })(state)).toEqual([
       "details.make"
     ]);
     expect(state).toEqual({
@@ -65,10 +65,7 @@ describe("operators/update/set", () => {
       ratings: [{ by: "Customer007", rating: 4 }]
     };
     expect(
-      $set(state, {
-        "tags.1": "rain gear",
-        "ratings.0.rating": 2
-      })
+      $set({ "tags.1": "rain gear", "ratings.0.rating": 2 })(state)
     ).toEqual(["ratings.0.rating", "tags.1"]);
     expect(state).toEqual({
       _id: 100,
@@ -94,11 +91,9 @@ describe("operators/update/set", () => {
     ];
 
     const paths = [[], ["grades"], ["grades"]];
-
+    const cb = $set({ "grades.$[element]": 100 }, [{ element: { $gte: 100 } }]);
     states.forEach((s, i) => {
-      expect(
-        $set(s, { "grades.$[element]": 100 }, [{ element: { $gte: 100 } }])
-      ).toEqual(paths[i]);
+      expect(cb(s)).toEqual(paths[i]);
       expect(s).toEqual(results[i]);
     });
   });
@@ -141,8 +136,11 @@ describe("operators/update/set", () => {
       }
     ];
 
+    const cb = $set({ "grades.$[elem].mean": 100 }, [
+      { "elem.grade": { $gte: 85 } }
+    ]);
     states.forEach((s, i) => {
-      $set(s, { "grades.$[elem].mean": 100 }, [{ "elem.grade": { $gte: 85 } }]);
+      cb(s);
       expect(s).toEqual(results[i]);
     });
   });
@@ -172,10 +170,11 @@ describe("operators/update/set", () => {
         degrees: [{ level: "Bachelor" }]
       }
     ];
+    const cb = $set({ "degrees.$[degree].gradcampaign": 1 }, [
+      { "degree.level": { $ne: "Bachelor" } }
+    ]);
     states.forEach((s, i) => {
-      $set(s, { "degrees.$[degree].gradcampaign": 1 }, [
-        { "degree.level": { $ne: "Bachelor" } }
-      ]);
+      cb(s);
       expect(s).toEqual(results[i]);
     });
   });
