@@ -16,13 +16,12 @@ export const $slice: ProjectionOperator = (
   options: Options
 ): Any => {
   const xs = resolve(obj, field);
-  const exprAsArray = expr as Any[];
 
   if (!isArray(xs)) return xs;
 
   return __slice(
     obj,
-    isArray(expr) ? [xs, ...exprAsArray] : [xs, expr],
+    isArray(expr) ? [xs, ...(expr as Any[])] : [xs, expr],
     options
   );
 };
