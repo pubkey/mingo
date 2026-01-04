@@ -37,10 +37,13 @@ export const $accumulator: AccumulatorOperator = (
   expr: AccumulatorExpr,
   options: Options
 ): Any => {
-  assert(
-    !!options && options.scriptEnabled,
-    "$accumulator operator requires 'scriptEnabled' option to be true"
-  );
+  if (!options.scriptEnabled) {
+    assert(
+      !options.failOnError,
+      "$accumulator operator requires 'scriptEnabled' option to be true"
+    );
+    return null;
+  }
 
   const copts = ComputeOptions.init(options);
 
@@ -51,13 +54,18 @@ export const $accumulator: AccumulatorOperator = (
     copts.update({ root: copts?.local?.groupId })
   ) as Any[];
 
-  const args = $push(collection, expr.accumulateArgs, copts) as Any[][];
-  args.forEach(arr => arr.forEach((v, i) => (arr[i] = v ?? null)));
-  const initialValue = expr.init.apply(null, initArgs) as Any;
-  const result = args.reduce(
-    (acc, v) => expr.accumulate.apply(null, [acc, ...v]) as Any,
-    initialValue
-  );
+  try {
+    const args = $push(collection, expr.accumulateArgs, copts) as Any[][];
+    args.forEach(arr => arr.forEach((v, i) => (arr[i] = v ?? null)));
+    const initialValue = expr.init.apply(null, initArgs) as Any;
+    const result = args.reduce(
+      (acc, v) => expr.accumulate.apply(null, [acc, ...v]) as Any,
+      initialValue
+    );
 
-  return (expr.finalize ? expr.finalize.call(null, result) : result) as Any;
+    return (expr.finalize ? expr.finalize.call(null, result) : result) as Any;
+  } catch (e) {
+    if (options.failOnError) throw e;
+    return null;
+  }
 };

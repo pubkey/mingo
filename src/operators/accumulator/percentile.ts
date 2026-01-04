@@ -21,13 +21,16 @@ export const $percentile: AccumulatorOperator<number[]> = (
   // MongoDB uses the t-digest algorithm to estimate percentiles.
   // Since this library expects all data in memory we use the linear interpolation method.
   const X = $push(collection, expr.input, options).filter(isNumber).sort();
-  const centiles = $push(expr.p, "$$CURRENT", options).filter(isNumber);
+  const centiles = $push(expr.p, "$$CURRENT", options) as number[];
   const method = expr.method || "approximate";
   return centiles.map(p => {
-    assert(
-      p > 0 && p <= 1,
-      `percentile value must be between 0 (exclusive) and 1 (inclusive): invalid '${p}'.`
-    );
+    if (!isNumber(p) || p < 0 || p > 1) {
+      assert(
+        !options.failOnError,
+        `The $percentile 'p' field must be an array of numbers from [0.0, 1.0], but found: ${p}`
+      );
+      return null;
+    }
     // compute rank for the percentile
     const r = p * (X.length - 1) + 1;
     // get the integer part

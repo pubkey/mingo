@@ -86,7 +86,7 @@ export class ComputeOptions implements Options {
           idKey: "_id",
           scriptEnabled: true,
           useStrictMode: true,
-          // failOnError: true,
+          failOnError: true,
           processingMode: ProcessingMode.CLONE_OFF,
           ...options,
           context: options?.context

@@ -24,6 +24,13 @@ export const $lastN: AccumulatorOperator = (
   const copts = options as ComputeOptions;
   const m = collection.length;
   const n = computeValue(copts?.local?.groupId, expr.n, null, copts) as number;
+  if (n < 1) {
+    assert(
+      !options.failOnError,
+      "$lastN: 'n' must resolve to a positive integer."
+    );
+    return [];
+  }
   return $push(
     m <= n ? collection : collection.slice(m - n),
     expr.input,

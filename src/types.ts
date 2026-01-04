@@ -87,7 +87,7 @@ export interface Options {
   /** Enable or disable custom script execution using `$where`, `$accumulator`, and `$function` operators. @default true. */
   readonly scriptEnabled: boolean;
   /** When true, throws an error if an operator fails otherwise set to null. @default true. */
-  // readonly failOnError?: boolean;
+  readonly failOnError?: boolean;
   /** This option does nothing and will be removed in future versions. @deprecated */
   readonly hashFunction?: (x: Any) => number;
   /** Function to resolve strings to arrays for use with operators that reference other collections such as; `$lookup`, `$out` and `$merge`. */
