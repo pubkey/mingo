@@ -21,7 +21,15 @@ export const $expMovingAvg: WindowOperator = (
 
   assert(
     !(N && alpha),
-    `You must specify either N or alpha. You cannot specify both.`
+    `$expMovingAvg: must provide either 'N' or 'alpha' field.`
+  );
+  assert(
+    !N || (isNumber(N) && N > 0),
+    `$expMovingAvg: 'N' must be greater than zero. Got ${N}.`
+  );
+  assert(
+    !alpha || (isNumber(alpha) && alpha > 0 && alpha < 1),
+    `$expMovingAvg: 'alpha' must be between 0 and 1 (exclusive), found alpha: ${alpha}`
   );
 
   return withMemo(
