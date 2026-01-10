@@ -1,17 +1,18 @@
-import * as support from "../../../support";
+import { runTest, testPath } from "../../../support";
 
-support.runTest(support.testPath(__filename), {
+runTest(testPath(__filename), {
   $indexOfArray: [
-    [null, null],
+    [[[1, 2], "search", "<start>", "<end>"], Error()],
+    [[[1, 2], "search", "<start>", "<end>"], null, { failOnError: false }],
     [[["a", "abc"], "a"], 0],
     [[["a", "abc", "de", ["de"]], ["de"]], 3],
     [[[1, 2], 5], -1],
     [
       [
         [1, 2, 3],
-        [1, 2],
+        [1, 2]
       ],
-      -1,
+      -1
     ],
     [[[10, 9, 9, 8, 9], 9, 3], 4],
     [[["a", "abc", "b"], "b", 0, 1], -1],
@@ -19,10 +20,6 @@ support.runTest(support.testPath(__filename), {
     [[["a", "abc", "b"], "b", 20], -1],
     [[[null, null, null], null], 0],
     [[null, "foo"], null],
-    [
-      ["foo", "foo"],
-      "$indexOfArray expression must resolve to an array.",
-      { err: true },
-    ],
-  ],
+    [["foo", "foo"], Error()]
+  ]
 });

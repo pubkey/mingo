@@ -59,8 +59,8 @@ runTest("operators/expression/type", {
     [{ input: false, to: "int" }, 0],
     [{ input: 1.99999, to: "int" }, 1],
     [{ input: 5.5, to: "int" }, 5],
-    [{ input: 9223372036000.0, to: "int" }, "error", { err: true }],
-    [{ input: 9223372036854775808.0, to: "long" }, "error", { err: true }],
+    [{ input: 9223372036000.0, to: "int" }, Error()],
+    [{ input: 9223372036854775808.0, to: "long" }, Error()],
     [
       {
         input: 9223372036000.0,
@@ -70,9 +70,9 @@ runTest("operators/expression/type", {
       "Could not convert to type integer."
     ],
     [{ input: 5000, to: 16 }, 5000],
-    [{ input: 922337203600, to: "int" }, "error", { err: true }],
+    [{ input: 922337203600, to: "int" }, Error()],
     [{ input: "-2", to: "int" }, -2],
-    [{ input: "2.5", to: "int" }, "error", { err: true }],
+    [{ input: "2.5", to: "int" }, Error()],
     [{ input: null, to: "int" }, null],
     [{ input: "5e2", to: 18 }, 500],
 
@@ -107,7 +107,7 @@ runTest("operators/expression/type", {
       { input: "2018-03-20 11:00:06 +0500", to: "date" },
       new Date("2018-03-20T06:00:06Z")
     ],
-    [{ input: "Friday", to: "date" }, "error", { err: true }],
+    [{ input: "Friday", to: "date" }, Error()],
     [
       {
         input: "Friday",

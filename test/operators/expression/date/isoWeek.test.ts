@@ -7,6 +7,6 @@ runTest(testPath(__filename), {
     [new Date("1998-11-02T00:00:00Z"), 45],
     [{ date: new Date("2011-08-14"), timezone: "America/Chicago" }, 32],
     [{ date: new Date("1998-11-02T00:00:00Z"), timezone: "-0500" }, 44],
-    ["2009-04-09", 43, { err: true }]
+    ["2009-04-09", Error()]
   ]
 });

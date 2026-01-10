@@ -1,7 +1,8 @@
 import type { ComputeOptions } from "../../core/_internal";
 import { computeValue } from "../../core/_internal";
 import { AccumulatorOperator, Any, AnyObject, Options } from "../../types";
-import { assert } from "../../util";
+import { isNumber } from "../../util";
+import { errInvalidArgs } from "../expression/_internal";
 import { $push } from "./push";
 
 interface InputExpr {
@@ -26,12 +27,11 @@ export const $firstN: AccumulatorOperator = (
   const copts = options as ComputeOptions;
   const m = collection.length;
   const n = computeValue(copts?.local?.groupId, expr.n, null, copts) as number;
-  if (n < 1) {
-    assert(
-      !options.failOnError,
-      "$firstN: 'n' must resolve to a positive integer."
+  if (!isNumber(n) || n < 1) {
+    return errInvalidArgs(
+      options.failOnError,
+      "$firstN 'n' must resolve to a positive integer"
     );
-    return [];
   }
   return $push(
     m <= n ? collection : collection.slice(0, n),

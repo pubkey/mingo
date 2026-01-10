@@ -1,7 +1,8 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { assert, isArray, isNil } from "../../../util";
+import { isArray, isNil } from "../../../util";
 import { $maxN as __maxN } from "../../accumulator/maxN";
+import { errExpectArray } from "../_internal";
 
 interface InputExpr {
   n: Any;
@@ -24,6 +25,7 @@ export const $maxN: ExpressionOperator = (
   if (isArray(obj)) return __maxN(obj, expr, options);
   const { input, n } = computeValue(obj, expr, null, options) as InputExpr;
   if (isNil(input)) return null;
-  assert(isArray(input), "Must resolve to an array/null or missing");
+  if (!isArray(input))
+    return errExpectArray(options.failOnError, "$maxN 'input'");
   return __maxN(input as AnyObject[], { n, input: "$$this" }, options);
 };

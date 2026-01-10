@@ -1,6 +1,7 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { isNil } from "../../../util";
+import { errExpectNumber } from "../_internal";
 
 /**
  * Returns the absolute value of a number.
@@ -15,5 +16,9 @@ export const $abs: ExpressionOperator = (
   options: Options
 ): number | null => {
   const n = computeValue(obj, expr, null, options) as number;
-  return isNil(n) ? null : Math.abs(n);
+  if (isNil(n)) return null;
+  if (typeof n !== "number")
+    return errExpectNumber(options.failOnError, "$abs");
+
+  return Math.abs(n);
 };

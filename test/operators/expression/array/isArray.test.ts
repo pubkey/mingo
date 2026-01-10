@@ -2,8 +2,8 @@ import * as support from "../../../support";
 
 support.runTest(support.testPath(__filename), {
   $isArray: [
-    [[], false, { err: true }],
-    [[1, 2], false, { err: true }],
+    [[], Error()],
+    [[1, 2], Error()],
     [["hello"], false],
     [[[]], true],
     [[["hello"]], true],

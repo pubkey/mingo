@@ -1,6 +1,7 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { assert, isNil, isNumber } from "../../../util";
+import { isNil } from "../../../util";
+import { errExpectNumber } from "../_internal";
 
 /**
  * Calculates the natural logarithm ln (i.e loge) of a number and returns the result as a double.
@@ -16,6 +17,8 @@ export const $ln: ExpressionOperator = (
 ): number | null => {
   const n = computeValue(obj, expr, null, options) as number;
   if (isNil(n)) return null;
-  assert(isNumber(n) || isNaN(n), "$ln expression must resolve to a number.");
+  if (typeof n !== "number") {
+    return errExpectNumber(options.failOnError, "$ln");
+  }
   return Math.log(n);
 };

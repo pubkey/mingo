@@ -3,6 +3,12 @@ import { $inc } from "../../../src/operators/update";
 import { testPath } from "../../support";
 
 describe(testPath(__filename), () => {
+  it("cannot increment invalid field", () => {
+    const state = { _id: 1, n: "Bob" };
+    expect($inc({ n: 2 })(state)).toEqual([]);
+    expect(state).toEqual({ _id: 1, n: "Bob" });
+  });
+
   it("should set field to current date", () => {
     const state = {
       _id: 1,

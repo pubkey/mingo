@@ -1,10 +1,6 @@
-/**
-
- */
-
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { isNil } from "../../../util";
+import { isArray, isNil } from "../../../util";
 
 /**
  * Evaluates an expression and returns the first non-null value.
@@ -18,6 +14,11 @@ export const $ifNull: ExpressionOperator = (
   expr: Any[],
   options: Options
 ): Any => {
-  const args = computeValue(obj, expr, null, options) as Any[];
-  return args.find(arg => !isNil(arg)) ?? args[args.length - 1];
+  assert(isArray(expr), "$ifNull expects an array");
+  let val = undefined;
+  for (const input of expr) {
+    val = computeValue(obj, input, null, options);
+    if (!isNil(val)) return val;
+  }
+  return val;
 };

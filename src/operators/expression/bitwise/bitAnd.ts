@@ -13,4 +13,6 @@ export const $bitAnd: ExpressionOperator = (
   expr: AnyObject,
   options: Options
 ) =>
-  processBitwise(obj, expr, options, nums => nums.reduce((a, b) => a & b, -1));
+  processBitwise(obj, expr, options, "$bitAnd", nums =>
+    nums.reduce((a, b) => a & b, -1)
+  );

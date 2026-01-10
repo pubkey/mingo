@@ -303,7 +303,7 @@ export const isBoolean = (v: Any): v is boolean => typeof v === "boolean";
 export const isString = (v: Any): v is string => typeof v === "string";
 export const isSymbol = (v: Any): boolean => typeof v === "symbol";
 export const isNumber = (v: Any): v is number =>
-  !isNaN(v as number) && typeof v === "number";
+  !Number.isNaN(v as number) && typeof v === "number";
 export const isArray = Array.isArray;
 export const isObject = (v: Any): v is object => typeOf(v) === "object";
 //  objects, arrays, functions, date, custom object

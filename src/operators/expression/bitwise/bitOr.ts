@@ -13,4 +13,6 @@ export const $bitOr: ExpressionOperator = (
   expr: Any,
   options: Options
 ) =>
-  processBitwise(obj, expr, options, nums => nums.reduce((a, b) => a | b, 0));
+  processBitwise(obj, expr, options, "$bitOr", nums =>
+    nums.reduce((a, b) => a | b, 0)
+  );

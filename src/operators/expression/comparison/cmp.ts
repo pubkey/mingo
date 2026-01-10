@@ -14,10 +14,7 @@ export const $cmp: ExpressionOperator = (
   expr: Any,
   options: Options
 ): Any => {
-  const args = computeValue(obj, expr, null, options) as Any[];
-  assert(
-    isArray(args) && args.length == 2,
-    "$cmp: expression must resolve to array of size 2."
-  );
-  return compare(args[0], args[1]);
+  assert(isArray(expr) && expr.length === 2, "$cmp expects array(2)");
+  const [a, b] = computeValue(obj, expr, null, options) as Any[];
+  return compare(a, b);
 };

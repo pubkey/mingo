@@ -16,7 +16,7 @@ export const DEFAULT_OPTS = Object.freeze({
   idKey: "_id",
   scriptEnabled: true,
   useStrictMode: true,
-  useGlobalContext: true,
+  failOnError: true,
   processingMode: ProcessingMode.CLONE_OFF,
   context: Context.init({
     accumulator: accumulatorOperators,
@@ -70,8 +70,11 @@ export function runTest(
         examples.forEach(val => {
           let input = val[0] as AnyObject;
           let expected = val[1];
-          const ctx = (val[2] || { err: false }) as AnyObject;
+          const ctx = (val[2] ?? {}) as AnyObject;
           const obj = ctx?.obj || {};
+          const overrides = {
+            failOnError: (ctx?.failOnError ?? true) as boolean
+          };
 
           let field: string | null = operator;
           // use the operator as field if not present in input
@@ -86,19 +89,21 @@ export function runTest(
 
           const prefix = `can apply ${operator}(${JSON.stringify(input)})`;
 
-          if (ctx.err) {
-            it(`${prefix} => Error("${expected as string}")`, () => {
+          if (expected instanceof Error) {
+            let msg = expected.message;
+            // quote regex chars
+            "[](){}".split("").forEach(v => (msg = msg.replace(v, `\\${v}`)));
+            it(`${prefix} => Error("${msg}")`, () => {
               expect(() =>
                 computeValue(obj, input, field, DEFAULT_OPTS)
-              ).toThrow();
+              ).toThrow(new RegExp(msg));
             });
           } else {
             it(`${prefix} => ${JSON.stringify(expected)}`, () => {
-              let actual = computeValue(obj, input, field, DEFAULT_OPTS);
-              // NaNs don't compare
-              if (actual !== actual && expected !== expected) {
-                actual = expected = 0;
-              }
+              const copts = { ...DEFAULT_OPTS, ...overrides };
+              let actual = computeValue(obj, input, field, copts);
+              // NaNs don't compare so normalize
+              if (Object.is(actual, expected)) actual = expected = 0;
               expect(actual).toEqual(expected);
             });
           }

@@ -1,6 +1,7 @@
 import { ComputeOptions, computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { assert, isArray, isNil } from "../../../util";
+import { isArray, isNil } from "../../../util";
+import { errExpectArray } from "../_internal";
 
 /**
  * Applies an expression to each element in an array and combines them into a single value.
@@ -18,7 +19,8 @@ export const $reduce: ExpressionOperator = (
   const inExpr = expr["in"];
 
   if (isNil(input)) return null;
-  assert(isArray(input), "$reduce 'input' expression must resolve to an array");
+  if (!isArray(input))
+    return errExpectArray(options.failOnError, "$reduce 'input'");
 
   const copts = ComputeOptions.init(options);
   const locals = {

@@ -1,6 +1,9 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, isArray, isEqual } from "../../../util";
+import { errInvalidArgs } from "../_internal";
+
+const err = "$in must resolve to [<expression>, <array>]";
 
 /**
  * Returns a boolean indicating whether a specified value is in an array.
@@ -13,7 +16,9 @@ export const $in: ExpressionOperator = (
   expr: Any,
   options: Options
 ): boolean => {
-  const [item, arr] = computeValue(obj, expr, null, options) as [Any, Any[]];
-  assert(isArray(arr), "$in second argument must be an array");
+  assert(isArray(expr) && expr.length == 2, "$in expects array(2)");
+  const args = computeValue(obj, expr, null, options) as [Any, Any[]];
+  const [item, arr] = args;
+  if (!isArray(arr)) return errInvalidArgs(options.failOnError, err);
   return arr.some(v => isEqual(v, item));
 };

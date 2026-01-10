@@ -1,6 +1,7 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { assert, isArray, isNil } from "../../../util";
+import { isArray, isNil, isNumber } from "../../../util";
+import { errInvalidArgs } from "../_internal";
 
 /**
  * Returns the element at the specified array index.
@@ -15,15 +16,16 @@ export const $arrayElemAt: ExpressionOperator = (
   options: Options
 ): Any => {
   const args = computeValue(obj, expr, null, options) as Any[];
-  assert(
-    isArray(args) && args.length === 2,
-    "$arrayElemAt expression must resolve to array(2)"
-  );
-
   if (args.some(isNil)) return null;
 
-  const index = args[1] as number;
-  const arr = args[0] as Any[];
+  const [arr, index] = args as [Any[], number];
+  if (!(isArray(arr) && isNumber(index))) {
+    return errInvalidArgs(
+      options.failOnError,
+      "$arrayElemAt expects [<array>, <index>]"
+    );
+  }
+
   if (index < 0 && Math.abs(index) <= arr.length) {
     return arr[(index + arr.length) % arr.length];
   } else if (index >= 0 && index < arr.length) {

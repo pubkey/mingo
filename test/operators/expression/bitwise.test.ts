@@ -2,6 +2,9 @@ import { runTest } from "../../support";
 
 runTest("operators/expression/boolean", {
   $bitAnd: [
+    ["not array", Error("expects array as argument")],
+    [[1, "invalid"], Error("must resolve to integers")],
+    [[1, "invalid"], null, { failOnError: false }],
     [[], -1],
     [[2, null], null],
     [[0, 127], 0],

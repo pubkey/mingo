@@ -1,6 +1,14 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { assert, isArray, isBoolean, isNil } from "../../../util";
+import {
+  assert,
+  has,
+  isArray,
+  isBoolean,
+  isNil,
+  isObject
+} from "../../../util";
+import { errExpectArray, errInvalidArgs } from "../_internal";
 
 /**
  * Merge two lists together.
@@ -17,42 +25,48 @@ export const $zip: ExpressionOperator = (
   expr: { inputs: Any[]; useLongestLength: boolean; defaults: Any },
   options: Options
 ): Any => {
+  assert(
+    isObject(expr) && has(expr, "inputs"),
+    "$zip received invalid arguments"
+  );
+
   const inputs = computeValue(obj, expr.inputs, null, options) as Any[][];
-  const useLongestLength = expr.useLongestLength || false;
+  const defaults =
+    (computeValue(obj, expr.defaults, null, options) as Any[]) ?? [];
+  const useLongestLength = expr.useLongestLength ?? false;
+  const foe = options.failOnError;
 
   if (isNil(inputs)) return null;
+  if (!isArray(inputs)) return errExpectArray(foe, "$zip 'inputs'");
+  let invalid = 0;
+  for (const elem of inputs) {
+    if (isNil(elem)) return null;
+    if (!isArray(elem)) invalid++;
+  }
+  if (invalid) return errExpectArray(foe, "$zip elements of 'inputs'");
+  if (!isBoolean(useLongestLength))
+    errInvalidArgs(foe, "$zip 'useLongestLength' must be boolean");
 
-  assert(isArray(inputs), "'inputs' expression must resolve to an array");
-  assert(isBoolean(useLongestLength), "'useLongestLength' must be a boolean");
-
-  if (isArray(expr.defaults)) {
+  if (isArray(defaults) && defaults.length > 0) {
     assert(
-      useLongestLength,
-      "'useLongestLength' must be set to true to use 'defaults'"
+      useLongestLength && defaults.length === inputs.length,
+      "$zip 'useLongestLength' must be set to true to use 'defaults'"
     );
   }
 
   let zipCount = 0;
 
   for (const arr of inputs) {
-    if (isNil(arr)) return null;
-
-    assert(
-      isArray(arr),
-      "'inputs' expression values must resolve to an array or null"
-    );
-
     zipCount = useLongestLength
       ? Math.max(zipCount, arr.length)
       : Math.min(zipCount || arr.length, arr.length);
   }
 
   const result: Any[] = [];
-  const defaults = expr.defaults || [];
 
   for (let i = 0; i < zipCount; i++) {
     const temp = inputs.map((val: Any[], index: number) => {
-      return isNil(val[i]) ? (defaults[index] as Any) || null : val[i];
+      return isNil(val[i]) ? (defaults[index] ?? null) : val[i];
     });
     result.push(temp);
   }

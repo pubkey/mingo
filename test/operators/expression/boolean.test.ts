@@ -15,7 +15,7 @@ runTest("operators/expression/boolean", {
     [{ $not: [false] }, true],
     [{ $not: [null] }, true],
     [{ $not: [0] }, true],
-    [{ $not: [0, 1] }, "should throw error", { err: true }],
+    [{ $not: [0, 1] }, Error()],
     // single values
     [{ $not: true }, false],
     [{ $not: 0 }, true],

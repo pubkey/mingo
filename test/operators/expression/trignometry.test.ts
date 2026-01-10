@@ -7,8 +7,7 @@ support.runTest("operators/expression/trignometry", {
     [null, null],
     [
       Infinity,
-      "cannot apply $sin to -inf, value must in (-inf,inf)",
-      { err: true }
+      Error()
     ],
     [Math.PI, 1.2246467991473532e-16]
   ],
@@ -24,8 +23,7 @@ support.runTest("operators/expression/trignometry", {
     [null, null],
     [
       Infinity,
-      "cannot apply $cos to -inf, value must in (-inf,inf)",
-      { err: true }
+      Error()
     ],
     [Math.PI, -1]
   ],
@@ -41,8 +39,7 @@ support.runTest("operators/expression/trignometry", {
     [null, null],
     [
       Infinity,
-      "cannot apply $tan to -inf, value must in (-inf,inf)",
-      { err: true }
+      Error()
     ],
     [Math.PI, -1.2246467991473532e-16]
   ],
@@ -58,8 +55,7 @@ support.runTest("operators/expression/trignometry", {
     [null, null],
     [
       Infinity,
-      "cannot apply $asin to -inf, value must in (-inf,inf)",
-      { err: true }
+      Error()
     ],
     [1, 1.5707963267948966]
   ],
@@ -74,8 +70,7 @@ support.runTest("operators/expression/trignometry", {
     [null, null],
     [
       Infinity,
-      "cannot apply $atan to -inf, value must in (-inf,inf)",
-      { err: true }
+      Error()
     ],
     [1, 0.7853981633974483]
   ],
@@ -101,8 +96,7 @@ support.runTest("operators/expression/trignometry", {
     [null, null],
     [
       Infinity,
-      "cannot apply $atanh to -inf, value must in (-inf,inf)",
-      { err: true }
+      Error()
     ],
     [Math.PI - 3, 0.14255044070731132]
   ],

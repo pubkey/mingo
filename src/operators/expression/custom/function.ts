@@ -28,7 +28,7 @@ export const $function: ExpressionOperator = (
 ): Any => {
   assert(
     options.scriptEnabled,
-    "$function operator requires 'scriptEnabled' option to be true"
+    "$function requires 'scriptEnabled' option to be true"
   );
   const fn = computeValue(obj, expr, null, options) as FunctionExpr;
   return fn.body.apply(null, fn.args) as Any;

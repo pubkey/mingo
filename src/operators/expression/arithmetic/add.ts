@@ -1,6 +1,9 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { assert, isDate } from "../../../util";
+import { isArray, isDate, isNil } from "../../../util";
+import { errInvalidArgs } from "../_internal";
+
+const err = "$add expression must resolve to array of numbers.";
 
 /**
  * Computes the sum of an array of numbers.
@@ -14,15 +17,26 @@ export const $add: ExpressionOperator = (
   expr: Any,
   options: Options
 ): number | Date => {
-  const args = computeValue(obj, expr, null, options) as Any[];
-  let hasDate = false;
-  let sum = 0;
+  const args = computeValue(obj, expr, null, options) as number[];
+  const failOnError = options.failOnError;
+  let dateFound = false;
+  let result = 0;
+
+  if (!isArray(args)) return errInvalidArgs(failOnError, err);
+
   for (const n of args) {
-    if (isDate(n)) {
-      assert(!hasDate, "'$add' can only have one date value");
-      hasDate = true;
+    if (isNil(n)) return null;
+    if (typeof n === "number") {
+      result += n;
+    } else if (isDate(n)) {
+      if (dateFound) {
+        return errInvalidArgs(failOnError, "$add must only have one date");
+      }
+      dateFound = true;
+      result += +n;
+    } else {
+      return errInvalidArgs(failOnError, err);
     }
-    sum += +n;
   }
-  return hasDate ? new Date(sum) : sum;
+  return dateFound ? new Date(result) : result;
 };

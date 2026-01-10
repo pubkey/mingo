@@ -1,6 +1,7 @@
 import { ComputeOptions, computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { assert, isArray, isNil } from "../../../util";
+import { isArray, isNil } from "../../../util";
+import { errExpectArray } from "../_internal";
 
 /**
  * Applies a sub-expression to each element of an array and returns the array of resulting values in order.
@@ -16,7 +17,8 @@ export const $map: ExpressionOperator = (
 ): Any => {
   const input = computeValue(obj, expr.input, null, options) as Any[];
   if (isNil(input)) return null;
-  assert(isArray(input), `$map 'input' expression must resolve to an array`);
+  if (!isArray(input))
+    return errExpectArray(options.failOnError, "$map 'input'");
 
   const copts = ComputeOptions.init(options);
   const k = expr.as || "this";

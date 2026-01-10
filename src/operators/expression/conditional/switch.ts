@@ -1,6 +1,6 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { truthy } from "../../../util/_internal";
+import { isObject, truthy } from "../../../util/_internal";
 
 /**
  * An operator that evaluates a series of case expressions. When it finds an expression which
@@ -15,21 +15,13 @@ export const $switch: ExpressionOperator = (
   expr: { branches: Array<{ case: Any; then: Any }>; default: Any },
   options: Options
 ): Any => {
-  let thenExpr = null;
-  // Array.prototype.find not supported in IE, hence the '.some()' proxy
-  expr.branches.some((b: { case: Any; then: Any }) => {
+  assert(isObject(expr), "$switch received invalid arguments");
+  for (const { case: caseExpr, then } of expr.branches) {
     const condition = truthy(
-      computeValue(obj, b.case, null, options),
+      computeValue(obj, caseExpr, null, options),
       options.useStrictMode
     );
-    if (condition) thenExpr = b.then;
-    return condition;
-  });
-
-  return computeValue(
-    obj,
-    thenExpr !== null ? thenExpr : expr.default,
-    null,
-    options
-  );
+    if (condition) return computeValue(obj, then, null, options);
+  }
+  return computeValue(obj, expr.default, null, options);
 };

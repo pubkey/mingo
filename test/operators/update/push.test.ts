@@ -1,6 +1,12 @@
 import { $push } from "../../../src/operators/update";
 
 describe("operators/update/push", () => {
+  it("Cannot push onto invalid field", () => {
+    const state = { _id: 1, scores: "100" };
+    expect($push({ scores: 89 })(state)).toEqual([]);
+    expect(state).toEqual({ _id: 1, scores: "100" });
+  });
+
   it("Append a Value to an Array", () => {
     const state = { _id: 1, scores: [44, 78, 38, 80] };
     $push({ scores: 89 })(state);

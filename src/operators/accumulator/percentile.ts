@@ -1,5 +1,12 @@
 import { AccumulatorOperator, Any, AnyObject, Options } from "../../types";
-import { assert, findInsertIndex, isNumber } from "../../util";
+import {
+  assert,
+  findInsertIndex,
+  isArray,
+  isNumber,
+  isObject
+} from "../../util";
+import { errInvalidArgs } from "../expression/_internal";
 import { $push } from "./push";
 
 /**
@@ -18,19 +25,26 @@ export const $percentile: AccumulatorOperator<number[]> = (
   expr: { input: Any; p: Any[]; method: "approximate" | "exact" },
   options: Options
 ): number[] => {
+  assert(
+    isObject(expr) && isArray(expr.p),
+    "$percentile received invalid arguments"
+  );
   // MongoDB uses the t-digest algorithm to estimate percentiles.
   // Since this library expects all data in memory we use the linear interpolation method.
   const X = $push(collection, expr.input, options).filter(isNumber).sort();
   const centiles = $push(expr.p, "$$CURRENT", options) as number[];
   const method = expr.method || "approximate";
-  return centiles.map(p => {
-    if (!isNumber(p) || p < 0 || p > 1) {
-      assert(
-        !options.failOnError,
-        `The $percentile 'p' field must be an array of numbers from [0.0, 1.0], but found: ${p}`
+
+  for (const n of centiles) {
+    if (!isNumber(n) || n < 0 || n > 1) {
+      return errInvalidArgs(
+        options.failOnError,
+        "$percentile 'p' must resolve to array of numbers between [0.0, 1.0]"
       );
-      return null;
     }
+  }
+
+  return centiles.map(p => {
     // compute rank for the percentile
     const r = p * (X.length - 1) + 1;
     // get the integer part

@@ -14,7 +14,10 @@ export const $isArray: ExpressionOperator = (
   expr: Any,
   options: Options
 ): Any => {
-  const okArr = isArray(expr);
-  assert(!okArr || expr.length === 1, "$isArray takes exactly 1 argument.");
-  return isArray(computeValue(obj, okArr ? expr[0] : expr, null, options));
+  let input = expr;
+  if (isArray(expr)) {
+    assert(expr.length === 1, "$isArray takes exactly 1 argument");
+    input = expr[0];
+  }
+  return isArray(computeValue(obj, input, null, options));
 };

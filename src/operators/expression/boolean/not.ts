@@ -17,7 +17,7 @@ export const $not: ExpressionOperator = (
   const booleanExpr = ensureArray(expr);
   // array values are truthy so an emty array is false
   if (booleanExpr.length == 0) return false;
-  assert(booleanExpr.length == 1, "Expression $not takes exactly 1 argument");
+  assert(booleanExpr.length == 1, "$not expression takes exactly 1 argument");
   // use provided value non-array value
   return !computeValue(obj, booleanExpr[0], null, options);
 };

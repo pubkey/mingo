@@ -1,6 +1,7 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { isArray } from "../../../util";
+import { isArray, isNil } from "../../../util";
+import { errExpectNumber } from "../_internal";
 
 /**
  * Counts and returns the total the number of items in an array.
@@ -14,5 +15,8 @@ export const $size: ExpressionOperator = (
   options: Options
 ): Any => {
   const value = computeValue(obj, expr, null, options) as Any[];
-  return isArray(value) ? value.length : undefined;
+  if (isNil(value)) return null;
+  return isArray(value)
+    ? value.length
+    : errExpectNumber(options.failOnError, "$size");
 };

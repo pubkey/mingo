@@ -9,7 +9,10 @@ export function $where(
   rhs: Any,
   options: Options
 ): Callback<boolean> {
-  assert(options.scriptEnabled, "$where: 'scriptEnabled' option must be true");
+  assert(
+    options.scriptEnabled,
+    "$where requires 'scriptEnabled' option to be true"
+  );
   const f = rhs as Predicate<Any>;
   assert(isFunction(f), "$where only accepts a Function object");
   return obj => truthy(f.call(obj), options?.useStrictMode);

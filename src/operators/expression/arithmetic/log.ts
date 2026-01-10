@@ -1,6 +1,7 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { assert, isArray, isNil, isNumber } from "../../../util";
+import { isArray, isNil } from "../../../util";
+import { errExpectNumberArray2 } from "../_internal";
 
 /**
  * Calculates the log of a number in the specified base and returns the result as a double.
@@ -15,12 +16,12 @@ export const $log: ExpressionOperator = (
   options: Options
 ): number | null => {
   const args = computeValue(obj, expr, null, options) as number[];
-  const msg = "$log expression must resolve to array(2) of numbers";
 
-  assert(isArray(args) && args.length === 2, msg);
-  if (args.some(isNil)) return null;
+  if (isArray(args) && args.length == 2) {
+    if (args.some(isNil)) return null;
+    if (args.every(v => typeof v === "number"))
+      return Math.log10(args[0]) / Math.log10(args[1]);
+  }
 
-  assert(args.some(isNaN) || args.every(isNumber), msg);
-
-  return Math.log10(args[0]) / Math.log10(args[1]);
+  return errExpectNumberArray2(options.failOnError, "$log");
 };

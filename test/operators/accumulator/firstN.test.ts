@@ -1,5 +1,5 @@
 import { aggregate } from "../../../src";
-import { testPath } from "../../support";
+import { runTest, testPath } from "../../support";
 
 const docs = [
   { playerId: "PlayerA", gameId: "G1", score: 31 },
@@ -11,6 +11,15 @@ const docs = [
   { playerId: "PlayerC", gameId: "G2", score: 66 },
   { playerId: "PlayerD", gameId: "G2", score: 80 }
 ];
+
+runTest("SimpleTests", {
+  $firstN: [
+    [
+      { input: [1, 2, 3, 4], n: "invalid" },
+      Error("must resolve to a positive integer")
+    ]
+  ]
+});
 
 describe(testPath(__filename), () => {
   it("handle Null and Missing Values", () => {

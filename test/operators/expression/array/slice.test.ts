@@ -1,7 +1,16 @@
-import * as support from "../../../support";
+import { runTest, testPath } from "../../../support";
 
-support.runTest(support.testPath(__filename), {
+runTest(testPath(__filename), {
   $slice: [
+    [null, Error("expects array(3)")],
+    [[null, 2], Error("first argument .+ array")],
+    [[[], "nan"], Error("second argument .+ number")],
+    [[[], 0, -1], Error("<n> must be a positive number")],
+    // failOnError: false
+    [[null, 2], null, { failOnError: false }],
+    [[[], "nan"], null, { failOnError: false }],
+    [[[], 0, -1], null, { failOnError: false }],
+    // happy cases
     [[[1, 2, 3], 1, 1], [2]],
     [
       [[1, 2, 3], -2],

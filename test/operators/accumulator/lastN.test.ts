@@ -1,4 +1,4 @@
-import * as samples from "../../support";
+import { runTest, runTestPipeline } from "../../support";
 
 const docs = [
   { playerId: "PlayerA", gameId: "G1", score: 31 },
@@ -11,7 +11,22 @@ const docs = [
   { playerId: "PlayerD", gameId: "G2", score: 80 }
 ];
 
-samples.runTestPipeline("operators/accumulator/lastN", [
+runTest("SimpleTests", {
+  $lastN: [
+    [
+      { input: [1, 2, 3, 4], n: "invalid" },
+      Error("must resolve to a positive integer")
+    ],
+    [{ input: [1, 2, 3, 4], n: "invalid" }, null, { failOnError: false }],
+    [
+      { input: "bad input", n: 1 },
+      Error("'input' expression must resolve to array")
+    ],
+    [{ input: "bad input", n: 1 }, null, { failOnError: false }]
+  ]
+});
+
+runTestPipeline("operators/accumulator/lastN", [
   {
     message: "Null and Missing Values",
     input: [

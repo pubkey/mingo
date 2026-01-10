@@ -1,10 +1,19 @@
 import { aggregate } from "../../../src";
 import { ComputeOptions, ProcessingMode } from "../../../src/core/_internal";
 import { $percentile } from "../../../src/operators/accumulator";
-import { DEFAULT_OPTS, testPath } from "../../support";
+import { DEFAULT_OPTS, runTest, testPath } from "../../support";
 
 const options = ComputeOptions.init({
   processingMode: ProcessingMode.CLONE_INPUT
+});
+
+runTest("ErrorCases", {
+  $percentile: [
+    // invalid arguments
+    [{ input: [1, 2, 3], p: "invalid" }, Error("invalid arguments")],
+    // Invalid expressions in 'p'
+    [{ input: [1, 2, 3], p: ["invalid"] }, Error("resolve to array of numbers")]
+  ]
 });
 
 describe(testPath("accumulator/percentile"), () => {

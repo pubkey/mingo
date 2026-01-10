@@ -1,8 +1,9 @@
 import { computeValue } from "../../../core/_internal";
 import { Lazy } from "../../../lazy";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { assert, compare, isArray, isNil, isObject } from "../../../util";
+import { compare, isArray, isNil, isObject } from "../../../util";
 import { $sort } from "../../pipeline/sort";
+import { errExpectArray } from "../_internal";
 
 /**
  * Sorts an array based on its elements. The sort order is user specified.
@@ -23,14 +24,14 @@ export const $sortArray: ExpressionOperator = (
   };
 
   if (isNil(input)) return null;
-  assert(isArray(input), "$sortArray expression must resolve to an array");
+  if (!isArray(input))
+    return errExpectArray(options.failOnError, "$sortArray 'input'");
 
   if (isObject(sortBy)) {
     return $sort(Lazy(input), sortBy, options).collect();
   }
 
-  const result = input.slice();
-  result.sort(compare);
+  const result = input.slice().sort(compare);
   if (sortBy === -1) result.reverse();
   return result;
 };

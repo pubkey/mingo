@@ -2,6 +2,10 @@ import * as support from "../../../support";
 
 support.runTest(support.testPath(__filename), {
   $filter: [
+    ["invalid", null], // no validation for argument structure.
+    [{ input: "invalid" }, Error()],
+    [{ input: "invalid" }, null, { failOnError: false }],
+    [{ input: null }, null],
     [
       {
         input: [
@@ -16,12 +20,12 @@ support.runTest(support.testPath(__filename), {
           true,
           false,
           [],
-          {},
+          {}
         ],
         as: "item",
-        cond: "$$item",
+        cond: "$$item"
       },
-      ["string", "", 1, 1.5, true, [], {}],
-    ],
-  ],
+      ["string", "", 1, 1.5, true, [], {}]
+    ]
+  ]
 });

@@ -1,30 +1,53 @@
-import * as support from "../../support";
+import { runTest } from "../../support";
 
-support.runTest("operators/expression/arithmetic", {
+const skipError = { failOnError: false };
+
+runTest("operators/expression/arithmetic", {
   $abs: [
-    [{ $abs: null }, null],
-    [{ $abs: -1 }, 1],
-    [{ $abs: 1 }, 1]
+    [null, null],
+    [-1, 1],
+    [1, 1],
+    [NaN, NaN],
+    ["invalid", Error()],
+    ["invalid", null, skipError]
   ],
   $add: [
+    ["invalid", Error()],
+    [null, null, skipError],
+    [[null, 0], null],
+    // error: multiple dates
+    [[1, new Date(), new Date()], Error("must only have one date")],
+    [[], 0],
     [[10, 2], 12],
     [[-1, 5], 4],
     [[-3, -7], -10],
-    [[new Date("2017-10-10"), 3 * 24 * 60 * 60000], new Date("2017-10-13")]
+    [[new Date("2017-10-10"), 2592e5], new Date("2017-10-13")],
+    [[-3, "10"], Error()],
+    [[-3, "10"], null, skipError]
   ],
   $ceil: [
-    [{ $ceil: NaN }, NaN],
-    [{ $ceil: null }, null],
-    [{ $ceil: 1 }, 1],
-    [{ $ceil: 7.8 }, 8],
-    [{ $ceil: -2.8 }, -2]
+    [NaN, NaN],
+    [null, null],
+    ["invalid", Error()],
+    ["invalid", null, skipError],
+    [1, 1],
+    [7.8, 8],
+    [-2.8, -2]
   ],
   $divide: [
+    ["invalid", Error()],
+    ["invalid", null, skipError],
     [[80, 4], 20],
     [[1.5, 3], 0.5],
-    [[40, 8], 5]
+    [[40, 8], 5],
+    [[40, 0], Error()],
+    [[40, 0], null, skipError],
+    [[40, "string"], Error()],
+    [[40, "string"], null, skipError]
   ],
   $exp: [
+    ["invalid", Error()],
+    ["invalid", null, skipError],
     [{ $exp: 0 }, 1],
     [{ $round: [{ $exp: 2 }, 10] }, 7.3890560989], // applied rounding to survive different v8 versions
     [{ $round: [{ $exp: -2 }, 10] }, 0.1353352832],
@@ -32,54 +55,75 @@ support.runTest("operators/expression/arithmetic", {
     [{ $exp: undefined }, null]
   ],
   $floor: [
-    [{ $floor: NaN }, NaN],
-    [{ $floor: undefined }, null],
-    [{ $floor: 1 }, 1],
-    [{ $floor: 7.8 }, 7],
-    [{ $floor: -2.8 }, -3]
+    ["invalid", Error()],
+    ["invalid", null, skipError],
+    [NaN, NaN],
+    [undefined, null],
+    [1, 1],
+    [7.8, 7],
+    [-2.8, -3]
   ],
   $ln: [
-    [{ $ln: NaN }, NaN],
-    [{ $ln: undefined }, null],
-    [{ $ln: 1 }, 0],
-    [{ $ln: Math.E }, 1],
-    [{ $ln: 10 }, 2.302585092994046]
+    ["invalid", Error()],
+    ["invalid", null, skipError],
+    [NaN, NaN],
+    [undefined, null],
+    [1, 0],
+    [Math.E, 1],
+    [10, 2.302585092994046]
   ],
   $log: [
-    [{ $log: [NaN, 1] }, NaN],
-    [{ $log: [undefined, 2] }, null],
-    [{ $log: [100, 10] }, 2],
-    [{ $log: [100, Math.E] }, 4.605170185988092]
+    ["invalid", Error()],
+    ["invalid", null, skipError],
+    [[NaN, 1], NaN],
+    [[undefined, 2], null],
+    [[100, 10], 2],
+    [[100, Math.E], 4.605170185988092]
   ],
   $log10: [
-    [{ $log10: NaN }, NaN],
-    [{ $log10: undefined }, null],
-    [{ $log10: 1 }, 0],
-    [{ $log10: 10 }, 1],
-    [{ $log10: 100 }, 2],
-    [{ $log10: 1000 }, 3]
+    ["invalid", Error()],
+    ["invalid", null, skipError],
+    [NaN, NaN],
+    [undefined, null],
+    [1, 0],
+    [10, 1],
+    [100, 2],
+    [1000, 3]
   ],
   $mod: [
+    ["invalid", Error()],
+    [["invalid", 9], Error()],
+    [[], Error()],
+    [["invalid", 9], null, skipError],
     [[80, 7], 3],
     [[40, 4], 0]
   ],
   $multiply: [
+    ["invalid", Error()],
+    [["invalid", 9], Error()],
+    [[], 1],
     [[5, 10], 50],
     [[-2, 4], -8],
     [[-3, -3], 9]
   ],
   $pow: [
-    [
-      { $pow: [0, -1] },
-      "$pow cannot raise 0 to a negative exponent",
-      { err: 1 }
-    ],
-    [{ $pow: [5, 0] }, 1],
-    [{ $pow: [5, 2] }, 25],
-    [{ $pow: [5, -2] }, 0.04],
-    [{ $pow: [-5, 0.5] }, NaN]
+    ["invalid", Error()],
+    ["invalid", null, skipError],
+    [["invalid", 9], Error()],
+    [["invalid", 9], null, skipError],
+    [[0, -1], Error()],
+    [[5, 0], 1],
+    [[5, 2], 25],
+    [[5, -2], 0.04],
+    [[-5, 0.5], NaN]
   ],
   $round: [
+    ["invalid", Error()],
+    ["invalid", null, skipError],
+    [["invalid", 9], Error()],
+    [["invalid", 9], null, skipError],
+    [[0.123, -21], Error("precision must be in range")],
+    [[10.5], 10],
     [[10.5, 0], 10],
     [[11.5, 0], 12],
     [[12.5, 0], 12],
@@ -119,20 +163,32 @@ support.runTest("operators/expression/arithmetic", {
     [[11.9, 0], 12]
   ],
   $sigmoid: [
+    ["invalid", Error()],
+    ["invalid", null, skipError],
     [undefined, null],
     [null, null],
+    [{ input: "$invalid", onNull: 10 }, 10],
     [1, 0.7310585786],
     [5, 0.9933071491],
     [13, 0.9999977397],
     [21, 0.9999999992]
   ],
   $sqrt: [
-    [{ $sqrt: null }, null],
-    [{ $sqrt: NaN }, NaN],
-    [{ $sqrt: 25 }, 5],
-    [{ $sqrt: 30 }, 5.477225575051661]
+    ["invalid", Error()],
+    ["invalid", null, skipError],
+    [-1, Error()],
+    [-1, null, skipError],
+    [null, null],
+    [NaN, NaN],
+    [25, 5],
+    [30, 5.477225575051661]
   ],
   $subtract: [
+    ["invalid", Error()],
+    ["invalid", null, skipError],
+    [["invalid", 9], Error()],
+    [["invalid", 9], null, skipError],
+    [[null, 9], null],
     [[-1, -1], 0],
     [[-1, 2], -3],
     [[2, -1], 3],
@@ -142,6 +198,10 @@ support.runTest("operators/expression/arithmetic", {
     ]
   ],
   $trunc: [
+    ["invalid", Error()],
+    ["invalid", null, skipError],
+    [["invalid", 9], Error()],
+    [["invalid", 9], null, skipError],
     [[NaN, 0], NaN],
     [[null, 0], null],
     [[NaN, 1], NaN],

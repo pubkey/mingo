@@ -5,9 +5,9 @@ support.runTest(support.testPath(__filename), {
     [[1, 2, 3], 3],
     [[[]], undefined],
     [[null], null],
-    [[], null, { err: true }],
+    [[], Error()],
     [null, null],
     [undefined, null],
-    [5, null, { err: true }]
+    [5, Error()]
   ]
 });

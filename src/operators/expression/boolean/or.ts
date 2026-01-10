@@ -1,6 +1,6 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { truthy } from "../../../util/_internal";
+import { isArray, truthy } from "../../../util/_internal";
 
 /**
  * Returns true when any of its expressions evaluates to true. Accepts any number of argument expressions.
@@ -14,7 +14,7 @@ export const $or: ExpressionOperator = (
   expr: Any,
   options: Options
 ): Any => {
-  const value = computeValue(obj, expr, null, options) as Any[];
+  assert(isArray(expr), "$or expects array of expressions");
   const strict = options.useStrictMode;
-  return truthy(value, strict) && value.some(v => truthy(v, strict));
+  return expr.some(v => truthy(computeValue(obj, v, null, options), strict));
 };

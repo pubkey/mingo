@@ -130,6 +130,9 @@ export class ComputeOptions implements Options {
   get scriptEnabled() {
     return this.options?.scriptEnabled;
   }
+  get failOnError() {
+    return this.options?.failOnError;
+  }
   get collectionResolver() {
     return this.options?.collectionResolver;
   }

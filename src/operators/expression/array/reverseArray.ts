@@ -1,6 +1,7 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { assert, isArray, isNil } from "../../../util";
+import { isArray, isNil } from "../../../util";
+import { errExpectArray } from "../_internal";
 
 /**
  * Returns an array with the elements in reverse order.
@@ -17,7 +18,8 @@ export const $reverseArray: ExpressionOperator = (
   const arr = computeValue(obj, expr, null, options) as Any[];
 
   if (isNil(arr)) return null;
-  assert(isArray(arr), "$reverseArray expression must resolve to an array");
+  if (!isArray(arr))
+    return errExpectArray(options.failOnError, "$reverseArray");
 
   const result = arr.slice(0);
   result.reverse();

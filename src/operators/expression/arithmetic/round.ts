@@ -1,6 +1,5 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { assert, isNil, isNumber } from "../../../util";
 import { truncate } from "./_internal";
 
 /**
@@ -13,11 +12,10 @@ export const $round: ExpressionOperator = (
   expr: Any,
   options: Options
 ): number | null => {
-  const args = computeValue(obj, expr, null, options) as Any[];
-  const num = args[0] as number;
-  const place = args[1] as number;
-  if (isNil(num) || isNaN(num) || Math.abs(num) === Infinity) return num;
-  assert(isNumber(num), "$round expression must resolve to a number.");
-
-  return truncate(num, place, true);
+  const args = computeValue(obj, expr, null, options) as number[];
+  return truncate(args[0], args[1], {
+    name: "$round",
+    roundOff: true,
+    failOnError: options.failOnError
+  });
 };

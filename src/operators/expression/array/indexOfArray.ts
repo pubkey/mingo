@@ -1,6 +1,7 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { assert, isArray, isEqual, isNil } from "../../../util";
+import { assert, isArray, isEqual, isNil, isNumber } from "../../../util";
+import { errExpectArray, errInvalidArgs } from "../_internal";
 
 /**
  * Searches an array for an occurrence of a specified value and returns the array index of the first occurrence.
@@ -12,36 +13,33 @@ import { assert, isArray, isEqual, isNil } from "../../../util";
  */
 export const $indexOfArray: ExpressionOperator = (
   obj: AnyObject,
-  expr: Any,
+  expr: Any[],
   options: Options
 ): number => {
+  assert(
+    isArray(expr),
+    "$indexOfArray expects [ <array>, <search>, <start>?, <end>? ]"
+  );
   const args = computeValue(obj, expr, null, options) as Any[];
-  if (isNil(args)) return null;
 
-  let arr = args[0] as Any[];
-  const searchValue = args[1];
+  const arr = args[0] as Any[];
   if (isNil(arr)) return null;
+  if (!isArray(arr))
+    return errExpectArray(options.failOnError, "$indexOfArray first argument");
 
-  assert(isArray(arr), "$indexOfArray expression must resolve to an array.");
+  const search = args[1];
+  const start = (args[2] ?? 0) as number;
+  const end = (args[3] ?? arr.length) as number;
 
-  const start = (args[2] as number) || 0;
-  let end = args[3] as number;
-  if (isNil(end)) end = arr.length;
-  if (start > end) return -1;
-
-  assert(start >= 0 && end >= 0, "$indexOfArray expression is invalid");
-
-  if (start > 0 || end < arr.length) {
-    arr = arr.slice(start, end);
+  if (!isNumber(start) || !isNumber(end) || start < 0 || end < 0) {
+    return errInvalidArgs(
+      options.failOnError,
+      "$indexOfArray must resolve <start> and <end> to positive numbers"
+    );
   }
 
-  // Array.prototype.findIndex not supported in IE9 hence this workaround
-  let index = -1;
-  arr.some((v: Any, i: number) => {
-    const b = isEqual(v, searchValue);
-    if (b) index = i;
-    return b;
-  });
+  if (start > end) return -1;
+  const input = start > 0 || end < arr.length ? arr.slice(start, end) : arr;
 
-  return index + start;
+  return input.findIndex((v: Any) => isEqual(v, search)) + start;
 };

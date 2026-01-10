@@ -1,6 +1,9 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { isArray, isNumber } from "../../../util";
+import { errInvalidArgs } from "../_internal";
 
+const err = "$range expects array(3) of numbers";
 /**
  * Returns an array whose elements are a generated sequence of numbers.
  *
@@ -13,10 +16,18 @@ export const $range: ExpressionOperator = (
   expr: Any,
   options: Options
 ): Any => {
-  const arr = computeValue(obj, expr, null, options);
-  const start = arr[0] as number;
-  const end = arr[1] as number;
-  const step = (arr[2] as number) || 1;
+  const args = computeValue(obj, expr, null, options) as Any[];
+  assert(isArray(args) && args.length > 1, err);
+
+  if (!args.every(isNumber))
+    return errInvalidArgs(
+      options.failOnError,
+      "$range expressions must resolve to numbers"
+    );
+
+  const start = args[0];
+  const end = args[1];
+  const step = args[2] ?? 1;
 
   const result = new Array<number>();
   let counter = start;

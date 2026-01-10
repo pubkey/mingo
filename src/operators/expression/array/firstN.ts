@@ -1,7 +1,8 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { assert, isArray, isNil } from "../../../util";
+import { isArray, isNil } from "../../../util";
 import { $firstN as __firstN } from "../../accumulator/firstN";
+import { errExpectArray } from "../_internal";
 
 interface InputExpr {
   n: Any;
@@ -24,6 +25,7 @@ export const $firstN: ExpressionOperator = (
   if (isArray(obj)) return __firstN(obj, expr, options);
   const { input, n } = computeValue(obj, expr, null, options) as InputExpr;
   if (isNil(input)) return null;
-  assert(isArray(input), "$firstN: 'input' must resolve to an array.");
+  if (!isArray(input))
+    return errExpectArray(options.failOnError, "$firstN 'input'");
   return __firstN(input as AnyObject[], { n, input: "$$this" }, options);
 };

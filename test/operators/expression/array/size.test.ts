@@ -1,9 +1,12 @@
-import * as support from "../../../support";
+import { runTest, testPath } from "../../../support";
 
-support.runTest(support.testPath(__filename), {
+runTest(testPath(__filename), {
   $size: [
+    [null, null],
+    ["invalid", Error("expression must resolve to number")],
+    ["invalid", null, { failOnError: false }],
     [["a", "b", "c"], 3],
     [[10], 1],
-    [[], 0],
-  ],
+    [[], 0]
+  ]
 });

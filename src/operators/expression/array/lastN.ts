@@ -1,7 +1,8 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { assert, isArray, isNil } from "../../../util";
+import { isArray, isNil } from "../../../util";
 import { $lastN as __lastN } from "../../accumulator/lastN";
+import { errExpectArray } from "../_internal";
 
 interface InputExpr {
   n: Any;
@@ -24,6 +25,8 @@ export const $lastN: ExpressionOperator = (
   if (isArray(obj)) return __lastN(obj, expr, options);
   const { input, n } = computeValue(obj, expr, null, options) as InputExpr;
   if (isNil(input)) return null;
-  assert(isArray(input), "Must resolve to an array/null or missing");
+  if (!isArray(input)) {
+    return errExpectArray(options.failOnError, "$lastN 'input'");
+  }
   return __lastN(input as AnyObject[], { n, input: "$$this" }, options);
 };
