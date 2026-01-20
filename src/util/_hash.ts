@@ -7,9 +7,6 @@
 // FNV-1a 32-bit prime
 const MULTIPLIER = 0x01000193;
 
-// Reusable scratch arrays (avoid allocations)
-const SCRATCH_KEYS: string[] = [];
-
 // ------------------------------------------------------------
 // Type Tags
 // ------------------------------------------------------------
@@ -135,19 +132,9 @@ function hashObject(obj: object, seen: WeakSet<object>): number {
   if (seen.has(obj)) return Tag.Cycle;
   seen.add(obj);
 
-  SCRATCH_KEYS.length = 0;
-  if (Object.getPrototypeOf(obj) === Object.prototype) {
-    for (const k in obj) SCRATCH_KEYS.push(k);
-  } else {
-    Array.prototype.push.apply(SCRATCH_KEYS, Object.keys(obj));
-    for (const k of Object.getOwnPropertyNames(Object.getPrototypeOf(obj))) {
-      if (typeof obj[k] !== "function") SCRATCH_KEYS.push(k);
-    }
-  }
-  SCRATCH_KEYS.sort();
-
+  const keys = Object.keys(obj).sort();
   let h = hashString(obj?.constructor?.name);
-  for (const k of SCRATCH_KEYS) {
+  for (const k of keys) {
     h = mix(h, hashString(k));
     h = mix(h, internalHash(obj[k], seen));
   }
