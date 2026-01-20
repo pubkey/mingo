@@ -1,3 +1,5 @@
+import { describe, expect, it } from "vitest";
+
 import { update } from "../../../src";
 import { $inc } from "../../../src/operators/update";
 import { testPath } from "../../support";

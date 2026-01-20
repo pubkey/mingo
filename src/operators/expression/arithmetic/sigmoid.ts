@@ -1,6 +1,6 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { isNil, isNumber, isObject } from "../../../util";
+import { assert, isNil, isNumber, isObject } from "../../../util";
 
 const PRECISION = 1e10;
 

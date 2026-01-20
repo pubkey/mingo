@@ -1,3 +1,5 @@
+import { beforeEach, describe, expect, it } from "vitest";
+
 import { find, update, updateMany, updateOne } from "../src";
 import { ComputeOptions } from "../src/core/_internal";
 import { clone } from "../src/operators/update/_internal";

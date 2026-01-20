@@ -1,3 +1,5 @@
+import { describe, expect, it } from "vitest";
+
 import { Query } from "../../../src";
 import { $exists } from "../../../src/operators/query";
 import { AnyObject } from "../../../src/types";

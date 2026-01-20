@@ -4,8 +4,7 @@
     "noEmit": true,
     "module": "preserve",
     "moduleResolution": "bundler",
-    "allowSyntheticDefaultImports": true,
-    "types": ["vitest/globals"]
+    "allowSyntheticDefaultImports": true
   },
   "include": ["src/**/*.ts", "test/**/*.ts", "benchmarks/**/*.ts"]
 }

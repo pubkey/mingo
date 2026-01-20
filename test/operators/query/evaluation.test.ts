@@ -1,5 +1,5 @@
-/* eslint-disable no-restricted-imports */
 import Ajv, { Schema } from "ajv";
+import { describe, expect, it } from "vitest";
 
 import { aggregate, find } from "../../../src";
 import { Any, AnyObject, JsonSchemaValidator } from "../../../src/types";

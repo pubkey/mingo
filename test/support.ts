@@ -1,3 +1,5 @@
+import { describe, expect, it } from "vitest";
+
 import { aggregate } from "../src";
 import { computeValue, Context, ProcessingMode } from "../src/core";
 import * as accumulatorOperators from "../src/operators/accumulator";

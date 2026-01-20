@@ -1,3 +1,5 @@
+import { describe, expect, it } from "vitest";
+
 import { Lazy, Source } from "../src/lazy";
 
 const data = [1, 2, 3, 4, 5, 6, 7, 8, 9];

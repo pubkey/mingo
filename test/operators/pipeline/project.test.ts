@@ -1,3 +1,5 @@
+import { describe, expect, it } from "vitest";
+
 import { validateProjection } from "../../../src/operators/pipeline/_internal";
 import { Any, AnyObject } from "../../../src/types";
 import {

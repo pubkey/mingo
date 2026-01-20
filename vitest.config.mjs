@@ -2,7 +2,7 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    globals: true, // Optional: enables global `describe`, `it`, etc.
+    globals: false,
     environment: "node",
     coverage: {
       enabled: true,

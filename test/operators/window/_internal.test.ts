@@ -1,3 +1,5 @@
+import { describe, expect, it } from "vitest";
+
 import { cached, withMemo } from "../../../src/operators/window/_internal";
 import { Any } from "../../../src/types";
 import { testPath } from "../../support";

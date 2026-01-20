@@ -1,3 +1,5 @@
+import { describe, expect, it } from "vitest";
+
 import { aggregate } from "../../../src";
 import { ProcessingMode } from "../../../src/core/_internal";
 import { studentsData } from "../../support";

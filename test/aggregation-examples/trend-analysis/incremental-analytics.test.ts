@@ -1,3 +1,5 @@
+import { describe, expect, it } from "vitest";
+
 import { aggregate } from "../../../src";
 import { Any, AnyObject } from "../../../src/types";
 import { ISODate } from "../../support";

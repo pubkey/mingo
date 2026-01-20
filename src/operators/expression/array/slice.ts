@@ -1,6 +1,6 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { isArray, isNil, isNumber } from "../../../util";
+import { assert, isArray, isNil, isNumber } from "../../../util";
 import { errExpectArray, errExpectNumber, errInvalidArgs } from "../_internal";
 
 /**

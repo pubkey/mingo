@@ -1,3 +1,5 @@
+import { describe, expect, it } from "vitest";
+
 import { aggregate } from "../../../src";
 import { ComputeOptions, ProcessingMode } from "../../../src/core/_internal";
 import { $percentile } from "../../../src/operators/accumulator";

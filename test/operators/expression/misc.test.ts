@@ -1,3 +1,5 @@
+import { describe, expect, it } from "vitest";
+
 import { aggregate, find } from "../../../src";
 import { $getField } from "../../../src/operators/expression/misc/getField";
 import { Any, AnyObject } from "../../../src/types";

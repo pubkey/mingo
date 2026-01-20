@@ -1,3 +1,5 @@
+import { describe, expect, it } from "vitest";
+
 import { $max } from "../../../src/operators/update";
 
 describe("operators/update/max", () => {

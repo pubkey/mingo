@@ -1,5 +1,7 @@
+import { expect } from "vitest";
+
 import { Any, AnyObject } from "../../../src/types";
-import * as samples from "../../support";
+import { runTestPipeline } from "../../support";
 
 const output: Record<string, AnyObject[]> = {
   first: [],
@@ -10,7 +12,7 @@ const result = [
   { _id: "Homer", books: ["The Odyssey", "Iliad"] }
 ];
 
-samples.runTestPipeline("operators/pipeline/out", [
+runTestPipeline("operators/pipeline/out", [
   {
     message: "can apply $out operator with resolver",
     pipeline: [

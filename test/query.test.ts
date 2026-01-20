@@ -1,3 +1,5 @@
+import { describe, expect, it } from "vitest";
+
 import { find, Query } from "../src";
 
 describe("Query", () => {

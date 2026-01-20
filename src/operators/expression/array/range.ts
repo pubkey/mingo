@@ -1,6 +1,6 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { isArray, isNumber } from "../../../util";
+import { assert, isArray, isNumber } from "../../../util";
 import { errInvalidArgs } from "../_internal";
 
 const err = "$range expects array(3) of numbers";

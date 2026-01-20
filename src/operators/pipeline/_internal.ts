@@ -1,6 +1,6 @@
 import { AnyObject, Options } from "../../types";
 import { isNumber, isObject } from "../../util";
-import { PathValidator } from "../../util/_internal";
+import { assert, PathValidator } from "../../util/_internal";
 import { $documents } from "./documents";
 
 export function filterDocumentsStage(

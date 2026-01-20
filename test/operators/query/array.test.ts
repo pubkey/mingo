@@ -1,3 +1,5 @@
+import { describe, expect, it } from "vitest";
+
 import { find, Query } from "../../../src";
 import { Any, AnyObject } from "../../../src/types";
 import { testPath } from "../../support";

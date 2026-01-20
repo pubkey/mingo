@@ -1,6 +1,6 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { isArray, truthy } from "../../../util/_internal";
+import { assert, isArray, truthy } from "../../../util/_internal";
 
 /**
  * Returns true only when all its expressions evaluate to true. Accepts any number of argument expressions.
@@ -11,7 +11,7 @@ import { isArray, truthy } from "../../../util/_internal";
  */
 export const $and: ExpressionOperator = (
   obj: AnyObject,
-  expr: Any,
+  expr: Any[],
   options: Options
 ): Any => {
   assert(isArray(expr), "$and expects array of expressions");

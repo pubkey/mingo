@@ -1,3 +1,5 @@
+import { describe, expect, it } from "vitest";
+
 import { aggregate, ProcessingMode } from "../../../src";
 import { testPath } from "../../support";
 

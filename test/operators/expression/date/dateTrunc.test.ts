@@ -1,3 +1,5 @@
+import { describe, expect, it } from "vitest";
+
 import { $dateTrunc } from "../../../../src/operators/expression";
 import { DEFAULT_OPTS, runTest, testPath } from "../../../support";
 

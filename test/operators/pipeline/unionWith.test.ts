@@ -1,3 +1,5 @@
+import { describe, expect, it } from "vitest";
+
 import { aggregate } from "../../../src";
 import { AnyObject } from "../../../src/types";
 import { cloneDeep } from "../../../src/util";

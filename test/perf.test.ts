@@ -1,10 +1,10 @@
-/* eslint-disable-next-line */
 import { performance } from "perf_hooks";
+import { describe, expect, it } from "vitest";
 
-import { AnyObject, Callback, Options } from "../src/types";
 import { aggregate } from "../src";
-import { $sort } from "../src/operators/pipeline";
 import { Lazy } from "../src/lazy";
+import { $sort } from "../src/operators/pipeline";
+import { AnyObject, Callback, Options } from "../src/types";
 import { DEFAULT_OPTS, makeRandomString } from "./support";
 
 /* eslint-disable no-console */

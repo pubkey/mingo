@@ -1,7 +1,9 @@
-import { AnyObject } from "../../../src/types";
-import * as samples from "../../support";
+import { expect } from "vitest";
 
-samples.runTestPipeline("operators/pipeline/sortByCount", [
+import { AnyObject } from "../../../src/types";
+import { runTestPipeline } from "../../support";
+
+runTestPipeline("operators/pipeline/sortByCount", [
   {
     message: "can sort by count",
     input: [

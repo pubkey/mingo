@@ -1,3 +1,5 @@
+import { describe, expect, it } from "vitest";
+
 import { $mul } from "../../../src/operators/update";
 
 describe("operators/update/mul", () => {

@@ -1,3 +1,5 @@
+import { describe, expect, it } from "vitest";
+
 import { find } from "../../../src";
 import { DEFAULT_OPTS, runTest } from "../../support";
 

@@ -1,10 +1,12 @@
-import { Any } from "../../../src/types";
-import * as samples from "../../support";
+import { expect } from "vitest";
 
-samples.runTestPipeline("operators/pipeline/limit", [
+import { Any } from "../../../src/types";
+import { runTestPipeline, studentsData } from "../../support";
+
+runTestPipeline("operators/pipeline/limit", [
   {
     message: "can apply $limit",
-    input: samples.studentsData,
+    input: studentsData,
     pipeline: [{ $limit: 20 }],
     expected: (actual: Any[]) => {
       expect(actual.length).toEqual(20);

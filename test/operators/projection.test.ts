@@ -1,3 +1,5 @@
+import { beforeEach, describe, expect, it } from "vitest";
+
 import { find } from "../../src";
 import { ProcessingMode } from "../../src/core/_internal";
 import { Any, AnyObject } from "../../src/types";

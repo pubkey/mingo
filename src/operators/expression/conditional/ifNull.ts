@@ -1,6 +1,6 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { isArray, isNil } from "../../../util";
+import { assert, isArray, isNil } from "../../../util";
 
 /**
  * Evaluates an expression and returns the first non-null value.

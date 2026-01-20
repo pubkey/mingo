@@ -1,3 +1,5 @@
+import { describe, expect, it } from "vitest";
+
 import { Query } from "../../../src";
 import { Any } from "../../../src/types";
 import { ObjectId, personData, testPath } from "../../support";

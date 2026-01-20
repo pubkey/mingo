@@ -1,4 +1,4 @@
-import { isNil } from "../../../util";
+import { assert, isNil } from "../../../util";
 import { errExpectNumberArray2 } from "../_internal";
 
 /**

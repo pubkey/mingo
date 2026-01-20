@@ -1,3 +1,5 @@
+import { describe, expect, it } from "vitest";
+
 import { ProcessingMode, Query } from "../src";
 import * as samples from "./support";
 

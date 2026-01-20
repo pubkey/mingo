@@ -51,14 +51,25 @@ export default [
       "no-restricted-imports": [
         "error",
         {
-          patterns: [
+          paths: [
             {
-              regex: "^[a-zA-Z\@-]+"
+              name: "vitest",
+              allowImportNames: [
+                "afterEach",
+                "afterAll",
+                "beforeEach",
+                "beforeAll",
+                "describe",
+                "expect",
+                "it"
+              ]
             }
-          ]
+          ],
+          patterns: ["console"]
         }
       ],
 
+      "no-restricted-globals": ["error", "assert"],
       "no-console": "error",
       "simple-import-sort/imports": "error",
       "simple-import-sort/exports": "error",

@@ -1,6 +1,6 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { isObject, truthy } from "../../../util/_internal";
+import { assert, isObject, truthy } from "../../../util/_internal";
 
 /**
  * An operator that evaluates a series of case expressions. When it finds an expression which

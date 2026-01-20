@@ -1,13 +1,15 @@
-import { Any } from "../../../src/types";
-import * as samples from "../../support";
+import { expect } from "vitest";
 
-samples.runTestPipeline("operators/pipeline/skip", [
+import { Any } from "../../../src/types";
+import { runTestPipeline, studentsData } from "../../support";
+
+runTestPipeline("operators/pipeline/skip", [
   {
     message: "can skip result with $skip",
-    input: samples.studentsData,
+    input: studentsData,
     pipeline: [{ $skip: 32 }],
     expected: (result: Any[]) => {
-      expect(result.length).toEqual(samples.studentsData.length - 32);
+      expect(result.length).toEqual(studentsData.length - 32);
     }
   }
 ]);
