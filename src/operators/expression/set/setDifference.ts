@@ -1,6 +1,9 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, HashMap, isArray, isNil } from "../../../util";
+import { errExpectArray } from "../_internal";
+
+const OP = "$setDifference";
 
 /**
  * Returns elements of a set that do not appear in a second set.
@@ -9,18 +12,19 @@ import { assert, HashMap, isArray, isNil } from "../../../util";
  */
 export const $setDifference: ExpressionOperator = (
   obj: AnyObject,
-  expr: Any,
+  expr: Any[],
   options: Options
 ): Any => {
+  assert(isArray(expr) && expr.length == 2, `${OP} expects array(2)`);
   const args = computeValue(obj, expr, null, options) as [Any[], Any[]];
-  if (isNil(args)) return null;
+  const foe = options.failOnError;
 
-  assert(isArray(args), "$setDifference must be an arrays.");
-  if (args.some(isNil)) return null;
-
-  assert(args.length == 2, `$setDifference takes exactly 2 arguments.`);
-  assert(args.every(isArray), "$setDifference operands must be arrays.");
-
+  let ok = true;
+  for (const v of args) {
+    if (isNil(v)) return null;
+    ok &&= isArray(v);
+  }
+  if (!ok) return errExpectArray(foe, `${OP} arguments`);
   const m = HashMap.init();
   args[0].forEach(v => m.set(v, true));
   args[1].forEach(v => m.delete(v));

@@ -1,7 +1,9 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, intersection, isArray, isNil } from "../../../util";
+import { errExpectArray } from "../_internal";
 
+const OP = "$setIntersection";
 /**
  * Returns the common elements of the input sets.
  * @param obj
@@ -12,11 +14,14 @@ export const $setIntersection: ExpressionOperator = (
   expr: Any,
   options: Options
 ): Any => {
+  assert(isArray(expr), `${OP} expects array`);
   const args = computeValue(obj, expr, null, options) as Any[][];
-  if (isNil(args)) return null;
-  assert(
-    isArray(args) && args.every(isArray),
-    "$setIntersection operands must be arrays."
-  );
+  const foe = options.failOnError;
+  let ok = true;
+  for (const v of args) {
+    if (isNil(v)) return null;
+    ok &&= isArray(v);
+  }
+  if (!ok) return errExpectArray(foe, `${OP} arguments`);
   return intersection(args);
 };

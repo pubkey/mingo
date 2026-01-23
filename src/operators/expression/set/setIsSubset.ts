@@ -1,6 +1,9 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, HashMap, isArray } from "../../../util";
+import { errExpectArray } from "../_internal";
+
+const OP = "$setIsSubset";
 
 /**
  * Takes two arrays and returns true when the first array is a subset of the second,
@@ -14,13 +17,12 @@ export const $setIsSubset: ExpressionOperator = (
   expr: Any,
   options: Options
 ): Any => {
+  assert(isArray(expr) && expr.length === 2, `${OP} expects array(2)`);
   const args = computeValue(obj, expr, null, options) as Any[][];
-  assert(
-    isArray(args) && args.every(isArray),
-    "$setIsSubset operands must be arrays."
-  );
-  const first = args[0];
-  const second = args[1];
+  if (!args.every(isArray))
+    return errExpectArray(options.failOnError, `${OP} arguments`);
+
+  const [first, second] = args;
   const map = HashMap.init<Any, number>();
   const set = new Set<number>();
 

@@ -1,6 +1,131 @@
 import { describe, expect, it } from "vitest";
 
 import { aggregate } from "../../../src";
+import { runTest } from "../../support";
+
+runTest("EdgeCases", {
+  $anyElementTrue: [
+    [[], false],
+    [[1, 2], Error("expects array(1)")],
+    [["bad input"], Error("resolve to array")],
+    [[[null, ""]], true],
+    [[[null, ""]], false, { useStrictMode: false }]
+  ],
+  $allElementsTrue: [
+    [[], true],
+    [[1, 2], Error("expects array(1)")],
+    [["bad input"], Error("resolve to array")],
+    [[[1, ""]], true],
+    [[[1, ""]], false, { useStrictMode: false }]
+  ],
+  $setUnion: [
+    [null, null],
+    ["bad input", Error("resolve to array")],
+    ["bad input", null, { failOnError: false }],
+    [[[1, 2], "bad input"], Error()],
+    // as accumulator
+    ["$items", [[1, 2], "str"], { obj: { items: [[1, 2], "str", "str"] } }],
+    [
+      [
+        [1, 2],
+        [2, 3]
+      ],
+      [1, 2, 3]
+    ]
+  ],
+  $setIntersection: [
+    ["bad input", Error("expects array")],
+    [[[null], "bad"], Error("resolve to array")],
+    [[[null], "bad"], null, { failOnError: false }],
+    [[[null], null], null],
+    [
+      [
+        [1, 2],
+        [2, 3]
+      ],
+      [2]
+    ],
+    [
+      [
+        [1, 2],
+        [3, 4]
+      ],
+      []
+    ]
+  ],
+  $setDifference: [
+    ["bad input", Error("expects array")],
+    [[[null], "bad"], Error("resolve to array")],
+    [[[null], "bad"], null, { failOnError: false }],
+    [[[1, 2], null], null],
+    [
+      [
+        [1, 2],
+        [2, 3]
+      ],
+      [1]
+    ],
+    [
+      [
+        [1, 2],
+        [3, 4]
+      ],
+      [1, 2]
+    ]
+  ],
+  $setIsSubset: [
+    ["bad input", Error("expects array(2)")],
+    [[[1, 2], "bad"], Error("resolve to array")],
+    [[[1, 2], "bad"], null, { failOnError: false }],
+    [
+      [
+        [1, 2],
+        [2, 3]
+      ],
+      false
+    ],
+    [
+      [
+        [1, 2],
+        [1, 2, 3]
+      ],
+      true
+    ],
+    [
+      [
+        [1, 2],
+        [1, 2]
+      ],
+      true
+    ]
+  ],
+  $setEquals: [
+    ["bad input", Error("expects array")],
+    [[[1, 2], "bad"], Error("resolve to array")],
+    [[[1, 2], "bad"], null, { failOnError: false }],
+    [
+      [
+        [1, 2],
+        [2, 1]
+      ],
+      true
+    ],
+    [
+      [
+        [1, 2],
+        [1, 2, 3]
+      ],
+      false
+    ],
+    [
+      [
+        [1, 2],
+        [1, 2]
+      ],
+      true
+    ]
+  ]
+});
 
 describe("operators/expression/set", () => {
   const experiments = [

@@ -1,6 +1,7 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, HashMap, isArray } from "../../../util";
+import { errExpectArray } from "../_internal";
 
 /**
  * Returns true if two sets have the same elements.
@@ -9,14 +10,15 @@ import { assert, HashMap, isArray } from "../../../util";
  */
 export const $setEquals: ExpressionOperator = (
   obj: AnyObject,
-  expr: Any,
+  expr: Any[],
   options: Options
 ): Any => {
+  assert(isArray(expr), "$setEquals expects array");
   const args = computeValue(obj, expr, null, options) as Any[][];
-  assert(
-    isArray(args) && args.every(isArray),
-    "$setEquals operands must be arrays."
-  );
+  const foe = options.failOnError;
+  // all args must be arrays (not null/undefined)
+  if (!args.every(isArray)) return errExpectArray(foe, "$setEquals arguments");
+
   // store a unique number for each unique item. repeated values may be overriden but that's okay.
   const map = HashMap.init<Any, number>();
   args[0].every((v, i) => map.set(v, i));

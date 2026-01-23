@@ -74,9 +74,6 @@ export function runTest(
           let expected = val[1];
           const ctx = (val[2] ?? {}) as AnyObject;
           const obj = ctx?.obj || {};
-          const overrides = {
-            failOnError: (ctx?.failOnError ?? true) as boolean
-          };
 
           let field: string | null = operator;
           // use the operator as field if not present in input
@@ -102,7 +99,7 @@ export function runTest(
             });
           } else {
             it(`${prefix} => ${JSON.stringify(expected)}`, () => {
-              const copts = { ...DEFAULT_OPTS, ...overrides };
+              const copts = { ...DEFAULT_OPTS, ...ctx };
               let actual = computeValue(obj, input, field, copts);
               // NaNs don't compare so normalize
               if (Object.is(actual, expected)) actual = expected = 0;

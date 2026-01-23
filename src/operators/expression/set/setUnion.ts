@@ -1,6 +1,7 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { assert, flatten, isArray, isNil, unique } from "../../../util";
+import { flatten, isArray, isNil, unique } from "../../../util";
+import { errExpectArray } from "../_internal";
 
 /**
  * Returns a set that holds all elements of the input sets.
@@ -13,8 +14,16 @@ export const $setUnion: ExpressionOperator = (
   options: Options
 ): Any => {
   const args = computeValue(obj, expr, null, options) as Any[];
+  const foe = options.failOnError;
   if (isNil(args)) return null;
-  assert(isArray(args), "$setUnion operands must be arrays.");
-  if (args.some(isNil)) return null;
-  return unique(flatten(args));
+  if (!isArray(args)) return errExpectArray(foe, "$setUnion");
+
+  if (isArray(expr)) {
+    // as array operator. [ <set1>, <set2>, ... ]
+    if (!args.every(isArray)) return errExpectArray(foe, "$setUnion arguments");
+    return unique(flatten(args));
+  }
+
+  // use as accumulator [<item1>, <item2>, ...]
+  return unique(args);
 };
