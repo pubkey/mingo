@@ -1,6 +1,7 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, Callback, Options } from "../../../types";
-import { assert } from "../../../util";
+import { isNumber } from "../../../util";
+import { errExpectNumber } from "../_internal";
 
 /**
  * Processes a trigonometric operator on a value with special handling for fixed points.
@@ -28,12 +29,15 @@ export function processOperator(
     "-Infinity": new Error(),
     ...fixedPoints
   };
+  const foe = options.failOnError;
+  const op = fn.name;
   const n = computeValue(obj, expr, null, options) as number;
   if (n in fp) {
     const res = fp[n] as number | Error;
-    const err = res instanceof Error;
-    assert(!err, `$${fn.name}: value must be in range (-inf,inf)`);
-    return !err && res;
+    if (res instanceof Error)
+      return errExpectNumber(foe, `$${op} invalid input '${n}'`);
+    return res;
   }
+  if (!isNumber(n)) return errExpectNumber(foe, `$${op}`);
   return fn(n);
 }

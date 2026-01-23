@@ -1,14 +1,13 @@
-import * as support from "../../support";
+import { runTest } from "../../support";
 
 /* eslint-disable */
-support.runTest("operators/expression/trignometry", {
+runTest("operators/expression/trignometry", {
   $sin: [
+    ["invalid", Error("resolve to number")],
+    ["invalid", null, { failOnError: false }],
     [NaN, NaN],
     [null, null],
-    [
-      Infinity,
-      Error()
-    ],
+    [Infinity, Error()],
     [Math.PI, 1.2246467991473532e-16]
   ],
   $sinh: [
@@ -21,10 +20,7 @@ support.runTest("operators/expression/trignometry", {
   $cos: [
     [NaN, NaN],
     [null, null],
-    [
-      Infinity,
-      Error()
-    ],
+    [Infinity, Error()],
     [Math.PI, -1]
   ],
   $cosh: [
@@ -37,10 +33,7 @@ support.runTest("operators/expression/trignometry", {
   $tan: [
     [NaN, NaN],
     [null, null],
-    [
-      Infinity,
-      Error()
-    ],
+    [Infinity, Error()],
     [Math.PI, -1.2246467991473532e-16]
   ],
   $tanh: [
@@ -53,10 +46,7 @@ support.runTest("operators/expression/trignometry", {
   $asin: [
     [NaN, NaN],
     [null, null],
-    [
-      Infinity,
-      Error()
-    ],
+    [Infinity, Error()],
     [1, 1.5707963267948966]
   ],
   $acos: [
@@ -68,10 +58,7 @@ support.runTest("operators/expression/trignometry", {
   $atan: [
     [NaN, NaN],
     [null, null],
-    [
-      Infinity,
-      Error()
-    ],
+    [Infinity, Error()],
     [1, 0.7853981633974483]
   ],
   $atan2: [
@@ -94,10 +81,7 @@ support.runTest("operators/expression/trignometry", {
   $atanh: [
     [NaN, NaN],
     [null, null],
-    [
-      Infinity,
-      Error()
-    ],
+    [Infinity, Error()],
     [Math.PI - 3, 0.14255044070731132]
   ],
   $degreesToRadians: [
