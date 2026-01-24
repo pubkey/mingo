@@ -1,7 +1,7 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { isArray } from "../../../util";
-import { errExpectNumberArray2 } from "../_internal";
+import { errExpectArray } from "../_internal";
 
 /**
  * Takes two numbers and calculates the modulo of the first number divided by the second.
@@ -18,6 +18,10 @@ export const $mod: ExpressionOperator = (
   const args = computeValue(obj, expr, null, options) as number[];
   let invalid = !isArray(args) || args.length != 2;
   invalid ||= !args.every(v => typeof v === "number");
-  if (invalid) return errExpectNumberArray2(options.failOnError, "$mod");
+  if (invalid)
+    return errExpectArray(options.failOnError, "$mod", {
+      size: 2,
+      type: "number"
+    });
   return args[0] % args[1];
 };

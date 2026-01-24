@@ -1,5 +1,6 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { assert, isArray } from "../../../util";
 import { truncate } from "./_internal";
 
 /**
@@ -12,8 +13,9 @@ export const $round: ExpressionOperator = (
   expr: Any,
   options: Options
 ): number | null => {
-  const args = computeValue(obj, expr, null, options) as number[];
-  return truncate(args[0], args[1], {
+  assert(isArray(expr), "$round expects array(2)");
+  const [n, precision] = computeValue(obj, expr, null, options) as number[];
+  return truncate(n, precision ?? 0, {
     name: "$round",
     roundOff: true,
     failOnError: options.failOnError

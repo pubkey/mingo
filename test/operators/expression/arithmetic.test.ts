@@ -36,7 +36,9 @@ runTest("operators/expression/arithmetic", {
   ],
   $divide: [
     ["invalid", Error()],
-    ["invalid", null, skipError],
+    [[80, null], null],
+    [[80, "nan"], Error()],
+    [[80, "nan"], null, skipError],
     [[80, 4], 20],
     [[1.5, 3], 0.5],
     [[40, 8], 5],
@@ -47,7 +49,7 @@ runTest("operators/expression/arithmetic", {
   ],
   $exp: [
     ["invalid", Error()],
-    ["invalid", null, skipError],
+    ["invalid", Error(), skipError],
     [{ $exp: 0 }, 1],
     [{ $round: [{ $exp: 2 }, 10] }, 7.3890560989], // applied rounding to survive different v8 versions
     [{ $round: [{ $exp: -2 }, 10] }, 0.1353352832],
@@ -101,6 +103,9 @@ runTest("operators/expression/arithmetic", {
   $multiply: [
     ["invalid", Error()],
     [["invalid", 9], Error()],
+    [["invalid", 9, null], null],
+    [["invalid", 9], null, skipError],
+    [[1, 9, null], null], // null if any operand is null
     [[], 1],
     [[5, 10], 50],
     [[-2, 4], -8],
@@ -108,9 +113,9 @@ runTest("operators/expression/arithmetic", {
   ],
   $pow: [
     ["invalid", Error()],
-    ["invalid", null, skipError],
     [["invalid", 9], Error()],
     [["invalid", 9], null, skipError],
+    [["invalid", null], null],
     [[0, -1], Error()],
     [[5, 0], 1],
     [[5, 2], 25],
@@ -119,7 +124,7 @@ runTest("operators/expression/arithmetic", {
   ],
   $round: [
     ["invalid", Error()],
-    ["invalid", null, skipError],
+    ["invalid", Error()],
     [["invalid", 9], Error()],
     [["invalid", 9], null, skipError],
     [[0.123, -21], Error("precision must be in range")],
@@ -171,7 +176,10 @@ runTest("operators/expression/arithmetic", {
     [1, 0.7310585786],
     [5, 0.9933071491],
     [13, 0.9999977397],
-    [21, 0.9999999992]
+    [21, 0.9999999992],
+    // input is null
+    [{ input: null, onNull: 0 }, 0],
+    [{ input: null }, null]
   ],
   $sqrt: [
     ["invalid", Error()],
@@ -185,21 +193,31 @@ runTest("operators/expression/arithmetic", {
   ],
   $subtract: [
     ["invalid", Error()],
-    ["invalid", null, skipError],
     [["invalid", 9], Error()],
     [["invalid", 9], null, skipError],
     [[null, 9], null],
     [[-1, -1], 0],
     [[-1, 2], -3],
     [[2, -1], 3],
+    // <date> - <date>
     [
-      [new Date("2000-10-10T00:00:00Z"), 3600000],
+      [new Date("2000-10-10T00:00:00Z"), new Date("2000-10-09T23:00:00Z")],
+      36e5
+    ],
+    // <date> - <number>
+    [
+      [new Date("2000-10-10T00:00:00Z"), 36e5],
       new Date("2000-10-09T23:00:00Z")
+    ],
+    // <number> - <date> is invalid
+    [
+      [36e5, new Date("2000-10-10T00:00:00Z")],
+      Error("cannot subtract date from number")
     ]
   ],
   $trunc: [
     ["invalid", Error()],
-    ["invalid", null, skipError],
+    ["invalid", Error(), skipError],
     [["invalid", 9], Error()],
     [["invalid", 9], null, skipError],
     [[NaN, 0], NaN],

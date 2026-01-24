@@ -1,7 +1,7 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { assert, isArray, isNil } from "../../../util";
-import { errExpectNumberArray2 } from "../_internal";
+import { assert, isArray, isNil, isNumber } from "../../../util";
+import { errExpectArray, errInvalidArgs } from "../_internal";
 
 /**
  * Raises a number to the specified exponent and returns the result.
@@ -15,18 +15,21 @@ export const $pow: ExpressionOperator = (
   expr: Any,
   options: Options
 ): number => {
+  assert(isArray(expr) && expr.length === 2, "$pow expects array(2)");
   const args = computeValue(obj, expr, null, options) as number[];
-  const skip = !options.failOnError;
-  if (isArray(args) && args.length == 2) {
-    if (args.some(isNil)) return null;
-    if (args.every(v => typeof v === "number")) {
-      const [a, b] = args;
-      if (a === 0 && b < 0) {
-        assert(skip, "$pow cannot raise 0 to a negative exponent");
-        return null;
-      }
-      return Math.pow(a, b);
-    }
+  const foe = options.failOnError;
+
+  if (args.some(isNil)) return null;
+  if (!args.every(isNumber)) {
+    return errExpectArray(foe, "$pow", {
+      size: 2,
+      type: "number"
+    });
   }
-  return errExpectNumberArray2(options.failOnError, "$pow");
+
+  const [n, exponent] = args;
+
+  return n === 0 && exponent < 0
+    ? errInvalidArgs(foe, "$pow cannot raise 0 to a negative exponent")
+    : Math.pow(n, exponent);
 };

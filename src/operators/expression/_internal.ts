@@ -5,17 +5,28 @@ export function errInvalidArgs(failOnError: boolean, message: string): null {
   return null;
 }
 
-export function errExpectNumberArray2(
-  failOnError: boolean,
-  name: string
-): null {
-  const msg = `${name} expression must resolve to array(2) of numbers`;
+export function errExpectString(failOnError: boolean, prefix: string): null {
+  const msg = `${prefix} expression must resolve to string`;
   assert(!failOnError, msg);
   return null;
 }
 
-export function errExpectNumber(failOnError: boolean, name: string): null {
-  const msg = `${name} expression must resolve to number.`;
+export function errExpectNumber(
+  failOnError: boolean,
+  name: string,
+  opts?: { int?: boolean; min?: number; max?: number }
+): null {
+  const type = opts?.int ? "integer" : "number";
+  const min = opts?.min ?? -Infinity;
+  const max = opts?.max ?? Infinity;
+  let msg: string;
+  if (min != -Infinity && max != Infinity) {
+    msg = `${name} expression must resolve to ${type} in between [${min}, ${max}]`;
+  } else if (min == 0 && max == Infinity) {
+    msg = `${name} expression must resolve to non-negative ${type}`;
+  } else {
+    msg = `${name} expression must resolve to ${type}`;
+  }
   assert(!failOnError, msg);
   return null;
 }
@@ -23,9 +34,11 @@ export function errExpectNumber(failOnError: boolean, name: string): null {
 export function errExpectArray(
   failOnError: boolean,
   prefix: string,
-  size = 0
+  opts?: { size?: number; type?: string }
 ): null {
-  const msg = `${prefix} expression must resolve to array${size > 0 ? "(" + size + ")" : ""}.`;
+  const size = opts?.size && opts?.size > 0 ? `(${opts.size})` : "";
+  const suffix = opts?.type ? `array${size} of ${opts.type}` : `array${size}`;
+  const msg = `${prefix} expression must resolve to ${suffix}`;
   assert(!failOnError, msg);
   return null;
 }

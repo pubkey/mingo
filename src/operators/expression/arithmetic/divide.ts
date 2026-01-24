@@ -1,7 +1,7 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { isArray, isNil } from "../../../util";
-import { errExpectNumberArray2, errInvalidArgs } from "../_internal";
+import { assert, isArray, isNil, isNumber } from "../../../util";
+import { errExpectArray, errInvalidArgs } from "../_internal";
 
 /**
  * Takes two numbers and divides the first number by the second.
@@ -15,20 +15,18 @@ export const $divide: ExpressionOperator = (
   expr: Any,
   options: Options
 ): number => {
+  assert(isArray(expr), "$divide expects array(2)");
   const args = computeValue(obj, expr, null, options) as number[];
+  const foe = options.failOnError;
 
-  if (isArray(args) && args.length == 2) {
-    if (args.some(isNil)) return null;
-    if (args.every(v => typeof v === "number")) {
-      if (args[1] === 0) {
-        return errInvalidArgs(
-          options.failOnError,
-          "$divide cannot divide by zero"
-        );
-      }
-      return args[0] / args[1];
-    }
+  if (args.some(isNil)) return null;
+  if (!args.every(isNumber)) {
+    return errExpectArray(foe, "$divide", {
+      size: 2,
+      type: "number"
+    });
   }
-
-  return errExpectNumberArray2(options.failOnError, "$divide");
+  const [a, b] = args;
+  if (b === 0) return errInvalidArgs(foe, "$divide cannot divide by zero");
+  return a / b;
 };

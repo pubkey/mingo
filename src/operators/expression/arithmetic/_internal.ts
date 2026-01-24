@@ -1,5 +1,5 @@
-import { assert, isNil } from "../../../util";
-import { errExpectNumberArray2 } from "../_internal";
+import { assert, isNil, isNumber } from "../../../util";
+import { errExpectArray } from "../_internal";
 
 /**
  * Truncates integer value to number of places. If roundOff is specified round value instead to the number of places.
@@ -17,9 +17,8 @@ export function truncate(
   if (isNil(num)) return null;
   if (Number.isNaN(num) || Math.abs(num) === Infinity) return num;
 
-  precision = precision ?? 0;
-  if (typeof num !== "number" || typeof precision !== "number") {
-    return errExpectNumberArray2(failOnError, name);
+  if (!isNumber(num) || !isNumber(precision)) {
+    return errExpectArray(failOnError, name, { size: 2, type: "number" });
   }
 
   if (precision < -20 || precision > 100) {

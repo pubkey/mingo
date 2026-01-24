@@ -1,6 +1,7 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { assert, isNil, isNumber, isObject } from "../../../util";
+import { isNil, isNumber, isObject } from "../../../util";
+import { errExpectNumber } from "../_internal";
 
 const PRECISION = 1e10;
 
@@ -19,12 +20,10 @@ export const $sigmoid: ExpressionOperator = (
   const { input, onNull } = isObject(args)
     ? (args as { input: number; onNull?: number })
     : { input: args };
-  if (isNil(input)) return onNull ?? null;
+  if (isNil(input)) return isNumber(onNull) ? onNull : null;
   if (isNumber(input)) {
     const result = 1 / (1 + Math.exp(-input));
     return Math.round(result * PRECISION) / PRECISION;
   }
-  const skip = !options.failOnError;
-  assert(skip, `$sigmoid expression must resolve to number.`);
-  return null;
+  return errExpectNumber(options.failOnError, "$sigmoid");
 };

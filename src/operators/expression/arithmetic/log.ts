@@ -1,7 +1,7 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { isArray, isNil } from "../../../util";
-import { errExpectNumberArray2 } from "../_internal";
+import { errExpectArray } from "../_internal";
 
 /**
  * Calculates the log of a number in the specified base and returns the result as a double.
@@ -23,5 +23,8 @@ export const $log: ExpressionOperator = (
       return Math.log10(args[0]) / Math.log10(args[1]);
   }
 
-  return errExpectNumberArray2(options.failOnError, "$log");
+  return errExpectArray(options.failOnError, "$log", {
+    size: 2,
+    type: "number"
+  });
 };
