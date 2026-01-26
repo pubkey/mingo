@@ -14,7 +14,7 @@ export const $and: ExpressionOperator = (
   expr: Any[],
   options: Options
 ): Any => {
-  assert(isArray(expr), "$and expects array of expressions");
+  assert(isArray(expr), "$and expects array");
   const mode = options.useStrictMode;
   return expr.every(e => truthy(computeValue(obj, e, null, options), mode));
 };
