@@ -10,7 +10,7 @@ export const $toString: ExpressionOperator = (
 ): string | null => {
   const val = computeValue(obj, expr, null, options);
   if (isNil(val)) return null;
-  if (isDate(val)) val.toISOString();
+  if (isDate(val)) return val.toISOString();
   if (isPrimitive(val) || isRegExp(val)) return String(val as string);
 
   return errInvalidArgs(

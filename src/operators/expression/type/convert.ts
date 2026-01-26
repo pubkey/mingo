@@ -28,10 +28,13 @@ export const $convert: ExpressionOperator = (
     isObject(expr) && has(expr, "input", "to"),
     "$convert expects object { input, to, onError, onNull }"
   );
-  const { input, onNull, onError } = expr;
-  const toExpr = computeValue(obj, expr.to, null, options) as string | number;
 
-  if (isNil(input)) return onNull;
+  const input = computeValue(obj, expr.input, null, options);
+
+  if (isNil(input))
+    return computeValue(obj, expr.onNull, null, options) ?? null;
+
+  const toExpr = computeValue(obj, expr.to, null, options);
 
   try {
     switch (toExpr) {
@@ -47,6 +50,7 @@ export const $convert: ExpressionOperator = (
       case 9:
       case "date":
         return $toDate(obj, input, options);
+
       case 1:
       case 19:
       case "double":
@@ -66,11 +70,11 @@ export const $convert: ExpressionOperator = (
     /*nothing to do*/
   }
 
-  if (onError === undefined)
+  if (expr.onError === undefined)
     return errInvalidArgs(
       options.failOnError,
       `$convert cannot convert from object to ${expr.to} with no onError value`
     );
 
-  return computeValue(obj, onError, null, options);
+  return computeValue(obj, expr.onError, null, options);
 };
