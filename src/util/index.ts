@@ -16,6 +16,7 @@ export {
   isEmpty,
   isEqual,
   isFunction,
+  isInteger,
   isNil,
   isNumber,
   isObject,

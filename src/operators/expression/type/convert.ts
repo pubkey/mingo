@@ -1,6 +1,7 @@
-import { computeValue } from "../../../core/_internal";
+import { computeValue } from "../../../core";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { assert, isNil } from "../../../util";
+import { assert, has, isNil, isObject } from "../../../util";
+import { errInvalidArgs } from "../_internal";
 import { $toBool } from "./toBool";
 import { $toDate } from "./toDate";
 import { $toDouble } from "./toDouble";
@@ -8,7 +9,7 @@ import { $toInt } from "./toInt";
 import { $toLong } from "./toLong";
 import { $toString } from "./toString";
 
-interface ConvertOptions {
+interface InputExpr {
   input: Any;
   to: string | number;
   onError?: Any;
@@ -17,55 +18,59 @@ interface ConvertOptions {
 
 /**
  * Converts a value to a specified type.
- *
- * @param obj
- * @param expr
  */
 export const $convert: ExpressionOperator = (
   obj: AnyObject,
-  expr: Any,
+  expr: InputExpr,
   options: Options
 ): Any => {
-  const args = computeValue(obj, expr, null, options) as ConvertOptions;
+  assert(
+    isObject(expr) && has(expr, "input", "to"),
+    "$convert expects object { input, to, onError, onNull }"
+  );
+  const { input, onNull, onError } = expr;
+  const toExpr = computeValue(obj, expr.to, null, options) as string | number;
 
-  args.onNull = args.onNull === undefined ? null : args.onNull;
-
-  if (isNil(args.input)) return args.onNull;
+  if (isNil(input)) return onNull;
 
   try {
-    switch (args.to) {
+    switch (toExpr) {
       case 2:
       case "string":
-        return $toString(obj, args.input, options);
+        return $toString(obj, input, options);
 
       case 8:
       case "boolean":
       case "bool":
-        return $toBool(obj, args.input, options);
+        return $toBool(obj, input, options);
 
       case 9:
       case "date":
-        return $toDate(obj, args.input, options);
-
+        return $toDate(obj, input, options);
       case 1:
       case 19:
       case "double":
       case "decimal":
       case "number":
-        return $toDouble(obj, args.input, options);
+        return $toDouble(obj, input, options);
 
       case 16:
       case "int":
-        return $toInt(obj, args.input, options);
+        return $toInt(obj, input, options);
 
       case 18:
       case "long":
-        return $toLong(obj, args.input, options);
+        return $toLong(obj, input, options);
     }
   } catch {
     /*nothing to do*/
   }
 
-  assert(args.onError !== undefined, `could not convert to type ${args.to}.`);
-  return args.onError;
+  if (onError === undefined)
+    return errInvalidArgs(
+      options.failOnError,
+      `$convert cannot convert from object to ${expr.to} with no onError value`
+    );
+
+  return computeValue(obj, onError, null, options);
 };

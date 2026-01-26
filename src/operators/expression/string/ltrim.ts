@@ -3,9 +3,6 @@ import { trimString } from "./_internal";
 
 /**
  * Removes whitespace characters, including null, or the specified characters from the beginning of a string.
- *
- * @param obj
- * @param expr
  */
 export const $ltrim: ExpressionOperator = (
   obj: AnyObject,

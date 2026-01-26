@@ -3,6 +3,7 @@ import { assert, isNil } from "../../util";
 export const INT_OPTS = {
   int: { int: true },
   pos: { min: 1, int: true },
+  zeroMin: { min: 0, int: true },
   nonzero: { min: 0, max: 0, int: true }
 };
 

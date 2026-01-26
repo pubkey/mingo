@@ -1,19 +1,16 @@
-import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { isEmpty } from "../../../util";
+import { isArray } from "../../../util/_internal";
+import { $toString } from "../type";
 
 /**
  * Converts a string to lowercase.
- *
- * @param obj
- * @param expr
- * @returns {string}
  */
 export const $toLower: ExpressionOperator = (
   obj: AnyObject,
   expr: Any,
   options: Options
 ): Any => {
-  const value = computeValue(obj, expr, null, options) as string;
-  return isEmpty(value) ? "" : value.toLowerCase();
+  if (isArray(expr) && expr.length === 1) expr = expr[0];
+  const s = $toString(obj, expr, options) as string;
+  return s === null ? s : s.toLowerCase();
 };

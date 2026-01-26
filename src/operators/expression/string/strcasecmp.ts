@@ -1,28 +1,25 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { assert, isEqual, isNil, isString } from "../../../util";
+import { isArray, isNil, isString } from "../../../util";
+import { assert, simpleCmp } from "../../../util/_internal";
+import { errExpectString } from "../_internal";
 
 /**
- * Compares two strings and returns an integer that reflects the comparison.
- *
- * @param obj
- * @param expr
- * @returns {number}
+ * Performs case-insensitive comparison of two strings.
  */
 export const $strcasecmp: ExpressionOperator = (
   obj: AnyObject,
   expr: Any,
   options: Options
 ): Any => {
-  const args = computeValue(obj, expr, null, options) as string[];
-  let a = args[0];
-  let b = args[1];
-  if (isEqual(a, b) || args.every(isNil)) return 0;
-  assert(
-    args.every(isString),
-    "$strcasecmp must resolve to array(2) of strings"
-  );
-  a = a.toUpperCase();
-  b = b.toUpperCase();
-  return (a > b && 1) || (a < b && -1) || 0;
+  assert(isArray(expr) && expr.length === 2, `$strcasecmp expects array(2)`);
+  const args: string[] = computeValue(obj, expr, null, options) as string[];
+  const foe = options.failOnError;
+  if (args.every(isNil)) return 0;
+  if (!args.every(isString))
+    return errExpectString(foe, `$strcasecmp arguments`);
+
+  const [a, b] = args.map(s => s.toLowerCase());
+  if (isNil(a) && isNil(b)) return 0;
+  return simpleCmp(a, b);
 };

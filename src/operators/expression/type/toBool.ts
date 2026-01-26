@@ -4,9 +4,6 @@ import { isNil, isString } from "../../../util";
 
 /**
  * Converts a value to a boolean.
- *
- * @param obj
- * @param expr
  */
 export const $toBool: ExpressionOperator = (
   obj: AnyObject,
@@ -16,6 +13,5 @@ export const $toBool: ExpressionOperator = (
   const val = computeValue(obj, expr, null, options);
   if (isNil(val)) return null;
   if (isString(val)) return true;
-
   return Boolean(val);
 };

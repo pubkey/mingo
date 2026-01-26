@@ -10,6 +10,7 @@ import {
   Predicate
 } from "../types";
 import {
+  assert,
   compare as mingoCmp,
   ensureArray,
   flatten,
@@ -54,16 +55,16 @@ export function processExpression(
   options: Options,
   predicate: Predicate<Any>
 ): boolean {
+  assert(
+    isArray(expr) && expr.length === 2,
+    `${predicate.name} expects array(2)`
+  );
   const [lhs, rhs] = computeValue(obj, expr, null, options) as Any[];
   return predicate(lhs, rhs, options);
 }
 
 /**
  * Checks that two values are equal.
- *
- * @param a         The lhs operand as resolved from the object by the given selector
- * @param b         The rhs operand provided by the user
- * @returns {*}
  */
 export function $eq(a: Any, b: Any, options?: Options): boolean {
   // start with simple equality check
@@ -85,10 +86,6 @@ export function $eq(a: Any, b: Any, options?: Options): boolean {
 
 /**
  * Matches all values that are not equal to the value specified in the query.
- *
- * @param a
- * @param b
- * @returns {boolean}
  */
 export function $ne(a: Any, b: Any, options?: Options): boolean {
   return !$eq(a, b, options);
@@ -96,10 +93,6 @@ export function $ne(a: Any, b: Any, options?: Options): boolean {
 
 /**
  * Matches any of the values that exist in an array specified in the query.
- *
- * @param a
- * @param b
- * @returns {*}
  */
 export function $in(a: Any[], b: Any[], options?: Options): boolean {
   // queries for null should be able to find undefined fields
@@ -109,10 +102,6 @@ export function $in(a: Any[], b: Any[], options?: Options): boolean {
 
 /**
  * Matches values that do not exist in an array specified to the query.
- *
- * @param a
- * @param b
- * @returns {*|boolean}
  */
 export function $nin(a: Any[], b: Any[], options?: Options): boolean {
   return !$in(a, b, options);
@@ -120,10 +109,6 @@ export function $nin(a: Any[], b: Any[], options?: Options): boolean {
 
 /**
  * Matches values that are less than the value specified in the query.
- *
- * @param a
- * @param b
- * @returns {boolean}
  */
 export function $lt(a: Any, b: Any, _options?: Options): boolean {
   return compare(a, b, (x: Any, y: Any) => mingoCmp(x, y) < 0);
@@ -131,10 +116,6 @@ export function $lt(a: Any, b: Any, _options?: Options): boolean {
 
 /**
  * Matches values that are less than or equal to the value specified in the query.
- *
- * @param a
- * @param b
- * @returns {boolean}
  */
 export function $lte(a: Any, b: Any, _options?: Options): boolean {
   return compare(a, b, (x: Any, y: Any) => mingoCmp(x, y) <= 0);
@@ -142,10 +123,6 @@ export function $lte(a: Any, b: Any, _options?: Options): boolean {
 
 /**
  * Matches values that are greater than the value specified in the query.
- *
- * @param a
- * @param b
- * @returns {boolean}
  */
 export function $gt(a: Any, b: Any, _options?: Options): boolean {
   return compare(a, b, (x: Any, y: Any) => mingoCmp(x, y) > 0);
@@ -153,10 +130,6 @@ export function $gt(a: Any, b: Any, _options?: Options): boolean {
 
 /**
  * Matches values that are greater than or equal to the value specified in the query.
- *
- * @param a
- * @param b
- * @returns {boolean}
  */
 export function $gte(a: Any, b: Any, _options?: Options): boolean {
   return compare(a, b, (x: Any, y: Any) => mingoCmp(x, y) >= 0);
@@ -164,10 +137,6 @@ export function $gte(a: Any, b: Any, _options?: Options): boolean {
 
 /**
  * Performs a modulo operation on the value of a field and selects documents with a specified result.
- *
- * @param a
- * @param b
- * @returns {boolean}
  */
 export function $mod(a: Any, b: number[], _options?: Options): boolean {
   return ensureArray(a).some(
@@ -177,10 +146,6 @@ export function $mod(a: Any, b: number[], _options?: Options): boolean {
 
 /**
  * Selects documents where values match a specified regular expression.
- *
- * @param a
- * @param b
- * @returns {boolean}
  */
 export function $regex(a: Any, b: RegExp, options?: Options): boolean {
   const lhs = ensureArray(a) as string[];
@@ -191,10 +156,6 @@ export function $regex(a: Any, b: RegExp, options?: Options): boolean {
 
 /**
  * Matches arrays that contain all elements specified in the query.
- *
- * @param values
- * @param queries
- * @returns boolean
  */
 export function $all(
   values: Any[],
@@ -227,10 +188,6 @@ export function $all(
 
 /**
  * Selects documents if the array field is a specified size.
- *
- * @param a
- * @param b
- * @returns {*|boolean}
  */
 export function $size(a: Any[], b: number, _options?: Options): boolean {
   return Array.isArray(a) && a.length === b;
@@ -242,9 +199,6 @@ function isNonBooleanOperator(name: string): boolean {
 
 /**
  * Selects documents if element in the array field matches all the specified $elemMatch condition.
- *
- * @param a {Any[]} element to match against
- * @param b {AnyObject} subquery
  */
 export function $elemMatch(a: Any[], b: AnyObject, options?: Options): boolean {
   // should return false for non-matching input
@@ -308,10 +262,6 @@ const compareFuncs: Record<ConversionType, Predicate<Any>> = {
 
 /**
  * Selects documents if a field is of the specified type.
- *
- * @param a
- * @param b
- * @returns {boolean}
  */
 function compareType(a: Any, b: ConversionType, _?: Options): boolean {
   const f = compareFuncs[b];
@@ -320,10 +270,6 @@ function compareType(a: Any, b: ConversionType, _?: Options): boolean {
 
 /**
  * Selects documents if a field is of the specified type.
- *
- * @param a
- * @param b
- * @returns {boolean}
  */
 export function $type(
   a: Any,

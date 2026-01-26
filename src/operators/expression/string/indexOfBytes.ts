@@ -1,46 +1,46 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { assert, isNil, isNumber, isString } from "../../../util";
+import {
+  assert,
+  isArray,
+  isInteger,
+  isNil,
+  isString
+} from "../../../util/_internal";
+import { errExpectNumber, errExpectString } from "../_internal";
+
+const OP = "$indexOfBytes";
 
 /**
  * Searches a string for an occurrence of a substring and returns the UTF-8 code point index of the first occurence.
  * If the substring is not found, returns -1.
- *
- * @param  {AnyObject} obj
- * @param  {*} expr
- * @return {*}
  */
 export const $indexOfBytes: ExpressionOperator = (
   obj: AnyObject,
   expr: Any,
   options: Options
 ): Any => {
-  const arr = computeValue(obj, expr, null, options);
-  const errorMsg = "$indexOfBytes expression resolves to invalid an argument";
+  assert(isArray(expr) && expr.length > 1, `${OP} expects array(4)`);
+  const args = computeValue(obj, expr, null, options) as Any[];
+  const foe = options.failOnError;
 
-  if (isNil(arr[0])) return null;
+  const str = args[0] as string;
+  if (isNil(str)) return null;
+  if (!isString(str)) return errExpectString(foe, `${OP} arg1 <string>`);
 
-  assert(isString(arr[0]) && isString(arr[1]), errorMsg);
+  const search = args[1] as string;
+  if (!isString(search)) return errExpectString(foe, `${OP} arg2 <substring>`);
 
-  const str = arr[0] as string;
-  const searchStr = arr[1] as string;
-  let start = arr[2] as number;
-  let end = arr[3] as number;
+  const start = (args[2] as number) ?? 0;
+  const end = (args[3] as number) ?? str.length;
 
-  let valid =
-    isNil(start) ||
-    (isNumber(start) && start >= 0 && Math.round(start) === start);
-
-  valid =
-    valid &&
-    (isNil(end) || (isNumber(end) && end >= 0 && Math.round(end) === end));
-  assert(valid, errorMsg);
-
-  start = start || 0;
-  end = end || str.length;
+  if (!isInteger(start) || start < 0)
+    return errExpectNumber(foe, `${OP} arg3 <start>`, { int: true, min: 0 });
+  if (!isInteger(end))
+    return errExpectNumber(foe, `${OP} arg4 <end>`, { int: true, min: 0 });
 
   if (start > end) return -1;
 
-  const index = str.substring(start, end).indexOf(searchStr);
+  const index = str.substring(start, end).indexOf(search);
   return index > -1 ? index + start : index;
 };

@@ -1,9 +1,5 @@
 // optimized-effective-hashcode.ts
 
-// ------------------------------------------------------------
-// Constants & Shared Buffers
-// ------------------------------------------------------------
-
 // FNV-1a 32-bit prime
 const MULTIPLIER = 0x01000193;
 

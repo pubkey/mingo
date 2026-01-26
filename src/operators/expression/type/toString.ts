@@ -1,7 +1,7 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { isDate, isNil } from "../../../util";
-import { $dateToString } from "../date/dateToString";
+import { isDate, isNil, isPrimitive, isRegExp } from "../../../util/_internal";
+import { errInvalidArgs } from "../_internal";
 
 export const $toString: ExpressionOperator = (
   obj: AnyObject,
@@ -10,16 +10,11 @@ export const $toString: ExpressionOperator = (
 ): string | null => {
   const val = computeValue(obj, expr, null, options);
   if (isNil(val)) return null;
+  if (isDate(val)) val.toISOString();
+  if (isPrimitive(val) || isRegExp(val)) return String(val as string);
 
-  if (isDate(val)) {
-    return $dateToString(
-      obj,
-      {
-        date: expr,
-        format: "%Y-%m-%dT%H:%M:%S.%LZ"
-      },
-      options
-    );
-  }
-  return (val as { toString(): string }).toString();
+  return errInvalidArgs(
+    options.failOnError,
+    "$toString cannot convert from object to string"
+  );
 };

@@ -2,6 +2,10 @@ import * as support from "../../support";
 
 support.runTest("operators/expression/string", {
   $concat: [
+    ["not an array", Error("expects array")],
+    [["a", 1], Error("array of string")],
+    [["a", 1], null, { failOnError: false }],
+    [[], ""],
     [[null, "abc"], null],
     [["a", "-", "c"], "a-c"]
   ],
@@ -71,32 +75,43 @@ support.runTest("operators/expression/string", {
   ],
 
   $substrCP: [
-    [[null, 2], ""],
-    [["hello", -1], ""],
+    [[null, 2], Error("expects array(3)")],
+    [["hello", -1, 5], ""],
     [["hello", 1, -2], "ello"],
-    [{ $substrCP: ["abcde", 1, 2] }, "bc"],
-    [{ $substrCP: ["Hello World!", 6, 5] }, "World"],
-    [{ $substrCP: ["cafétéria", 0, 5] }, "cafét"],
-    [{ $substrCP: ["cafétéria", 5, 4] }, "éria"],
-    [{ $substrCP: ["cafétéria", 7, 3] }, "ia"],
-    [{ $substrCP: ["cafétéria", 3, 1] }, "é"]
+    [["abcde", 1, 2], "bc"],
+    [["Hello World!", 6, 5], "World"],
+    [["cafétéria", 0, 5], "cafét"],
+    [["cafétéria", 5, 4], "éria"],
+    [["cafétéria", 7, 3], "ia"],
+    [["cafétéria", 3, 1], "é"]
   ],
 
   $substrBytes: [
-    [{ $substrBytes: ["abcde", 1, 2] }, "bc"],
-    [{ $substrBytes: ["Hello World!", 6, 5] }, "World"],
-    [{ $substrBytes: ["cafétéria", 0, 5] }, "café"],
-    [{ $substrBytes: ["cafétéria", 5, 4] }, "tér"],
-    [{ $substrBytes: ["cafétéria", 7, 3] }, Error()],
-    [{ $substrBytes: ["cafétéria", 3, 1] }, Error()],
+    [[null, "invalid", 3], Error("<index>")],
+    [["", "invalid", 3], Error("<index>")],
+    [["", 0, "invalid"], Error("<count>")],
+    [["abcde", 1, 2], "bc"],
+    [["Hello World!", 6, 5], "World"],
+    [["cafétéria", 0, 5], "café"],
+    [["cafétéria", 5, 4], "tér"],
+    [["cafétéria", 7, 3], Error()],
+    [["cafétéria", 3, 1], Error()],
     [["éclair", 0, 3], "éc"],
     [["jalapeño", 0, 3], "jal"],
     [["寿司sushi", 0, 3], "寿"]
   ],
 
-  $toLower: [["ABC123", "abc123"]],
+  $toLower: [
+    [null, null],
+    [["ABC"], "abc"], // accepts array(1) argument
+    ["ABC123", "abc123"]
+  ],
 
-  $toUpper: [["abc123", "ABC123"]],
+  $toUpper: [
+    [null, null],
+    [["abc"], "ABC"], // accepts array(1) argument
+    ["abc123", "ABC123"]
+  ],
 
   $trim: [
     [{ $trim: { input: "  \n good  bye \t  " } }, "good  bye"],

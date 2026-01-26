@@ -1,25 +1,24 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { assert, isNil, isString } from "../../../util";
+import { assert, isArray, isNil, isString } from "../../../util";
+import { errExpectArray } from "../_internal";
 
 /**
  * Splits a string into substrings based on a delimiter.
  * If the delimiter is not found within the string, returns an array containing the original string.
- *
- * @param  {AnyObject} obj
- * @param  {Array} expr
- * @return {Array} Returns an array of substrings.
  */
 export const $split: ExpressionOperator = (
   obj: AnyObject,
   expr: Any,
   options: Options
 ): Any => {
+  assert(isArray(expr) && expr.length === 2, `$split expects array(2)`);
   const args = computeValue(obj, expr, null, options) as string[];
+  const foe = options.failOnError;
+
   if (isNil(args[0])) return null;
-  assert(
-    args.every(isString),
-    "$split expression must result to array(2) of strings"
-  );
+  if (!args.every(isString))
+    return errExpectArray(foe, `$split `, { size: 2, type: "string" });
+
   return args[0].split(args[1]);
 };

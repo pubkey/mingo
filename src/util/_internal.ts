@@ -15,7 +15,7 @@ const ERR_CYCLE_FOUND = "mingo: cycle detected while processing object/array";
 
 type Constructor = new (...args: Any[]) => Any;
 
-const isPrimitive = (v: Any): boolean =>
+export const isPrimitive = (v: Any): boolean =>
   (typeof v !== "object" && typeof v !== "function") || v === null;
 
 /** Scalar types provided by the JS runtime. Includes primitives, RegExp, and Date */

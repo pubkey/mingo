@@ -1,6 +1,14 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { assert, isNumber, isString } from "../../../util";
+import { assert, isArray, isNil, isNumber, isString } from "../../../util";
+import {
+  errExpectNumber,
+  errExpectString,
+  errInvalidArgs,
+  INT_OPTS
+} from "../_internal";
+
+const OP = "$substrBytes";
 
 const UTF8_MASK = [0xc0, 0xe0, 0xf0];
 
@@ -28,40 +36,46 @@ function utf8Encode(s: string): number[][] {
  * The index is zero-based.
  *
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/substrBytes/}.
- *
- * @param obj
- * @param expr
- * @returns {string}
  */
 export const $substrBytes: ExpressionOperator = (
   obj: AnyObject,
   expr: Any,
   options: Options
 ): Any => {
-  const args = computeValue(obj, expr, null, options) as Any[];
-  const s = args[0] as string;
-  const index = args[1] as number;
-  const count = args[2] as number;
-  assert(
-    isString(s) &&
-      isNumber(index) &&
-      index >= 0 &&
-      isNumber(count) &&
-      count >= 0,
-    "$substrBytes: invalid arguments"
-  );
+  assert(isArray(expr) && expr.length === 3, `${OP} expects array(3)`);
+  const [s, index, count] = computeValue(obj, expr, null, options) as [
+    string,
+    number,
+    number
+  ];
+  const foe = options.failOnError;
+  const nil = isNil(s);
+
+  if (!nil && !isString(s)) return errExpectString(foe, `${OP} arg1 <string>`);
+  if (!isNumber(index) || index < 0)
+    return errExpectNumber(foe, `${OP} arg2 <index>`, INT_OPTS.zeroMin);
+  if (!isNumber(count) || count < 0)
+    return errExpectNumber(foe, `${OP} arg3 <count>`, INT_OPTS.zeroMin);
+
+  if (nil) return "";
+
   const buf = utf8Encode(s);
-  const validIndex = [];
-  let acc = 0;
+  const codePoints = [];
+  let offset = 0;
   for (let i = 0; i < buf.length; i++) {
-    validIndex.push(acc);
-    acc += buf[i].length;
+    codePoints.push(offset);
+    offset += buf[i].length;
   }
-  const begin = validIndex.indexOf(index);
-  const end = validIndex.indexOf(index + count);
-  assert(
-    begin > -1 && end > -1,
-    "$substrBytes: invalid range, start or end index is a UTF-8 continuation byte."
-  );
+
+  const begin = codePoints.indexOf(index);
+  const end = codePoints.indexOf(index + count);
+
+  if (begin < 0 || end < 0) {
+    return errInvalidArgs(
+      foe,
+      `${OP} invalid range, start or end index is a UTF-8 continuation byte`
+    );
+  }
+
   return s.substring(begin, end);
 };

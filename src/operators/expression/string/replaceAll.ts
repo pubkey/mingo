@@ -1,28 +1,32 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { assert, isNil, isString } from "../../../util";
+import { assert, isNil, isObject, isString } from "../../../util";
+import { errExpectString } from "../_internal";
+
+const OP = "$replaceAll";
 
 /**
  * Replaces all instances of a matched string in a given input.
- *
- * @param  {AnyObject} obj
- * @param  {Array} expr
  */
 export const $replaceAll: ExpressionOperator = (
   obj: AnyObject,
   expr: Any,
   options: Options
 ): Any => {
+  assert(isObject(expr), `${OP} expects an object argument`);
+  const foe = options.failOnError;
   const args = computeValue(obj, expr, null, options) as {
     input: string;
     find: string;
     replacement: string;
   };
-  const arr = [args.input, args.find, args.replacement];
-  if (arr.some(isNil)) return null;
-  assert(
-    arr.every(isString),
-    "$replaceAll expression fields must evaluate to string"
-  );
-  return args.input.replace(new RegExp(args.find, "g"), args.replacement);
+
+  const { input, find, replacement } = args;
+  if (isNil(input) || isNil(find) || isNil(replacement)) return null;
+  if (!isString(input)) return errExpectString(foe, `${OP} 'input'`);
+  if (!isString(find)) return errExpectString(foe, `${OP} 'find'`);
+  if (!isString(replacement))
+    return errExpectString(foe, `${OP} 'replacement'`);
+
+  return input.replace(new RegExp(find, "g"), replacement);
 };

@@ -3,9 +3,6 @@ import { regexSearch } from "./_internal";
 
 /**
  * Applies a regular expression (regex) to a string and returns information on the all matched substrings.
- *
- * @param obj
- * @param expr
  */
 export const $regexFindAll: ExpressionOperator = (
   obj: AnyObject,

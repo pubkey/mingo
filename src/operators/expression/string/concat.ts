@@ -1,24 +1,26 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { assert, isNil, isString } from "../../../util";
+import { assert, isArray, isNil, isString } from "../../../util";
+import { errExpectArray } from "../_internal";
 
 /**
  * Concatenates two strings.
- *
- * @param obj
- * @param expr
- * @returns {string|*}
  */
 export const $concat: ExpressionOperator = (
   obj: AnyObject,
-  expr: Any,
+  expr: Any[],
   options: Options
 ): Any => {
+  assert(isArray(expr), "$concat expects array");
+  const foe = options.failOnError;
   const args = computeValue(obj, expr, null, options) as string[];
-  assert(
-    args.every(v => isString(v) || isNil(v)),
-    "$concat only supports strings."
-  );
-  if (args.some(isNil)) return null;
+
+  let ok = true;
+  for (const s of args) {
+    if (isNil(s)) return null;
+    ok &&= isString(s);
+  }
+  if (!ok) return errExpectArray(foe, "$concat", { type: "string" });
+
   return args.join("");
 };
