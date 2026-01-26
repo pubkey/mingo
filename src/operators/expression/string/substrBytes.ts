@@ -68,7 +68,9 @@ export const $substrBytes: ExpressionOperator = (
   }
 
   const begin = codePoints.indexOf(index);
-  const end = codePoints.indexOf(index + count);
+  let end = begin + count;
+  // if the end index is less than the size of the string, then it must be valid CP index, other wise we return to the end of string.
+  if (end < s.length) end = codePoints.indexOf(index + count);
 
   if (begin < 0 || end < 0) {
     return errInvalidArgs(
