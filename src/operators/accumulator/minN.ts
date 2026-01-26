@@ -1,6 +1,7 @@
 import { ComputeOptions, computeValue } from "../../core/_internal";
 import { AccumulatorOperator, Any, AnyObject, Options } from "../../types";
-import { compare, isNil } from "../../util";
+import { compare, isInteger, isNil } from "../../util";
+import { errExpectNumber, INT_OPTS } from "../expression/_internal";
 import { $push } from "./push";
 
 interface InputExpr {
@@ -10,12 +11,6 @@ interface InputExpr {
 
 /**
  * Returns an aggregation of the minimum value n elements within a group.
- * If the group contains fewer than n elements, $minN returns all elements in the group.
- *
- * @param {Array} collection The input array
- * @param {AnyObject} expr The right-hand side expression value of the operator
- * @param {Options} options The options to use for this operation
- * @returns {*}
  */
 export const $minN: AccumulatorOperator = (
   collection: AnyObject[],
@@ -25,6 +20,9 @@ export const $minN: AccumulatorOperator = (
   const copts = options as ComputeOptions;
   const m = collection.length;
   const n = computeValue(copts?.local?.groupId, expr.n, null, copts) as number;
+  if (!isInteger(n) || n < 1) {
+    return errExpectNumber(options.failOnError, "$minN 'n'", INT_OPTS.pos);
+  }
   const arr = $push(collection, expr.input, options).filter(o => !isNil(o));
   arr.sort(compare);
   return m <= n ? arr : arr.slice(0, n);

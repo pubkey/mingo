@@ -1,7 +1,7 @@
 import { ComputeOptions, computeValue } from "../../core/_internal";
 import { AccumulatorOperator, Any, AnyObject, Options } from "../../types";
-import { isNumber } from "../../util";
-import { errInvalidArgs } from "../expression/_internal";
+import { isInteger } from "../../util";
+import { errExpectNumber, INT_OPTS } from "../expression/_internal";
 import { $push } from "./push";
 
 interface InputExpr {
@@ -26,11 +26,9 @@ export const $lastN: AccumulatorOperator = (
   const copts = options as ComputeOptions;
   const m = collection.length;
   const n = computeValue(copts?.local?.groupId, expr.n, null, copts) as number;
-  if (!isNumber(n) || n < 1) {
-    return errInvalidArgs(
-      options.failOnError,
-      "$lastN 'n' must resolve to a positive integer"
-    );
+  const foe = options.failOnError;
+  if (!isInteger(n) || n < 1) {
+    return errExpectNumber(foe, "$lastN 'n'", INT_OPTS.pos);
   }
   return $push(
     m <= n ? collection : collection.slice(m - n),

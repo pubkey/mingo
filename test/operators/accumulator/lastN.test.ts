@@ -13,15 +13,9 @@ const docs = [
 
 runTest("SimpleTests", {
   $lastN: [
-    [
-      { input: [1, 2, 3, 4], n: "invalid" },
-      Error("must resolve to a positive integer")
-    ],
+    [{ input: [1, 2, 3, 4], n: "invalid" }, Error("positive integer")],
     [{ input: [1, 2, 3, 4], n: "invalid" }, null, { failOnError: false }],
-    [
-      { input: "bad input", n: 1 },
-      Error("'input' expression must resolve to array")
-    ],
+    [{ input: "bad input", n: 1 }, Error("resolve to array")],
     [{ input: "bad input", n: 1 }, null, { failOnError: false }]
   ]
 });

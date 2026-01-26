@@ -15,12 +15,7 @@ const docs = [
 ];
 
 runTest("SimpleTests", {
-  $firstN: [
-    [
-      { input: [1, 2, 3, 4], n: "invalid" },
-      Error("must resolve to a positive integer")
-    ]
-  ]
+  $firstN: [[{ input: [1, 2, 3, 4], n: "invalid" }, Error("positive integer")]]
 });
 
 describe(testPath(__filename), () => {
