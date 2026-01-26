@@ -7,7 +7,7 @@ import {
   isNil,
   isString
 } from "../../../util/_internal";
-import { errExpectNumber, errExpectString } from "../_internal";
+import { errExpectNumber, errExpectString, INT_OPTS } from "../_internal";
 
 const OP = "$indexOfBytes";
 
@@ -20,7 +20,10 @@ export const $indexOfBytes: ExpressionOperator = (
   expr: Any,
   options: Options
 ): Any => {
-  assert(isArray(expr) && expr.length > 1, `${OP} expects array(4)`);
+  assert(
+    isArray(expr) && expr.length > 1 && expr.length < 5,
+    `${OP} expects array(4)`
+  );
   const args = computeValue(obj, expr, null, options) as Any[];
   const foe = options.failOnError;
 
@@ -29,15 +32,15 @@ export const $indexOfBytes: ExpressionOperator = (
   if (!isString(str)) return errExpectString(foe, `${OP} arg1 <string>`);
 
   const search = args[1] as string;
-  if (!isString(search)) return errExpectString(foe, `${OP} arg2 <substring>`);
+  if (!isString(search)) return errExpectString(foe, `${OP} arg2 <search>`);
 
   const start = (args[2] as number) ?? 0;
   const end = (args[3] as number) ?? str.length;
 
   if (!isInteger(start) || start < 0)
-    return errExpectNumber(foe, `${OP} arg3 <start>`, { int: true, min: 0 });
-  if (!isInteger(end))
-    return errExpectNumber(foe, `${OP} arg4 <end>`, { int: true, min: 0 });
+    return errExpectNumber(foe, `${OP} arg3 <start>`, INT_OPTS.zeroMin);
+  if (!isInteger(end) || end < 0)
+    return errExpectNumber(foe, `${OP} arg4 <end>`, INT_OPTS.zeroMin);
 
   if (start > end) return -1;
 

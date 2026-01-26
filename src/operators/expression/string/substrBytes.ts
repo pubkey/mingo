@@ -1,6 +1,6 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { assert, isArray, isNil, isNumber, isString } from "../../../util";
+import { assert, isArray, isInteger, isNil, isString } from "../../../util";
 import {
   errExpectNumber,
   errExpectString,
@@ -52,9 +52,9 @@ export const $substrBytes: ExpressionOperator = (
   const nil = isNil(s);
 
   if (!nil && !isString(s)) return errExpectString(foe, `${OP} arg1 <string>`);
-  if (!isNumber(index) || index < 0)
+  if (!isInteger(index) || index < 0)
     return errExpectNumber(foe, `${OP} arg2 <index>`, INT_OPTS.zeroMin);
-  if (!isNumber(count) || count < 0)
+  if (!isInteger(count) || count < 0)
     return errExpectNumber(foe, `${OP} arg3 <count>`, INT_OPTS.zeroMin);
 
   if (nil) return "";

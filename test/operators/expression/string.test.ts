@@ -11,6 +11,10 @@ support.runTest("operators/expression/string", {
   ],
 
   $indexOfBytes: [
+    [[0, "2"], Error("arg1 <string>")],
+    [["s", 0], Error("arg2 <search>")],
+    [["s", "s", -1], Error("arg3 <start>")],
+    [["s", "s", 0, -1], Error("arg4 <end>")],
     [["cafeteria", "e"], 3],
     [["cafétéria", "é"], 3],
     [["cafétéria", "e"], -1],
@@ -48,27 +52,30 @@ support.runTest("operators/expression/string", {
   ],
 
   $strLenBytes: [
-    [{ $strLenBytes: "abcde" }, 5], // Each character is encoded using one byte.
-    [{ $strLenBytes: "Hello World!" }, 12], //	Each character is encoded using one byte.
-    [{ $strLenBytes: "cafeteria" }, 9], //	Each character is encoded using one byte.
-    [{ $strLenBytes: "cafétéria" }, 11], //	é is encoded using two bytes.
-    [{ $strLenBytes: "" }, 0], //Empty strings return 0.
+    [100, Error("resolve to string")],
+    ["abcde", 5], // Each character is encoded using one byte.
+    ["Hello World!", 12], //	Each character is encoded using one byte.
+    ["cafeteria", 9], //	Each character is encoded using one byte.
+    ["cafétéria", 11], //	é is encoded using two bytes.
+    ["", 0], //Empty strings return 0.
     [{ $strLenBytes: { $literal: "$€λG" } }, 7], // € is encoded using three bytes. λ is encoded using two bytes.
-    [{ $strLenBytes: "寿司" }, 6] // Each character is encoded using three bytes.
+    ["寿司", 6] // Each character is encoded using three bytes.
   ],
 
   $strLenCP: [
-    [{ $strLenCP: "abcde" }, 5],
-    [{ $strLenCP: "Hello World!" }, 12],
-    [{ $strLenCP: "cafeteria" }, 9],
-    [{ $strLenCP: "cafétéria" }, 9],
-    [{ $strLenCP: "" }, 0],
+    [100, Error("resolve to string")],
+    ["abcde", 5],
+    ["Hello World!", 12],
+    ["cafeteria", 9],
+    ["cafétéria", 9],
+    ["", 0],
     [{ $strLenCP: { $literal: "$€λG" } }, 4],
-    [{ $strLenCP: "寿司" }, 2]
+    ["寿司", 2]
   ],
 
   $strcasecmp: [
     [[null, undefined], 0],
+    [[12, "23"], Error("array of string")],
     [["13Q1", "13q4"], -1],
     [["13Q4", "13q4"], 0],
     [["14Q2", "13q4"], 1]
@@ -76,6 +83,10 @@ support.runTest("operators/expression/string", {
 
   $substrCP: [
     [[null, 2], Error("expects array(3)")],
+    [[null, 0, 1], ""],
+    [[100, 0, 1], Error("arg1 <string>")],
+    [["100", 2.5, 1], Error("arg2 <index>")],
+    [["100", 2, true], Error("arg3 <count>")],
     [["hello", -1, 5], ""],
     [["hello", 1, -2], "ello"],
     [["abcde", 1, 2], "bc"],
@@ -87,9 +98,12 @@ support.runTest("operators/expression/string", {
   ],
 
   $substrBytes: [
+    [[null, 2], Error("expects array(3)")],
+    [[100, 0, 1], Error("arg1 <string>")],
     [[null, "invalid", 3], Error("<index>")],
     [["", "invalid", 3], Error("<index>")],
     [["", 0, "invalid"], Error("<count>")],
+    [[null, 0, 1], ""],
     [["abcde", 1, 2], "bc"],
     [["Hello World!", 6, 5], "World"],
     [["cafétéria", 0, 5], "café"],
@@ -134,13 +148,31 @@ support.runTest("operators/expression/string", {
     [{ $rtrim: { input: null } }, null]
   ],
 
+  $toString: [
+    [null, null],
+    [10, "10"],
+    [["not allowed"], Error("cannot convert from object")]
+  ],
+
   $replaceOne: [
+    [{ input: 0, find: "abc", replacement: "ABC" }, Error("'input'.+string")],
+    [{ input: "abc", find: 0, replacement: "ABC" }, Error("'find'.+string")],
+    [
+      { input: "abc", find: "abc", replacement: 0 },
+      Error("'replacement'.+string")
+    ],
     [{ input: null, find: "abc", replacement: "ABC" }, null],
     [{ input: "abc", find: null, replacement: "ABC" }, null],
     [{ input: "abc", find: "abc", replacement: null }, null]
   ],
 
   $replaceAll: [
+    [{ input: 0, find: "abc", replacement: "ABC" }, Error("'input'.+string")],
+    [{ input: "abc", find: 0, replacement: "ABC" }, Error("'find'.+string")],
+    [
+      { input: "abc", find: "abc", replacement: 0 },
+      Error("'replacement'.+string")
+    ],
     [{ input: null, find: "abc", replacement: "ABC" }, null],
     [{ input: "abc", find: null, replacement: "ABC" }, null],
     [{ input: "abc", find: "abc", replacement: null }, null]
