@@ -39,7 +39,7 @@ const SORT_ORDER: Record<string, number> = {
 
 const USER_TYPE = Object.keys(SORT_ORDER).length * 2;
 type Cmp = string | number;
-const simpleCmp = <T = Cmp>(a: T, b: T) => (a < b ? -1 : a > b ? 1 : 0);
+export const simpleCmp = <T = Cmp>(a: T, b: T) => (a < b ? -1 : a > b ? 1 : 0);
 const typedArraysCmp = (a: ArrayBufferView, b: ArrayBufferView): number => {
   const bytesA = new Uint8Array(a.buffer, a.byteOffset, a.byteLength);
   const bytesB = new Uint8Array(b.buffer, b.byteOffset, b.byteLength);
@@ -304,6 +304,7 @@ export const isString = (v: Any): v is string => typeof v === "string";
 export const isSymbol = (v: Any): boolean => typeof v === "symbol";
 export const isNumber = (v: Any): v is number =>
   !Number.isNaN(v as number) && typeof v === "number";
+export const isInteger = Number.isInteger;
 export const isArray = Array.isArray;
 export const isObject = (v: Any): v is object => typeOf(v) === "object";
 //  objects, arrays, functions, date, custom object
@@ -322,8 +323,8 @@ export const isEmpty = (x: Any): boolean =>
 /** ensure a value is an array or wrapped within one. */
 export const ensureArray = <T>(x: T | T[]): T[] => (isArray(x) ? x : [x]);
 
-export const has = (obj: object, prop: string): boolean =>
-  !!obj && (Object.prototype.hasOwnProperty.call(obj, prop) as boolean);
+export const has = (obj: object, ...props: string[]): boolean =>
+  !!obj && props.every(p => Object.prototype.hasOwnProperty.call(obj, p));
 
 const isTypedArray = (v: Any): v is ArrayBuffer =>
   typeof ArrayBuffer !== "undefined" && ArrayBuffer.isView(v);

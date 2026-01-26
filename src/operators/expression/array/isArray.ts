@@ -4,10 +4,6 @@ import { assert, isArray } from "../../../util";
 
 /**
  * Determines if the operand is an array. Returns a boolean.
- *
- * @param  {AnyObject}  obj
- * @param  {*}  expr
- * @return {Boolean}
  */
 export const $isArray: ExpressionOperator = (
   obj: AnyObject,
@@ -16,7 +12,7 @@ export const $isArray: ExpressionOperator = (
 ): Any => {
   let input = expr;
   if (isArray(expr)) {
-    assert(expr.length === 1, "$isArray takes exactly 1 argument");
+    assert(expr.length === 1, "$isArray expects array(1)");
     input = expr[0];
   }
   return isArray(computeValue(obj, input, null, options));

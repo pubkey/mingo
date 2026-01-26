@@ -1,7 +1,19 @@
 import { describe, expect, it } from "vitest";
 
 import { aggregate } from "../../../../src";
-import { testPath } from "../../../support";
+import { runTest, testPath } from "../../../support";
+
+runTest("EdgeCases", {
+  $firstN: [
+    ["invalid", Error("expects object")],
+    [{ input: null, n: 2 }, null],
+    [{ input: "not array", n: 2 }, Error("resolve to array")],
+    [{ input: "not array", n: 2 }, null, { failOnError: false }],
+    [{ input: [1, 2, 3], n: -2 }, Error("resolve to positive integer")],
+    [{ input: [1, 2, 3], n: -2 }, null, { failOnError: false }],
+    [{ input: [1, 2, 3], n: 2 }, [1, 2]]
+  ]
+});
 
 describe(testPath(__filename), () => {
   it("passes: using $firstN as an array operator", () => {

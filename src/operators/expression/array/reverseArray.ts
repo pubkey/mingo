@@ -5,10 +5,6 @@ import { errExpectArray } from "../_internal";
 
 /**
  * Returns an array with the elements in reverse order.
- *
- * @param  {AnyObject} obj
- * @param  {*} expr
- * @return {*}
  */
 export const $reverseArray: ExpressionOperator = (
   obj: AnyObject,
@@ -20,8 +16,5 @@ export const $reverseArray: ExpressionOperator = (
   if (isNil(arr)) return null;
   if (!isArray(arr))
     return errExpectArray(options.failOnError, "$reverseArray");
-
-  const result = arr.slice(0);
-  result.reverse();
-  return result;
+  return arr.slice().reverse();
 };

@@ -1,4 +1,14 @@
-import { assert } from "../../util";
+import { assert, isNil } from "../../util";
+
+export const INT_OPTS = {
+  int: { int: true },
+  pos: { min: 1, int: true },
+  nonzero: { min: 0, max: 0, int: true }
+};
+
+export const ARR_OPTS = {
+  int: { type: "integer" }
+};
 
 export function errInvalidArgs(failOnError: boolean, message: string): null {
   assert(!failOnError, message);
@@ -20,10 +30,15 @@ export function errExpectNumber(
   const min = opts?.min ?? -Infinity;
   const max = opts?.max ?? Infinity;
   let msg: string;
-  if (min != -Infinity && max != Infinity) {
-    msg = `${name} expression must resolve to ${type} in between [${min}, ${max}]`;
-  } else if (min == 0 && max == Infinity) {
+  if (min === 0 && max === 0) {
+    // special case to indicate non-zero
+    msg = `${name} expression must resolve to non-zero ${type}`;
+  } else if (min === 0 && max === Infinity) {
     msg = `${name} expression must resolve to non-negative ${type}`;
+  } else if (min !== -Infinity && max !== Infinity) {
+    msg = `${name} expression must resolve to ${type} in between [${min}, ${max}]`;
+  } else if (min > 0) {
+    msg = `${name} expression must resolve to positive ${type}`;
   } else {
     msg = `${name} expression must resolve to ${type}`;
   }
@@ -36,8 +51,10 @@ export function errExpectArray(
   prefix: string,
   opts?: { size?: number; type?: string }
 ): null {
-  const size = opts?.size && opts?.size > 0 ? `(${opts.size})` : "";
-  const suffix = opts?.type ? `array${size} of ${opts.type}` : `array${size}`;
+  let suffix = "array";
+  if (!isNil(opts?.size) && opts?.size >= 0)
+    suffix = opts.size === 0 ? "non-zero array" : `array(${opts.size})`;
+  if (opts?.type) suffix = `array of ${opts.type}`;
   const msg = `${prefix} expression must resolve to ${suffix}`;
   assert(!failOnError, msg);
   return null;

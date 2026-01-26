@@ -1,11 +1,7 @@
 import { runTest, testPath } from "../../../support";
 
 const team = [
-  {
-    name: "pat",
-    age: 30,
-    address: { street: "12 Baker St", city: "London" }
-  },
+  { name: "pat", age: 30, address: { street: "12 Baker St", city: "London" } },
   {
     name: "dallas",
     age: 36,
@@ -20,9 +16,13 @@ const team = [
 
 runTest(testPath(__filename), {
   $sortArray: [
+    [{ input: null, sortBy: 1 }, null],
+    [{ input: "invalid", sortBy: 1 }, Error("resolve to array")],
+    [{ input: [1, 2, 3], sortBy: -1 }, [3, 2, 1]],
     [
       {
-        $sortArray: { input: team, sortBy: { name: 1 } }
+        input: team,
+        sortBy: { name: 1 }
       },
 
       [

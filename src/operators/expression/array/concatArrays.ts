@@ -5,10 +5,6 @@ import { errExpectArray } from "../_internal";
 
 /**
  * Concatenates arrays to return the concatenated array.
- *
- * @param  obj
- * @param  expr
- * @param options
  */
 export const $concatArrays: ExpressionOperator = (
   obj: AnyObject,
@@ -16,18 +12,15 @@ export const $concatArrays: ExpressionOperator = (
   options: Options
 ): Any => {
   const args = computeValue(obj, expr, null, options) as Any[][];
-  if (isNil(args)) return null;
+  const foe = options.failOnError;
 
-  if (!isArray(args)) {
-    return errExpectArray(options.failOnError, "$concatArrays");
-  }
+  if (isNil(args)) return null;
+  if (!isArray(args)) return errExpectArray(foe, "$concatArrays");
 
   let size = 0;
   for (const arr of args) {
     if (isNil(arr)) return null;
-    if (!isArray(arr)) {
-      return errExpectArray(options.failOnError, "$concatArrays");
-    }
+    if (!isArray(arr)) return errExpectArray(foe, "$concatArrays");
     size += arr.length;
   }
   const result = new Array(size);

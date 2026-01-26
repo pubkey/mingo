@@ -1,6 +1,6 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { isArray, isNil } from "../../../util";
+import { assert, has, isArray, isNil, isObject } from "../../../util";
 import { $minN as __minN } from "../../accumulator/minN";
 import { errExpectArray } from "../_internal";
 
@@ -11,16 +11,16 @@ interface InputExpr {
 
 /**
  * Returns the n smallest values in an array.
- *
- * @param  {AnyObject} obj
- * @param  {*} expr
- * @return {*}
  */
 export const $minN: ExpressionOperator = (
   obj: AnyObject,
   expr: InputExpr,
   options: Options
 ): Any => {
+  assert(
+    isObject(expr) && has(expr, "input", "n"),
+    "$minN expects object { input, n }"
+  );
   // first try the accumulator if input is an array.
   if (isArray(obj)) return __minN(obj, expr, options);
   const { input, n } = computeValue(obj, expr, null, options) as InputExpr;

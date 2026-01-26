@@ -2,9 +2,11 @@ import { runTest, testPath } from "../../../support";
 
 runTest(testPath(__filename), {
   $range: [
-    [[0], Error("expects array(3) of numbers")],
-    [[0], Error("expects array(3) of numbers"), { failOnError: false }],
-    [[0, "1"], Error("expressions must resolve to numbers")],
+    [[0], Error("expects array(3)")],
+    [[0], Error("expects array(3)"), { failOnError: false }],
+    [["0", "1"], Error("arg1 <start>")],
+    [[0, "1"], Error("arg2 <end>")],
+    [[0, 1, "1"], Error("arg3 <step>")],
     [[0, "1"], null, { failOnError: false }],
     [
       [0, 10, 2],

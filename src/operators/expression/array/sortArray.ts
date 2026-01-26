@@ -1,7 +1,7 @@
 import { computeValue } from "../../../core/_internal";
 import { Lazy } from "../../../lazy";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { compare, isArray, isNil, isObject } from "../../../util";
+import { assert, compare, isArray, isNil, isObject } from "../../../util";
 import { $sort } from "../../pipeline/sort";
 import { errExpectArray } from "../_internal";
 
@@ -18,6 +18,10 @@ export const $sortArray: ExpressionOperator = (
   expr: Any,
   options: Options
 ): Any => {
+  assert(
+    isObject(expr) && "input" in expr && "sortBy" in expr,
+    "$sortArray expects object { input, sortBy }"
+  );
   const { input, sortBy } = computeValue(obj, expr, null, options) as {
     input: Any[];
     sortBy: AnyObject | number;

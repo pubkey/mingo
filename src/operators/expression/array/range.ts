@@ -1,34 +1,31 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { assert, isArray, isNumber } from "../../../util";
-import { errInvalidArgs } from "../_internal";
+import { assert, isArray, isInteger } from "../../../util";
+import { errExpectNumber, INT_OPTS } from "../_internal";
 
-const err = "$range expects array(3) of numbers";
 /**
  * Returns an array whose elements are a generated sequence of numbers.
- *
- * @param  {AnyObject} obj
- * @param  {*} expr
- * @return {*}
  */
 export const $range: ExpressionOperator = (
   obj: AnyObject,
   expr: Any,
   options: Options
 ): Any => {
-  const args = computeValue(obj, expr, null, options) as Any[];
-  assert(isArray(args) && args.length > 1, err);
+  assert(
+    isArray(expr) && expr.length > 1 && expr.length < 4,
+    "$range expects array(3)"
+  );
+  const [start, end, arg3] = computeValue(obj, expr, null, options) as number[];
+  const foe = options.failOnError;
 
-  if (!args.every(isNumber))
-    return errInvalidArgs(
-      options.failOnError,
-      "$range expressions must resolve to numbers"
-    );
+  const step = arg3 ?? 1;
 
-  const start = args[0];
-  const end = args[1];
-  const step = args[2] ?? 1;
-
+  if (!isInteger(start))
+    return errExpectNumber(foe, `$range arg1 <start>`, INT_OPTS.int);
+  if (!isInteger(end))
+    return errExpectNumber(foe, `$range arg2 <end>`, INT_OPTS.int);
+  if (!isInteger(step) || step === 0)
+    return errExpectNumber(foe, `$range arg3 <step>`, INT_OPTS.nonzero);
   const result = new Array<number>();
   let counter = start;
   while ((counter < end && step > 0) || (counter > end && step < 0)) {

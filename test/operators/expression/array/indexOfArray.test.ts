@@ -20,6 +20,8 @@ runTest(testPath(__filename), {
     [[["a", "abc", "b"], "b", 20], -1],
     [[[null, null, null], null], 0],
     [[null, "foo"], null],
-    [["foo", "foo"], Error()]
+    [["foo", "foo"], Error()],
+    [[["input"], "search", "invalid", 3], Error("<start>")],
+    [[["input"], "search", 0, "invalid"], Error("<end>")]
   ]
 });

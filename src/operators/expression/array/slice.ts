@@ -1,21 +1,20 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { assert, isArray, isNil, isNumber } from "../../../util";
-import { errExpectArray, errExpectNumber, errInvalidArgs } from "../_internal";
+import { assert, isArray, isInteger, isNil } from "../../../util";
+import { errExpectArray, errExpectNumber, INT_OPTS } from "../_internal";
 
 /**
  * Returns a subset of an array.
- *
- * @param  {AnyObject} obj
- * @param  {*} expr
- * @return {*}
  */
 export const $slice: ExpressionOperator = (
   obj: AnyObject,
   expr: Any,
   options: Options
 ): Any => {
-  assert(isArray(expr) && expr.length > 1, "$slice expects array(3)");
+  assert(
+    isArray(expr) && expr.length > 1 && expr.length < 4,
+    "$slice expects array(3)"
+  );
   const foe = options.failOnError;
 
   const args = computeValue(obj, expr, null, options) as Any[];
@@ -25,9 +24,11 @@ export const $slice: ExpressionOperator = (
 
   // MongoDB $slice works a bit differently from Array.slice()
   // Uses [<array>, <limit>] or [ <array>, <skip>, <limit>]
-  if (!isArray(arr)) return errExpectArray(foe, "$slice first argument");
-  if (!isNumber(skip)) return errExpectNumber(foe, "$slice second argument");
-
+  if (!isArray(arr)) return errExpectArray(foe, "$slice arg1 <array>");
+  if (!isInteger(skip))
+    return errExpectNumber(foe, "$slice arg2 <n>", INT_OPTS.int);
+  if (!isNil(limit) && !isInteger(limit))
+    return errExpectNumber(foe, "$slice arg3 <n>", INT_OPTS.int);
   if (isNil(limit)) {
     if (skip < 0) {
       skip = Math.max(0, arr.length + skip);
@@ -40,9 +41,8 @@ export const $slice: ExpressionOperator = (
       skip = Math.max(0, arr.length + skip);
     }
     if (limit < 1) {
-      return errInvalidArgs(foe, "$slice <n> must be a positive number");
+      return errExpectNumber(foe, "$slice arg3 <n>", INT_OPTS.pos);
     }
-
     limit += skip;
   }
 

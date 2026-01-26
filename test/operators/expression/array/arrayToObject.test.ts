@@ -1,11 +1,13 @@
-import * as support from "../../../support";
+import { runTest, testPath } from "../../../support";
 
-support.runTest(support.testPath(__filename), {
+runTest(testPath(__filename), {
   $arrayToObject: [
     // nil input
     [null, null],
+    ["not array", Error("array of key-value pairs")],
+    ["not array", null, { failOnError: false }],
     // invalid input
-    [[1, 2, 3], Error("expects an array with exclusively")],
+    [[1, 2, 3], Error("array of key-value pairs")],
     [
       [
         ["a", 1],
@@ -20,8 +22,12 @@ support.runTest(support.testPath(__filename), {
       ],
       { a: 1, b: 2 }
     ],
-    [[{ k: "a", v: 1 }, ["b", 2]], Error()],
+    // non uniform input objects
+    [[{ k: "a", v: 1 }, ["b", 2]], Error("array of {k,v}")],
     [[{ k: "a", v: 1 }, ["b", 2]], null, { failOnError: false }],
+    // non uniform input arrays
+    [[["b", 2], { k: "a", v: 1 }], Error("array of [k,v]")],
+    [[["b", 2], { k: "a", v: 1 }], null, { failOnError: false }],
     [
       {
         $arrayToObject: {

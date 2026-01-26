@@ -12,7 +12,6 @@ export * from "./lastN";
 export * from "./map";
 export * from "./maxN";
 export * from "./minN";
-export * from "./nin";
 export * from "./range";
 export * from "./reduce";
 export * from "./reverseArray";

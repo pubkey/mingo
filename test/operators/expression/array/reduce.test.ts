@@ -5,7 +5,11 @@ import { runTest, testPath } from "../../../support";
 
 runTest(testPath(__filename), {
   $reduce: [
-    [{ input: null }, null],
+    [{ input: null, initialValue: null, in: null }, null],
+    [
+      { input: "invalid", initialValue: null, in: null },
+      Error("resolve to array")
+    ],
     [
       {
         input: ["a", "b", "c"],

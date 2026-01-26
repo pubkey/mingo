@@ -2,10 +2,14 @@ import * as support from "../../../support";
 
 support.runTest(support.testPath(__filename), {
   $filter: [
-    ["invalid", null], // no validation for argument structure.
-    [{ input: "invalid" }, Error()],
-    [{ input: "invalid" }, null, { failOnError: false }],
-    [{ input: null }, null],
+    ["invalid", Error("expects object")], // no validation for argument structure.
+    [{ input: "invalid" }, Error("expects object")],
+    [{ input: [] }, Error("expects object")],
+    [{ input: null, cond: true }, null],
+    [{ input: "invalid", cond: true }, Error("'input'")],
+    [{ input: [], cond: true, limit: 0 }, Error("'limit'")],
+    [{ input: [1, 2, 3, 4], limit: 2, cond: true }, [1, 2]],
+    [{ input: [], limit: 2, cond: true }, []],
     [
       {
         input: [
