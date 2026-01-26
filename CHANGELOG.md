@@ -1,6 +1,10 @@
 # Changelog
 
-## 7.1.1 / 2025-12-31
+## 7.2.0 / 2025-01-xx
+
+**New**
+
+- Added `failOnError` option to control failure mode when operators receive resolved invalid argument types.
 
 **Fixes**
 
@@ -14,7 +18,12 @@
 **Improvements**
 
 - Use faster hash implementation.
-- Performance improvements for sort
+- Performance improvements for sort.
+- Precompile update operators to improve performance of `updateMany` calls.
+
+## 7.1.1 / 2025-12-31 (deprecated)
+
+**Reason**: contains invalid `assert` imports.
 
 ## 7.1.0 / 2025-12-12
 
