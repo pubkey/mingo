@@ -16,6 +16,12 @@ export function errInvalidArgs(failOnError: boolean, message: string): null {
   return null;
 }
 
+export function errExpectObject(failOnError: boolean, prefix: string): null {
+  const msg = `${prefix} expression must resolve to object`;
+  assert(!failOnError, msg);
+  return null;
+}
+
 export function errExpectString(failOnError: boolean, prefix: string): null {
   const msg = `${prefix} expression must resolve to string`;
   assert(!failOnError, msg);

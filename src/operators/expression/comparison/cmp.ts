@@ -4,10 +4,6 @@ import { assert, compare, isArray } from "../../../util";
 
 /**
  * Compares two values and returns the result of the comparison as an integer.
- *
- * @param obj
- * @param expr
- * @returns {number}
  */
 export const $cmp: ExpressionOperator = (
   obj: AnyObject,

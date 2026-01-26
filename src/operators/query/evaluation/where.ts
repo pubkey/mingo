@@ -2,18 +2,14 @@ import { Any, Callback, Options, Predicate } from "../../../types";
 import { assert, isFunction, truthy } from "../../../util/_internal";
 
 /**
- * Matches documents that satisfy a JavaScript expression.
+ * Matches documents that satisfy a custom predicate function.
  */
-export function $where(
-  _: string,
-  rhs: Any,
-  options: Options
-): Callback<boolean> {
+export function $where(_: string, rhs: Any, opts: Options): Callback<boolean> {
   assert(
-    options.scriptEnabled,
+    opts.scriptEnabled,
     "$where requires 'scriptEnabled' option to be true"
   );
   const f = rhs as Predicate<Any>;
   assert(isFunction(f), "$where only accepts a Function objects");
-  return obj => truthy(f.call(obj), options?.useStrictMode);
+  return obj => truthy(f.call(obj), opts?.useStrictMode);
 }

@@ -19,7 +19,7 @@ import {
 } from "./_internal";
 
 // 2000-01-01T00:00:00Z - The reference date
-const REF_DATE_MILLIS = 946684800000;
+const REF_DATE_MILLIS = 9466848e5;
 
 /**
  * Determines a distance of 'value' to the lower bound of a bin 'value' falls into. It assumes that
@@ -116,7 +116,7 @@ export const $dateTrunc: ExpressionOperator<Date> = (
       );
     }
     default: {
-      assert(binSize <= 100000000000, "dateTrunc unsupported binSize value");
+      assert(binSize <= 1e11, "dateTrunc unsupported binSize value");
 
       const d = new Date(date);
       const refPointDate = new Date(REF_DATE_MILLIS);
