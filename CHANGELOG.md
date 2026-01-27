@@ -1,6 +1,6 @@
 # Changelog
 
-## 7.2.0 / 2025-01-xx
+## 7.2.0 / 2025-01-26
 
 **New**
 
@@ -14,6 +14,7 @@
 - Use consistent internal serialization for custom data objects to make comparison and equality checking stable.
 - `$replaceRoot` correctly returns only modifield fields in document when used in `updateOne`.
 - `$expMovingAvg` correctly handles missing values in data series.
+- `$substrBytes` correctly handles translation between byte index and UTF-16 slices.
 
 **Improvements**
 
