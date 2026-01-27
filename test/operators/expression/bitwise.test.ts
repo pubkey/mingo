@@ -13,6 +13,7 @@ runTest("operators/expression/boolean", {
   ],
   $bitNot: [
     [null, null],
+    ["bad", Error("resolve to integer")],
     [0, -1],
     [2, -3],
     [3, -4]
