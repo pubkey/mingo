@@ -109,6 +109,11 @@ No default implementation is provided out of the box so users can use a library 
 <td><p>Determines how inputs are to be modified or not during processing.</p></td>
 </tr>
 <tr>
+<td>failOnError</td>
+<td><code>true</code></td>
+<td><p>By default, expression operators fail when their arguments evaluate to unsupported types for the operation. Set this option to <code>false</code> to return <code>null</code> on invalid operations instead of throwing an error, which is undesirable in some use cases since it halts the entire query/aggregation pipeline.</p></td>
+</tr>
+<tr>
 <td>scriptEnabled</td>
 <td><code>true</code></td>
 <td><p>Enable or disable using custom script execution.</p>When disabled, operators that execute custom code are disallowed such as; <code>$where</code>, <code>$accumulator</code>, and <code>$function</code>.</td>
