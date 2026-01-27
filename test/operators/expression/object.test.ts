@@ -4,6 +4,37 @@ import { aggregate } from "../../../src";
 import { ProcessingMode } from "../../../src/core/_internal";
 import { runTest } from "../../support";
 
+runTest("EdgeCases", {
+  $setField: [
+    [{ input: null, field: "id", value: 0 }, null],
+    [{ input: 0, field: "id", value: 0 }, Error("'input'")],
+    [{ input: { a: 0 }, field: 0, value: 0 }, Error("'field'")],
+    [{ input: { a: 0, b: 1 }, field: "b", value: "$$REMOVE" }, { a: 0 }]
+  ],
+  $objectToArray: [
+    [null, null],
+    ["invalid", Error("resolve to object")],
+    [
+      { a: 1, b: 2 },
+      [
+        { k: "a", v: 1 },
+        { k: "b", v: 2 }
+      ]
+    ]
+  ],
+  $mergeObjects: [
+    [null, {}],
+    [[null, null], {}],
+    ["invalid", Error("array of objects")],
+    [[{ a: 1 }, null], { a: 1 }],
+    [[{ a: 1 }, { a: 2, b: 2 }, { a: 3, c: 3 }], { a: 3, b: 2, c: 3 }],
+    [
+      [{ a: 1 }, { a: 2, b: 2 }, { a: 3, b: null, c: 3 }],
+      { a: 3, b: null, c: 3 }
+    ]
+  ]
+});
+
 describe("operators/expression/object", () => {
   runTest("$mergeObjects", {
     $mergeObjects: [

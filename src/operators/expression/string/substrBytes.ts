@@ -53,9 +53,9 @@ export const $substrBytes: ExpressionOperator = (
 
   if (!nil && !isString(s)) return errExpectString(foe, `${OP} arg1 <string>`);
   if (!isInteger(index) || index < 0)
-    return errExpectNumber(foe, `${OP} arg2 <index>`, INT_OPTS.zeroMin);
+    return errExpectNumber(foe, `${OP} arg2 <index>`, INT_OPTS.index);
   if (!isInteger(count) || count < 0)
-    return errExpectNumber(foe, `${OP} arg3 <count>`, INT_OPTS.zeroMin);
+    return errExpectNumber(foe, `${OP} arg3 <count>`, INT_OPTS.index);
 
   if (nil) return "";
 

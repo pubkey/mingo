@@ -3,11 +3,6 @@ import { isNil } from "../../util";
 
 /**
  * Combines multiple documents into a single document.
- *
- * @param {Array} collection The input array
- * @param {AnyObject} _ The right-hand side expression value of the operator
- * @param {Options} options The options to use for this operation
- * @returns {Array|*}
  */
 export const $mergeObjects: AccumulatorOperator<AnyObject> = (
   collection: AnyObject[],

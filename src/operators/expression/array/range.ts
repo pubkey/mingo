@@ -25,7 +25,7 @@ export const $range: ExpressionOperator = (
   if (!isInteger(end))
     return errExpectNumber(foe, `$range arg2 <end>`, INT_OPTS.int);
   if (!isInteger(step) || step === 0)
-    return errExpectNumber(foe, `$range arg3 <step>`, INT_OPTS.nonzero);
+    return errExpectNumber(foe, `$range arg3 <step>`, INT_OPTS.nzero);
   const result = new Array<number>();
   let counter = start;
   while ((counter < end && step > 0) || (counter > end && step < 0)) {

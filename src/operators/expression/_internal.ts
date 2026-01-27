@@ -1,14 +1,15 @@
 import { assert, isNil } from "../../util";
 
 export const INT_OPTS = {
-  int: { int: true },
-  pos: { min: 1, int: true },
-  zeroMin: { min: 0, int: true },
-  nonzero: { min: 0, max: 0, int: true }
+  int: { int: true }, // (-∞, ∞)
+  pos: { min: 1, int: true }, // [1, ∞]
+  index: { min: 0, int: true }, // [0, ∞]
+  nzero: { min: 0, max: 0, int: true } // non-zero
 };
 
 export const ARR_OPTS = {
-  int: { type: "integer" }
+  int: { type: "integers" },
+  obj: { type: "objects" }
 };
 
 export function errInvalidArgs(failOnError: boolean, message: string): null {

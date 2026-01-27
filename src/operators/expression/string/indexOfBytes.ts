@@ -38,9 +38,9 @@ export const $indexOfBytes: ExpressionOperator = (
   const end = (args[3] as number) ?? str.length;
 
   if (!isInteger(start) || start < 0)
-    return errExpectNumber(foe, `${OP} arg3 <start>`, INT_OPTS.zeroMin);
+    return errExpectNumber(foe, `${OP} arg3 <start>`, INT_OPTS.index);
   if (!isInteger(end) || end < 0)
-    return errExpectNumber(foe, `${OP} arg4 <end>`, INT_OPTS.zeroMin);
+    return errExpectNumber(foe, `${OP} arg4 <end>`, INT_OPTS.index);
 
   if (start > end) return -1;
 

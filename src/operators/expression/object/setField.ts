@@ -1,6 +1,6 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { assert, isNil, isObject, isString } from "../../../util";
+import { assert, has, isNil, isObject, isString } from "../../../util";
 import { errExpectObject, errExpectString } from "../_internal";
 
 const OP = "$setField";
@@ -19,7 +19,10 @@ export const $setField: ExpressionOperator = (
   expr: InputExpr,
   options: Options
 ): Any => {
-  assert(isObject(expr), "$setField expects object { input, field, value }");
+  assert(
+    isObject(expr) && has(expr, "input", "field", "value"),
+    "$setField expects object { input, field, value }"
+  );
 
   const { input, field, value } = computeValue(
     obj,
