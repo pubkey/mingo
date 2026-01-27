@@ -69,6 +69,20 @@ describe(testPath(__filename), () => {
     ]);
   });
 
+  it("Returns null if no input is given", () => {
+    const res = aggregate(
+      [
+        { _id: 1, item: "abc" },
+        { _id: 2, item: "jkl" }
+      ],
+      [{ $group: { _id: "$item", last: { $last: "$date" } } }]
+    );
+    expect(res).toEqual([
+      { _id: "abc", last: null },
+      { _id: "jkl", last: null }
+    ]);
+  });
+
   it("Use in $setWindowFields Stage", () => {
     const res = aggregate(
       [
