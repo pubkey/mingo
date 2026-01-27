@@ -10,27 +10,6 @@ import {
 
 const OP = "$substrBytes";
 
-const UTF8_MASK = [0xc0, 0xe0, 0xf0];
-
-// encodes a unicode code point to a utf8 byte sequence
-// https://encoding.spec.whatwg.org/#utf-8
-function toUtf8(n: number): number[] {
-  if (n < 0x80) return [n];
-  let count = (n < 0x0800 && 1) || (n < 0x10000 && 2) || 3;
-  const offset = UTF8_MASK[count - 1];
-  const utf8 = [(n >> (6 * count)) + offset];
-  while (count > 0) utf8.push(0x80 | ((n >> (6 * --count)) & 0x3f));
-  return utf8;
-}
-
-function utf8Encode(s: string): number[][] {
-  const buf: number[][] = [];
-  for (let i = 0, len = s.length; i < len; i++) {
-    buf.push(toUtf8(s.codePointAt(i)));
-  }
-  return buf;
-}
-
 /**
  * Returns a substring of a string, starting at a specified index position and including the specified number of characters.
  * The index is zero-based.
@@ -59,25 +38,53 @@ export const $substrBytes: ExpressionOperator = (
 
   if (nil) return "";
 
-  const buf = utf8Encode(s);
-  const codePoints = [];
-  let offset = 0;
-  for (let i = 0; i < buf.length; i++) {
-    codePoints.push(offset);
-    offset += buf[i].length;
+  let utf8Pos = 0;
+  let start16: number = null;
+  let end16: number = null;
+  const err = `${OP} UTF-8 boundary falls inside a continuation byte`;
+
+  for (let i = 0; i < s.length; ) {
+    const cp = s.codePointAt(i);
+    const utf8Len = cp < 0x80 ? 1 : cp < 0x800 ? 2 : cp < 0x10000 ? 3 : 4;
+    const utf16Len = cp > 0xffff ? 2 : 1;
+
+    // Validate start boundary
+    if (start16 === null) {
+      if (index > utf8Pos && index < utf8Pos + utf8Len)
+        return errInvalidArgs(foe, err);
+      if (utf8Pos === index) {
+        start16 = i;
+      }
+    }
+
+    // Validate end boundary
+    const endByte = index + count;
+    if (start16 !== null && end16 === null) {
+      if (endByte > utf8Pos && endByte < utf8Pos + utf8Len)
+        return errInvalidArgs(foe, err);
+      if (utf8Pos === endByte) {
+        end16 = i;
+        break;
+      }
+    }
+
+    utf8Pos += utf8Len;
+    i += utf16Len;
   }
 
-  const begin = codePoints.indexOf(index);
-  let end = begin + count;
-  // if the end index is less than the size of the string, then it must be valid CP index, other wise we return to the end of string.
-  if (end < s.length) end = codePoints.indexOf(index + count);
-
-  if (begin < 0 || end < 0) {
-    return errInvalidArgs(
-      foe,
-      `${OP} invalid range, start or end index is a UTF-8 continuation byte`
-    );
+  if (start16 === null) {
+    // If byteIndex is exactly at the end of the UTF‑8 stream, return empty string.
+    if (index === utf8Pos) return "";
+    return errInvalidArgs(foe, `${OP} byte index out of range`);
   }
 
-  return s.substring(begin, end);
+  if (end16 === null) {
+    // If endByte is exactly at the end of the UTF‑8 stream, slice to end.
+    const endByte = index + count;
+    if (endByte !== utf8Pos)
+      return errInvalidArgs(foe, `${OP} count extends beyond UTF-8 length`);
+    end16 = s.length;
+  }
+
+  return s.slice(start16, end16);
 };

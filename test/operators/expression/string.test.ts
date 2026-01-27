@@ -104,6 +104,7 @@ support.runTest("operators/expression/string", {
     [["", "invalid", 3], Error("<index>")],
     [["", 0, "invalid"], Error("<count>")],
     [[null, 0, 1], ""],
+    [["", 0, 1], ""],
     [["abcde", 1, 2], "bc"],
     [["Hello World!", 6, 5], "World"],
     [["cafétéria", 0, 5], "café"],
@@ -112,7 +113,15 @@ support.runTest("operators/expression/string", {
     [["cafétéria", 3, 1], Error()],
     [["éclair", 0, 3], "éc"],
     [["jalapeño", 0, 3], "jal"],
-    [["寿司sushi", 0, 3], "寿"]
+    [["寿司sushi", 0, 3], "寿"],
+    [["桁", 0, 3], "桁"],
+    [["😀", 0, 4], "😀"],
+    [["A😀B", 6, 0], ""],
+    [["A😀B", 5, 2], Error("count extends beyond UTF-8 length")],
+    [["A😀B", 1, 10], Error("count extends beyond UTF-8 length")],
+    [["A😀B", 7, 1], Error("byte index out of range")],
+    [["", 1, 1], Error("byte index out of range")],
+    [["😀🌈", 0, 4], "😀"]
   ],
 
   $toLower: [
