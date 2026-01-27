@@ -12,7 +12,7 @@ const options = ComputeOptions.init({
 runTest("ErrorCases", {
   $percentile: [
     // invalid arguments
-    [{ input: [1, 2, 3], p: "invalid" }, Error("invalid arguments")],
+    [{ input: [1, 2, 3], p: "invalid" }, Error("expects object")],
     // Invalid expressions in 'p'
     [{ input: [1, 2, 3], p: ["invalid"] }, Error("resolve to array of numbers")]
   ]

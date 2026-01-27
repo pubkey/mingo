@@ -2,6 +2,7 @@ import { AccumulatorOperator, Any, AnyObject, Options } from "../../types";
 import {
   assert,
   findInsertIndex,
+  has,
   isArray,
   isNumber,
   isObject
@@ -26,8 +27,8 @@ export const $percentile: AccumulatorOperator<number[]> = (
   options: Options
 ): number[] => {
   assert(
-    isObject(expr) && isArray(expr.p),
-    "$percentile received invalid arguments"
+    isObject(expr) && has(expr, "input", "p") && isArray(expr.p),
+    "$percentile expects object { input, p }"
   );
   // MongoDB uses the t-digest algorithm to estimate percentiles.
   // Since this library expects all data in memory we use the linear interpolation method.
