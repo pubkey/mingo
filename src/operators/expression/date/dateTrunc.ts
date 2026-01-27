@@ -59,11 +59,6 @@ const DAYS_OF_WEEK_RE =
  * Truncates a date.
  *
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/dateTrunc/}
- *
- * @param obj
- * @param expr
- * @param options
- * @returns
  */
 export const $dateTrunc: ExpressionOperator<Date> = (
   obj: AnyObject,

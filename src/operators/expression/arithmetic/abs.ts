@@ -5,10 +5,6 @@ import { errExpectNumber } from "../_internal";
 
 /**
  * Returns the absolute value of a number.
- *
- * @param obj
- * @param expr
- * @return {Number|null|NaN}
  */
 export const $abs: ExpressionOperator = (
   obj: AnyObject,

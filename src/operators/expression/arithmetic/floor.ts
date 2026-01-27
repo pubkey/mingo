@@ -5,10 +5,6 @@ import { errExpectNumber } from "../_internal";
 
 /**
  * Returns the largest integer less than or equal to the specified number.
- *
- * @param obj
- * @param expr
- * @returns {number}
  */
 export const $floor: ExpressionOperator = (
   obj: AnyObject,

@@ -4,8 +4,6 @@ import { $dateAdd } from "./dateAdd";
 
 /**
  * Decrements a Date object by a specified number of time units.
- * @param obj
- * @param expr
  */
 export const $dateSubtract: ExpressionOperator<Date> = (
   obj: AnyObject,

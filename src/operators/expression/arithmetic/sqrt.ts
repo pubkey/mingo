@@ -4,10 +4,6 @@ import { assert, isNil } from "../../../util";
 
 /**
  * Calculates the square root of a positive number and returns the result as a double.
- *
- * @param obj
- * @param expr
- * @returns {number}
  */
 export const $sqrt: ExpressionOperator = (
   obj: AnyObject,

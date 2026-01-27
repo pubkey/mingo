@@ -27,13 +27,7 @@ const WHITESPACE_CHARS = [
   0x200a // Hair space
 ];
 
-/**
- * Trims the resolved string
- *
- * @param obj
- * @param expr
- * @param options
- */
+/** Trims the resolved string */
 export function trimString(
   obj: AnyObject,
   expr: Any,

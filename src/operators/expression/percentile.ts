@@ -4,11 +4,6 @@ import { $percentile as __percentile } from "../accumulator/percentile";
 
 /**
  * Returns an array of scalar values that correspond to specified percentile values.
- *
- * @param obj The current object
- * @param expr The operator expression
- * @param options Options to use for processing
- * @returns {Any[]<number>}
  */
 export const $percentile: ExpressionOperator<number[]> = (
   obj: AnyObject,

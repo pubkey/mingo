@@ -4,11 +4,6 @@ import { isArray, resolve } from "../../util";
 
 /**
  * Projects only the first element from an array that matches the specified $elemMatch condition.
- *
- * @param obj
- * @param field
- * @param expr
- * @returns {*}
  */
 export const $elemMatch: ProjectionOperator = (
   obj: AnyObject,

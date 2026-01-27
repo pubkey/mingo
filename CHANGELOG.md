@@ -4,7 +4,7 @@
 
 **New**
 
-- Added `failOnError` option to control failure mode when operators receive resolved invalid argument types.
+- Added `failOnError` option to control failure mode when operators resolve expressions to invalid argument types.
 
 **Fixes**
 

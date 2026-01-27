@@ -5,10 +5,6 @@ import { errExpectNumber } from "../_internal";
 
 /**
  * Returns the smallest integer greater than or equal to the specified number.
- *
- * @param obj
- * @param expr
- * @returns {number}
  */
 export const $ceil: ExpressionOperator = (
   obj: AnyObject,

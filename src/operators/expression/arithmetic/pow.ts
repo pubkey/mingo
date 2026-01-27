@@ -5,10 +5,6 @@ import { errExpectArray, errInvalidArgs } from "../_internal";
 
 /**
  * Raises a number to the specified exponent and returns the result.
- *
- * @param obj
- * @param expr
- * @returns {AnyObject}
  */
 export const $pow: ExpressionOperator = (
   obj: AnyObject,

@@ -11,11 +11,7 @@ import { assert, isArray, isObject, truthy } from "../../../util/_internal";
 const err = "$cond expects array(3) or object with 'if-then-else' expressions";
 
 /**
- * A ternary operator that evaluates one expression,
- * and depending on the result returns the value of one following expressions.
- *
- * @param obj
- * @param expr
+ * A ternary operator that evaluates one expression, and depending on the result returns the value of one following expressions.
  */
 export const $cond: ExpressionOperator = (
   obj: AnyObject,

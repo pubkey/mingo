@@ -4,10 +4,6 @@ import { assert, isArray, isNil } from "../../../util";
 
 /**
  * Evaluates an expression and returns the first non-null value.
- *
- * @param obj
- * @param expr
- * @returns {*}
  */
 export const $ifNull: ExpressionOperator = (
   obj: AnyObject,

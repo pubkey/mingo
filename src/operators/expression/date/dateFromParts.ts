@@ -28,10 +28,6 @@ const getDaysInMonth = (date: DateArgs): number => {
 
 /**
  * Constructs and returns a Date object given the date’s constituent properties.
- *
- * @param obj The document
- * @param expr The date expression
- * @param options Options
  */
 export const $dateFromParts: ExpressionOperator<Date> = (
   obj: AnyObject,

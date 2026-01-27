@@ -16,9 +16,6 @@ import {
 
 /**
  * Returns the difference between two dates.
- * @param obj
- * @param expr
- * @param options Options
  */
 export const $dateDiff: ExpressionOperator<number> = (
   obj: AnyObject,

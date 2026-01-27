@@ -4,8 +4,6 @@ import { dateAdd, TimeUnit } from "./_internal";
 
 /**
  * Increments a Date object by a specified number of time units.
- * @param obj
- * @param expr
  */
 export const $dateAdd: ExpressionOperator<Date> = (
   obj: AnyObject,

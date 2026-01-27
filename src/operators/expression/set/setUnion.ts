@@ -5,8 +5,6 @@ import { errExpectArray } from "../_internal";
 
 /**
  * Returns a set that holds all elements of the input sets.
- * @param obj
- * @param expr
  */
 export const $setUnion: ExpressionOperator = (
   obj: AnyObject,

@@ -6,8 +6,6 @@ import { errExpectArray } from "../_internal";
 const OP = "$setIntersection";
 /**
  * Returns the common elements of the input sets.
- * @param obj
- * @param expr
  */
 export const $setIntersection: ExpressionOperator = (
   obj: AnyObject,

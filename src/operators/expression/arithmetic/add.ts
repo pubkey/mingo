@@ -7,10 +7,6 @@ const err = "$add expression must resolve to array of numbers.";
 
 /**
  * Computes the sum of an array of numbers.
- *
- * @param obj
- * @param expr
- * @param options
  */
 export const $add: ExpressionOperator = (
   obj: AnyObject,

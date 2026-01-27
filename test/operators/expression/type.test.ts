@@ -12,6 +12,8 @@ runTest("operators/expression/type", {
     [new Date("2018-03-27T16:58:51.538Z"), "2018-03-27T16:58:51.538Z"]
   ],
 
+  $toDouble: [[null, null]],
+
   $toBool: [
     [true, true],
     [1.99999, true],
@@ -27,7 +29,8 @@ runTest("operators/expression/type", {
   $toLong: [
     [null, null],
     ["100", 100],
-    [20, 20]
+    [20, 20],
+    [new Date("2000-01-01T00:00:00Z"), 9466848e5]
   ],
 
   $toDate: [

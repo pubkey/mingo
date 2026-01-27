@@ -6,9 +6,6 @@ import { assert, isObject, truthy } from "../../../util/_internal";
  * An operator that evaluates a series of case expressions. When it finds an expression which
  * evaluates to true, it returns the resulting expression for that case. If none of the cases
  * evaluate to true, it returns the default expression.
- *
- * @param obj
- * @param expr
  */
 export const $switch: ExpressionOperator = (
   obj: AnyObject,

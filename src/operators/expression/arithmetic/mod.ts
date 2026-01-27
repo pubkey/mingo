@@ -5,10 +5,6 @@ import { errExpectArray } from "../_internal";
 
 /**
  * Takes two numbers and calculates the modulo of the first number divided by the second.
- *
- * @param obj
- * @param expr
- * @returns {number}
  */
 export const $mod: ExpressionOperator = (
   obj: AnyObject,

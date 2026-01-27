@@ -4,9 +4,6 @@ import { isNumber } from "../../../util";
 
 /**
  * Checks if the specified expression resolves to a numeric value
- *
- * @param obj
- * @param expr
  */
 export const $isNumber: ExpressionOperator = (
   obj: AnyObject,

@@ -127,7 +127,7 @@ runTest("operators/expression/arithmetic", {
     ["invalid", Error()],
     [["invalid", 9], Error()],
     [["invalid", 9], null, skipError],
-    [[0.123, -21], Error("precision must be in range")],
+    [[0.123, -21], Error("range [-20, 100]")],
     [[10.5], 10],
     [[10.5, 0], 10],
     [[11.5, 0], 12],

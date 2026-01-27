@@ -4,9 +4,6 @@ import { assert, isDate, isNil, isNumber } from "../../../util";
 
 /**
  * Converts a value to a double. If the value cannot be converted to an double, $toDouble errors. If the value is null or missing, $toDouble returns null.
- *
- * @param obj
- * @param expr
  */
 export const $toDouble: ExpressionOperator = (
   obj: AnyObject,

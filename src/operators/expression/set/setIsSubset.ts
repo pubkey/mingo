@@ -8,9 +8,6 @@ const OP = "$setIsSubset";
 /**
  * Takes two arrays and returns true when the first array is a subset of the second,
  * including when the first array equals the second array, and false otherwise.
- *
- * @param obj
- * @param expr
  */
 export const $setIsSubset: ExpressionOperator = (
   obj: AnyObject,

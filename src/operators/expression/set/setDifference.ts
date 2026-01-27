@@ -7,8 +7,6 @@ const OP = "$setDifference";
 
 /**
  * Returns elements of a set that do not appear in a second set.
- * @param obj
- * @param expr
  */
 export const $setDifference: ExpressionOperator = (
   obj: AnyObject,

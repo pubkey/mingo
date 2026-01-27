@@ -5,10 +5,6 @@ import { errExpectArray, errInvalidArgs } from "../_internal";
 
 /**
  * Takes two numbers and divides the first number by the second.
- *
- * @param obj
- * @param expr
- * @returns {number}
  */
 export const $divide: ExpressionOperator = (
   obj: AnyObject,

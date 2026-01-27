@@ -4,10 +4,6 @@ import { assert, isArray, truthy } from "../../../util/_internal";
 
 /**
  * Returns true only when all its expressions evaluate to true. Accepts any number of argument expressions.
- *
- * @param obj
- * @param expr
- * @returns {boolean}
  */
 export const $and: ExpressionOperator = (
   obj: AnyObject,

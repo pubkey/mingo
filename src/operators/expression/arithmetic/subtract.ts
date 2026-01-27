@@ -5,11 +5,6 @@ import { errExpectArray, errInvalidArgs } from "../_internal";
 
 /**
  * Takes an array that contains two numbers or two dates and subtracts the second value from the first.
- *
- * @param obj
- * @param expr
- * @param options
- * @returns {number}
  */
 export const $subtract: ExpressionOperator = (
   obj: AnyObject,

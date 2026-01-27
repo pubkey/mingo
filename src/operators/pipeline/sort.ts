@@ -34,6 +34,10 @@ export const $sort: PipelineOperator = (
   options: Options
 ): Iterator => {
   if (isEmpty(sortKeys) || !isObject(sortKeys)) return collection;
+  assert(
+    isObject(sortKeys) && Object.keys(sortKeys).length > 0,
+    "$sort specification is invalid"
+  );
 
   let cmp = compare;
   // check for collation spec on the options

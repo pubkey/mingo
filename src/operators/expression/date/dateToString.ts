@@ -67,9 +67,6 @@ const DATE_FUNCTIONS: Record<string, ExpressionOperator<number>> = {
  * %z	The timezone offset from UTC.	+/-[hh][mm]
  * %Z	The minutes offset from UTC as a number. For example, if the timezone offset (+/-[hhmm]) was +0445, the minutes offset is +285.	+/-mmm
  * %%	Percent Character as a Literal	%
- *
- * @param obj current object
- * @param expr operator expression
  */
 export const $dateToString: ExpressionOperator<string> = (
   obj: AnyObject,

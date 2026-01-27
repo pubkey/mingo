@@ -5,10 +5,6 @@ import { truncate } from "./_internal";
 
 /**
  * Truncates a number to a whole integer or to a specified decimal place.
- *
- * @param obj
- * @param expr
- * @returns {number}
  */
 export const $trunc: ExpressionOperator = (
   obj: AnyObject,

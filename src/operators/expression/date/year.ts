@@ -3,8 +3,6 @@ import { computeDate } from "./_internal";
 
 /**
  * Returns the year for a date as a number (e.g. 2014).
- * @param obj
- * @param expr
  */
 export const $year: ExpressionOperator<number> = (
   obj: AnyObject,

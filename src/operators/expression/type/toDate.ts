@@ -3,10 +3,8 @@ import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, isDate, isNil } from "../../../util";
 
 /**
- * Converts a value to a date. If the value cannot be converted to a date, $toDate errors. If the value is null or missing, $toDate returns null.
- *
- * @param obj
- * @param expr
+ * Converts a value to a date. If the value cannot be converted to a date, $toDate errors.
+ * If the value is null or missing, $toDate returns null.
  */
 export const $toDate: ExpressionOperator = (
   obj: AnyObject,

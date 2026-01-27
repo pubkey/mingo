@@ -5,8 +5,6 @@ import { errExpectArray } from "../_internal";
 
 /**
  * Returns true if two sets have the same elements.
- * @param obj
- * @param expr
  */
 export const $setEquals: ExpressionOperator = (
   obj: AnyObject,

@@ -5,10 +5,6 @@ import { errExpectArray } from "../_internal";
 
 /**
  * Computes the product of an array of numbers.
- *
- * @param obj
- * @param expr
- * @returns {AnyObject}
  */
 export const $multiply: ExpressionOperator = (
   obj: AnyObject,

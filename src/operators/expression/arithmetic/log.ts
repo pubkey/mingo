@@ -5,10 +5,6 @@ import { errExpectArray } from "../_internal";
 
 /**
  * Calculates the log of a number in the specified base and returns the result as a double.
- *
- * @param obj
- * @param expr
- * @returns {number}
  */
 export const $log: ExpressionOperator = (
   obj: AnyObject,

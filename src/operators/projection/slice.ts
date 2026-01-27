@@ -4,10 +4,6 @@ import { $slice as __slice } from "../expression/array/slice";
 
 /**
  * Limits the number of elements projected from an array. Supports skip and limit slices.
- *
- * @param obj
- * @param field
- * @param expr
  */
 export const $slice: ProjectionOperator = (
   obj: AnyObject,

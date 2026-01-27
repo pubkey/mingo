@@ -1,5 +1,5 @@
-import { assert, isNil, isNumber } from "../../../util";
-import { errExpectArray } from "../_internal";
+import { isInteger, isNil, isNumber } from "../../../util";
+import { errExpectNumber } from "../_internal";
 
 /**
  * Truncates integer value to number of places. If roundOff is specified round value instead to the number of places.
@@ -17,14 +17,16 @@ export function truncate(
   if (isNil(num)) return null;
   if (Number.isNaN(num) || Math.abs(num) === Infinity) return num;
 
-  if (!isNumber(num) || !isNumber(precision)) {
-    return errExpectArray(failOnError, name, { size: 2, type: "number" });
+  if (!isNumber(num)) {
+    return errExpectNumber(failOnError, `${name} arg1 <number>`);
   }
 
-  if (precision < -20 || precision > 100) {
-    const msg = `${name} precision must be in range [-20, 100].`;
-    assert(!failOnError, msg);
-    return null;
+  if (!isInteger(precision) || precision < -20 || precision > 100) {
+    return errExpectNumber(failOnError, `${name} arg2 <precision>`, {
+      min: -20,
+      max: 100,
+      int: true
+    });
   }
 
   const sign = Math.abs(num) === num ? 1 : -1;

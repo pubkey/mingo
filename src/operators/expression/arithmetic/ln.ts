@@ -5,10 +5,6 @@ import { errExpectNumber } from "../_internal";
 
 /**
  * Calculates the natural logarithm ln (i.e loge) of a number and returns the result as a double.
- *
- * @param obj
- * @param expr
- * @returns {number}
  */
 export const $ln: ExpressionOperator = (
   obj: AnyObject,

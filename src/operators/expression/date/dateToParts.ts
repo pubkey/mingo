@@ -5,10 +5,6 @@ import { adjustDate, isoWeek, isoWeekYear, parseTimezone } from "./_internal";
 /**
  * Returns a document that contains the constituent parts of a given Date value as individual properties.
  * The properties returned are year, month, day, hour, minute, second and millisecond.
- *
- * @param obj
- * @param expr
- * @param options
  */
 export const $dateToParts: ExpressionOperator<AnyObject> = (
   obj: AnyObject,

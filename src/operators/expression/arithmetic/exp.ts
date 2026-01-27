@@ -5,10 +5,6 @@ import { errExpectNumber } from "../_internal";
 
 /**
  * Raises Euler’s number (i.e. e ) to the specified exponent and returns the result.
- *
- * @param obj
- * @param expr
- * @returns {number}
  */
 export const $exp: ExpressionOperator = (
   obj: object,

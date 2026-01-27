@@ -44,7 +44,7 @@ export function errExpectNumber(
   } else if (min === 0 && max === Infinity) {
     msg = `${name} expression must resolve to non-negative ${type}`;
   } else if (min !== -Infinity && max !== Infinity) {
-    msg = `${name} expression must resolve to ${type} in between [${min}, ${max}]`;
+    msg = `${name} expression must resolve to ${type} in range [${min}, ${max}]`;
   } else if (min > 0) {
     msg = `${name} expression must resolve to positive ${type}`;
   } else {

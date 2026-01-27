@@ -1,14 +1,10 @@
 import { computeValue } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
-import { isNil, isNumber } from "../../../util";
-import { errExpectNumber } from "../_internal";
+import { isInteger, isNil } from "../../../util";
+import { errExpectNumber, INT_OPTS } from "../_internal";
 
 /**
  * Returns the result of a bitwise not operation on a single argument or an array that contains a single int or long value.
- *
- * @param obj Document from collection
- * @param expr Right hand side expression of operator
- * @returns {Number}
  */
 export const $bitNot: ExpressionOperator = (
   obj: AnyObject,
@@ -17,6 +13,7 @@ export const $bitNot: ExpressionOperator = (
 ): Any => {
   const n = computeValue(obj, expr, null, options) as number;
   if (isNil(n)) return null;
-  if (!isNumber(n)) return errExpectNumber(options.failOnError, "$bitNot");
+  if (!isInteger(n))
+    return errExpectNumber(options.failOnError, "$bitNot", INT_OPTS.int);
   return ~n;
 };

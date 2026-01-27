@@ -3,8 +3,6 @@ import { computeDate } from "./_internal";
 
 /**
  * Returns the minute for a date as a number between 0 and 59.
- * @param obj
- * @param expr
  */
 export const $minute: ExpressionOperator<number> = (
   obj: AnyObject,

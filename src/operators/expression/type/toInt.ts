@@ -2,9 +2,8 @@ import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { MAX_INT, MIN_INT, toInteger } from "./_internal";
 
 /**
- * Converts a value to an integer. If the value cannot be converted to an integer, $toInt errors. If the value is null or missing, $toInt returns null.
- * @param obj
- * @param expr
+ * Converts a value to an integer. If the value cannot be converted to an integer, $toInt errors.
+ * If the value is null or missing, $toInt returns null.
  */
 export const $toInt: ExpressionOperator = (
   obj: AnyObject,

@@ -5,8 +5,6 @@ import { errExpectArray } from "../_internal";
 
 /**
  * Returns true if all elements of a set evaluate to true, and false otherwise.
- * @param obj
- * @param expr
  */
 export const $allElementsTrue: ExpressionOperator = (
   obj: AnyObject,

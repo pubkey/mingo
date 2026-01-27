@@ -39,8 +39,6 @@ interface InputExpr {
 
 /**
  * Converts a date/time string to a date object.
- * @param obj
- * @param expr
  */
 export const $dateFromString: ExpressionOperator<Any> = (
   obj: AnyObject,

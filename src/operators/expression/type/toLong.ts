@@ -2,9 +2,8 @@ import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { MAX_LONG, MIN_LONG, toInteger } from "./_internal";
 
 /**
- * Converts a value to a long. If the value cannot be converted to a long, $toLong errors. If the value is null or missing, $toLong returns null.
- * @param obj
- * @param expr
+ * Converts a value to a long. If the value cannot be converted to a long, $toLong errors.
+ * If the value is null or missing, $toLong returns null.
  */
 export const $toLong: ExpressionOperator = (
   obj: AnyObject,
