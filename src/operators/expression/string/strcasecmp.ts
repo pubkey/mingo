@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { isArray, isNil, isString } from "../../../util";
 import { assert, simpleCmp } from "../../../util/_internal";
@@ -13,7 +13,7 @@ export const $strcasecmp: ExpressionOperator = (
   options: Options
 ): Any => {
   assert(isArray(expr) && expr.length === 2, `$strcasecmp expects array(2)`);
-  const args: string[] = computeValue(obj, expr, null, options) as string[];
+  const args: string[] = evalExpr(obj, expr, options) as string[];
   const foe = options.failOnError;
   if (args.every(isNil)) return 0;
   if (!args.every(isString))

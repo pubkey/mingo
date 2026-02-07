@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, has, isArray, isNil, isObject } from "../../../util";
 import { $minN as __minN } from "../../accumulator/minN";
@@ -23,7 +23,7 @@ export const $minN: ExpressionOperator = (
   );
   // first try the accumulator if input is an array.
   if (isArray(obj)) return __minN(obj, expr, options);
-  const { input, n } = computeValue(obj, expr, null, options) as InputExpr;
+  const { input, n } = evalExpr(obj, expr, options) as InputExpr;
   if (isNil(input)) return null;
   if (!isArray(input))
     return errExpectArray(options.failOnError, "$minN 'input'");

@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import {
   assert,
@@ -26,9 +26,8 @@ export const $zip: ExpressionOperator = (
     "$zip received invalid arguments"
   );
 
-  const inputs = computeValue(obj, expr.inputs, null, options) as Any[][];
-  const defaults =
-    (computeValue(obj, expr.defaults, null, options) as Any[]) ?? [];
+  const inputs = evalExpr(obj, expr.inputs, options) as Any[][];
+  const defaults = (evalExpr(obj, expr.defaults, options) as Any[]) ?? [];
   const useLongestLength = expr.useLongestLength ?? false;
   const foe = options.failOnError;
 

@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { isNumber, isRegExp, typeOf } from "../../../util";
 import { MAX_INT, MIN_INT } from "./_internal";
@@ -8,7 +8,7 @@ export const $type: ExpressionOperator = (
   expr: Any,
   options: Options
 ): string => {
-  const v = computeValue(obj, expr, null, options);
+  const v = evalExpr(obj, expr, options);
   if (options.useStrictMode) {
     if (v === undefined) return "missing";
     if (v === true || v === false) return "bool";

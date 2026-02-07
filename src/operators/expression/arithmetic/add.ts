@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { isArray, isDate, isNil } from "../../../util";
 import { errInvalidArgs } from "../_internal";
@@ -13,7 +13,7 @@ export const $add: ExpressionOperator = (
   expr: Any,
   options: Options
 ): number | Date => {
-  const args = computeValue(obj, expr, null, options) as number[];
+  const args = evalExpr(obj, expr, options) as number[];
   const failOnError = options.failOnError;
   let dateFound = false;
   let result = 0;

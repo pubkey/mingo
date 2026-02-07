@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { isNil, isString } from "../../../util";
 
@@ -10,7 +10,7 @@ export const $toBool: ExpressionOperator = (
   expr: Any,
   options: Options
 ): boolean | null => {
-  const val = computeValue(obj, expr, null, options);
+  const val = evalExpr(obj, expr, options);
   if (isNil(val)) return null;
   if (isString(val)) return true;
   return Boolean(val);

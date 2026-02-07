@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import {
   Any,
   AnyObject,
@@ -30,6 +30,6 @@ export const $function: ExpressionOperator = (
     options.scriptEnabled,
     "$function requires 'scriptEnabled' option to be true"
   );
-  const fn = computeValue(obj, expr, null, options) as FunctionExpr;
+  const fn = evalExpr(obj, expr, options) as FunctionExpr;
   return fn.body.apply(null, fn.args) as Any;
 };

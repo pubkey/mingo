@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { flatten, isArray, isNil } from "../../../util";
 import { $last as __last } from "../../accumulator/last";
@@ -13,7 +13,7 @@ export const $last: ExpressionOperator = (
   options: Options
 ): Any => {
   if (isArray(obj)) return __last(obj, expr, options);
-  const arr = computeValue(obj, expr, null, options) as Any[];
+  const arr = evalExpr(obj, expr, options) as Any[];
   if (isNil(arr)) return null;
   if (!isArray(arr) || arr.length === 0) {
     return errExpectArray(options.failOnError, "$last", { size: 0 });

@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { isArray, isNil } from "../../../util";
 import { errExpectArray } from "../_internal";
@@ -11,7 +11,7 @@ export const $reverseArray: ExpressionOperator = (
   expr: Any,
   options: Options
 ): Any => {
-  const arr = computeValue(obj, expr, null, options) as Any[];
+  const arr = evalExpr(obj, expr, options) as Any[];
 
   if (isNil(arr)) return null;
   if (!isArray(arr))

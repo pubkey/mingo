@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, isArray } from "../../../util";
 
@@ -15,5 +15,5 @@ export const $isArray: ExpressionOperator = (
     assert(expr.length === 1, "$isArray expects array(1)");
     input = expr[0];
   }
-  return isArray(computeValue(obj, input, null, options));
+  return isArray(evalExpr(obj, input, options));
 };

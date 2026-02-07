@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { flatten, isArray, isNil, unique } from "../../../util";
 import { errExpectArray } from "../_internal";
@@ -11,7 +11,7 @@ export const $setUnion: ExpressionOperator = (
   expr: Any,
   options: Options
 ): Any => {
-  const args = computeValue(obj, expr, null, options) as Any[];
+  const args = evalExpr(obj, expr, options) as Any[];
   const foe = options.failOnError;
   if (isNil(args)) return null;
   if (!isArray(args)) return errExpectArray(foe, "$setUnion");

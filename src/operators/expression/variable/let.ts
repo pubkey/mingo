@@ -1,4 +1,4 @@
-import { ComputeOptions, computeValue } from "../../../core/_internal";
+import { ComputeOptions, evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 
 /**
@@ -12,13 +12,12 @@ export const $let: ExpressionOperator = (
   // resolve vars
   const variables = {};
   for (const [key, val] of Object.entries(expr.vars)) {
-    variables[key] = computeValue(obj, val, null, options);
+    variables[key] = evalExpr(obj, val, options);
   }
 
-  return computeValue(
+  return evalExpr(
     obj,
     expr.in,
-    null,
     ComputeOptions.init(options).update({ variables })
   );
 };

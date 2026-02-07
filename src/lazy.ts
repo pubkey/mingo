@@ -91,22 +91,25 @@ export class Iterator {
 
     // index of successfully transformed and yielded item
     let index = -1;
-    // current item
-    let current: IteratorResult = { done: false };
     // create function to yield the next transformed value
     this.#getNext = () => {
-      while (!current.done) {
-        current = iter.next();
-        if (current.done) break;
-        let value = current.value;
+      while (true) {
+        let { value, done } = iter.next(); // eslint-disable-line prefer-const
+        if (done) return { done };
+        let ok = true;
         index++;
-        const ok = this.#iteratees.every(({ op: action, fn }) => {
+        for (let i = 0; i < this.#iteratees.length; i++) {
+          const { op, fn } = this.#iteratees[i];
           const res = fn(value, index);
-          return action === "map" ? !!(value = res) || true : res;
-        });
-        if (ok) return { value, done: false };
+          if (op === "map") {
+            value = res;
+          } else if (!res) {
+            ok = false;
+            break;
+          }
+        }
+        if (ok) return { value, done };
       }
-      return { done: true };
     };
   }
 

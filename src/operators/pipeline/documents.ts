@@ -1,4 +1,4 @@
-import { computeValue, ProcessingMode } from "../../core/_internal";
+import { evalExpr, ProcessingMode } from "../../core/_internal";
 import { Iterator, Lazy } from "../../lazy";
 import { Any, Options, PipelineOperator } from "../../types";
 import { assert, cloneDeep, isArray } from "../../util";
@@ -18,7 +18,7 @@ export const $documents: PipelineOperator = (
   expr: Any,
   options: Options
 ): Iterator => {
-  const docs = computeValue(null, expr, null, options);
+  const docs = evalExpr(null, expr, options);
   assert(isArray(docs), "$documents: expression must resolve to an array.");
   const iter = Lazy(docs as Any[]);
   const mode = options.processingMode;

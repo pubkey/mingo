@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, intersection, isArray, isNil } from "../../../util";
 import { errExpectArray } from "../_internal";
@@ -13,7 +13,7 @@ export const $setIntersection: ExpressionOperator = (
   options: Options
 ): Any => {
   assert(isArray(expr), `${OP} expects array`);
-  const args = computeValue(obj, expr, null, options) as Any[][];
+  const args = evalExpr(obj, expr, options) as Any[][];
   const foe = options.failOnError;
   let ok = true;
   for (const v of args) {

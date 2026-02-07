@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, isNil, isObject, isString } from "../../../util";
 import { errExpectString } from "../_internal";
@@ -15,7 +15,7 @@ export const $replaceAll: ExpressionOperator = (
 ): Any => {
   assert(isObject(expr), `${OP} expects an object argument`);
   const foe = options.failOnError;
-  const args = computeValue(obj, expr, null, options) as {
+  const args = evalExpr(obj, expr, options) as {
     input: string;
     find: string;
     replacement: string;

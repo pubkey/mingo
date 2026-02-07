@@ -1,4 +1,4 @@
-import { computeValue } from "../../core/_internal";
+import { evalExpr } from "../../core/_internal";
 import { Any, AnyObject, Options, WindowOperator } from "../../types";
 import { WindowOperatorInput } from "./_internal";
 
@@ -20,9 +20,7 @@ export const $shift: WindowOperator = (
 
   const shiftedIndex = expr.documentNumber - 1 + input.by;
   if (shiftedIndex < 0 || shiftedIndex > collection.length - 1) {
-    return input.default
-      ? computeValue(obj, input.default, null, options)
-      : null;
+    return input.default ? evalExpr(obj, input.default, options) : null;
   }
-  return computeValue(collection[shiftedIndex], input.output, null, options);
+  return evalExpr(collection[shiftedIndex], input.output, options);
 };

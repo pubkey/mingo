@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { isInteger, isNil } from "../../../util";
 import { errExpectNumber, INT_OPTS } from "../_internal";
@@ -11,7 +11,7 @@ export const $bitNot: ExpressionOperator = (
   expr: Any,
   options: Options
 ): Any => {
-  const n = computeValue(obj, expr, null, options) as number;
+  const n = evalExpr(obj, expr, options) as number;
   if (isNil(n)) return null;
   if (!isInteger(n))
     return errExpectNumber(options.failOnError, "$bitNot", INT_OPTS.int);

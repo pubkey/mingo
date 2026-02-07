@@ -1,4 +1,4 @@
-import { computeValue } from "../../core/_internal";
+import { evalExpr } from "../../core/_internal";
 import { Iterator, Lazy } from "../../lazy";
 import {
   Any,
@@ -55,11 +55,6 @@ type GetNextBucket = Callback<{
  * Bucket boundaries are automatically determined in an attempt to evenly distribute the documents into the specified number of buckets.
  *
  * See {@link https://docs.mongodb.com/manual/reference/operator/aggregation/bucketAuto/ usage}.
- *
- * @param collection
- * @param expr
- * @param options
- * @returns
  */
 export const $bucketAuto: PipelineOperator = (
   collection: Iterator,
@@ -96,7 +91,7 @@ export const $bucketAuto: PipelineOperator = (
     : (_: AnyObject, _2: Any) => {};
   const sorted: Array<[Any, AnyObject]> = collection
     .map((o: AnyObject) => {
-      const k = computeValue(o, groupByExpr, null, options) ?? null;
+      const k = evalExpr(o, groupByExpr, options) ?? null;
       assert(
         !granularity || isNumber(k),
         "$bucketAuto: groupBy values must be numeric when granularity is specified."
@@ -137,12 +132,7 @@ export const $bucketAuto: PipelineOperator = (
 
     terminate = done;
 
-    const outFields = computeValue(
-      bucket,
-      outputExpr,
-      null,
-      options
-    ) as AnyObject;
+    const outFields = evalExpr(bucket, outputExpr, options) as AnyObject;
 
     // remove nil entries from arrays
     for (const [k, v] of Object.entries(outFields)) {

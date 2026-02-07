@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, isArray, truthy } from "../../../util/_internal";
 import { errExpectArray } from "../_internal";
@@ -18,7 +18,7 @@ export const $anyElementTrue: ExpressionOperator = (
     expr = expr[0];
   }
   const foe = options.failOnError;
-  const args = computeValue(obj, expr, null, options) as Any[];
+  const args = evalExpr(obj, expr, options) as Any[];
   if (!isArray(args)) return errExpectArray(foe, `$anyElementTrue argument`);
   return args.some(v => truthy(v, options.useStrictMode));
 };

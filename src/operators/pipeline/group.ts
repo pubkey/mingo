@@ -1,4 +1,4 @@
-import { ComputeOptions, computeValue } from "../../core/_internal";
+import { ComputeOptions, evalExpr } from "../../core/_internal";
 import { Iterator, Source } from "../../lazy";
 import {
   Any,
@@ -20,11 +20,6 @@ interface InputExpr extends AnyObject {
  * Separates documents into groups according to a "group key" and output one document for each unique group key.
  *
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/group usage}.
- *
- * @param collection
- * @param expr
- * @param options
- * @returns
  */
 export const $group: PipelineOperator = (
   collection: Iterator,
@@ -38,9 +33,7 @@ export const $group: PipelineOperator = (
   const newFields = Object.keys(expr).filter(k => k != ID_KEY);
 
   return collection.transform(((coll: Any[]) => {
-    const partitions = groupBy(coll, obj =>
-      computeValue(obj, idExpr, null, options)
-    );
+    const partitions = groupBy(coll, obj => evalExpr(obj, idExpr, options));
 
     let i = -1;
     const partitionKeys = Array.from(partitions.keys());
@@ -58,10 +51,9 @@ export const $group: PipelineOperator = (
 
       // compute remaining keys in expression
       for (const key of newFields) {
-        obj[key] = computeValue(
+        obj[key] = evalExpr(
           partitions.get(groupId),
           expr[key] as AnyObject,
-          null,
           copts.update({ root: null, groupId })
         );
       }

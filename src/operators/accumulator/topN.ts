@@ -1,4 +1,4 @@
-import { ComputeOptions, computeValue } from "../../core/_internal";
+import { ComputeOptions, evalExpr } from "../../core/_internal";
 import { Lazy } from "../../lazy";
 import { AccumulatorOperator, Any, AnyObject, Options } from "../../types";
 import { $sort } from "../pipeline/sort";
@@ -13,11 +13,6 @@ interface InputExpr {
 /**
  * Returns an aggregation of the top n elements within a group, according to the specified sort order.
  * If the group contains fewer than n elements, $topN returns all elements in the group.
- *
- * @param {Any[]} collection The input array
- * @param {AnyObject} expr The right-hand side expression value of the operator
- * @param {Options} options The options to use for this operation
- * @returns {*}
  */
 export const $topN: AccumulatorOperator<Any[]> = (
   collection: AnyObject[],
@@ -25,12 +20,10 @@ export const $topN: AccumulatorOperator<Any[]> = (
   options: Options
 ): Any[] => {
   const copts = options as ComputeOptions;
-  const { n, sortBy } = computeValue(
-    copts?.local?.groupId,
-    expr,
-    null,
-    copts
-  ) as Pick<InputExpr, "n" | "sortBy">;
+  const { n, sortBy } = evalExpr(copts?.local?.groupId, expr, copts) as Pick<
+    InputExpr,
+    "n" | "sortBy"
+  >;
 
   const result = $sort(Lazy(collection), sortBy, options).take(n).collect();
   return $push(result, expr.output, copts);

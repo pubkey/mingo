@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, has, isNil, isObject } from "../../../util";
 import { errInvalidArgs } from "../_internal";
@@ -29,12 +29,11 @@ export const $convert: ExpressionOperator = (
     "$convert expects object { input, to, onError, onNull }"
   );
 
-  const input = computeValue(obj, expr.input, null, options);
+  const input = evalExpr(obj, expr.input, options);
 
-  if (isNil(input))
-    return computeValue(obj, expr.onNull, null, options) ?? null;
+  if (isNil(input)) return evalExpr(obj, expr.onNull, options) ?? null;
 
-  const toExpr = computeValue(obj, expr.to, null, options);
+  const toExpr = evalExpr(obj, expr.to, options);
 
   try {
     switch (toExpr) {
@@ -76,5 +75,5 @@ export const $convert: ExpressionOperator = (
       `$convert cannot convert from object to ${expr.to} with no onError value`
     );
 
-  return computeValue(obj, expr.onError, null, options);
+  return evalExpr(obj, expr.onError, options);
 };

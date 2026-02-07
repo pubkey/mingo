@@ -1,4 +1,4 @@
-import { computeValue } from "../../core/_internal";
+import { evalExpr } from "../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../types";
 import { $percentile as __percentile } from "../accumulator/percentile";
 
@@ -10,6 +10,6 @@ export const $percentile: ExpressionOperator<number[]> = (
   expr: { input: Any; p: Any[]; method: "approximate" },
   options: Options
 ): number[] => {
-  const input = computeValue(obj, expr.input, null, options) as number[];
+  const input = evalExpr(obj, expr.input, options) as number[];
   return __percentile(input, { ...expr, input: "$$CURRENT" }, options);
 };

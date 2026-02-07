@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, isArray, truthy } from "../../../util/_internal";
 
@@ -12,5 +12,5 @@ export const $or: ExpressionOperator = (
 ): Any => {
   assert(isArray(expr), "$or expects array of expressions");
   const strict = options.useStrictMode;
-  return expr.some(v => truthy(computeValue(obj, v, null, options), strict));
+  return expr.some(v => truthy(evalExpr(obj, v, options), strict));
 };

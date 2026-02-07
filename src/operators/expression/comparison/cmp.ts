@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, compare, isArray } from "../../../util";
 
@@ -11,6 +11,6 @@ export const $cmp: ExpressionOperator = (
   options: Options
 ): Any => {
   assert(isArray(expr) && expr.length === 2, "$cmp expects array(2)");
-  const [a, b] = computeValue(obj, expr, null, options) as Any[];
+  const [a, b] = evalExpr(obj, expr, options) as Any[];
   return compare(a, b);
 };

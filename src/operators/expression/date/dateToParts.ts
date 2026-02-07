@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { adjustDate, isoWeek, isoWeekYear, parseTimezone } from "./_internal";
 
@@ -11,7 +11,7 @@ export const $dateToParts: ExpressionOperator<AnyObject> = (
   expr: Any,
   options: Options
 ): AnyObject => {
-  const args = computeValue(obj, expr, null, options) as {
+  const args = evalExpr(obj, expr, options) as {
     date: Date;
     timezone?: string;
     iso8601?: boolean;

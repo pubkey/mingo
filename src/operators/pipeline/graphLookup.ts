@@ -1,4 +1,4 @@
-import { computeValue } from "../../core/_internal";
+import { evalExpr } from "../../core/_internal";
 import { Iterator, Lazy } from "../../lazy";
 import { Any, AnyObject, Options, PipelineOperator } from "../../types";
 import { flatten, HashMap, isNil, isString, setValue } from "../../util";
@@ -61,7 +61,7 @@ export const $graphLookup: PipelineOperator = (
     setValue(
       matchObj,
       connectFromField,
-      computeValue(obj, expr.startWith, null, options)
+      evalExpr(obj, expr.startWith, options)
     );
     let matches: AnyObject[] = [matchObj];
     let i = -1;

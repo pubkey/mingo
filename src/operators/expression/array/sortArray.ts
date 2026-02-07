@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Lazy } from "../../../lazy";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, compare, isArray, isNil, isObject } from "../../../util";
@@ -17,7 +17,7 @@ export const $sortArray: ExpressionOperator = (
     isObject(expr) && "input" in expr && "sortBy" in expr,
     "$sortArray expects object { input, sortBy }"
   );
-  const { input, sortBy } = computeValue(obj, expr, null, options) as {
+  const { input, sortBy } = evalExpr(obj, expr, options) as {
     input: Any[];
     sortBy: AnyObject | number;
   };

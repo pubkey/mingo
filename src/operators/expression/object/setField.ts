@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, has, isNil, isObject, isString } from "../../../util";
 import { errExpectObject, errExpectString } from "../_internal";
@@ -24,12 +24,7 @@ export const $setField: ExpressionOperator = (
     "$setField expects object { input, field, value }"
   );
 
-  const { input, field, value } = computeValue(
-    obj,
-    expr,
-    null,
-    options
-  ) as InputExpr;
+  const { input, field, value } = evalExpr(obj, expr, options) as InputExpr;
 
   if (isNil(input)) return null;
 

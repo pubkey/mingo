@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { ensureArray } from "../../../util";
 import { errExpectArray } from "../_internal";
@@ -17,5 +17,5 @@ export const $not: ExpressionOperator = (
   if (booleanExpr.length > 1)
     return errExpectArray(options.failOnError, "$not", { size: 1 });
   // use provided value non-array value
-  return !computeValue(obj, booleanExpr[0], null, options);
+  return !evalExpr(obj, booleanExpr[0], options);
 };

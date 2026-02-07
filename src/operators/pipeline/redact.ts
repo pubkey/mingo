@@ -1,4 +1,4 @@
-import { ComputeOptions, computeValue } from "../../core/_internal";
+import { ComputeOptions, evalExpr } from "../../core/_internal";
 import { Iterator } from "../../lazy";
 import {
   Any,
@@ -26,7 +26,7 @@ export const $redact: PipelineOperator = (
 };
 
 function redact(obj: AnyObject, expr: Any, options: ComputeOptions): Any {
-  const action = computeValue(obj, expr, null, options);
+  const action = evalExpr(obj, expr, options);
   switch (action) {
     case "$$KEEP":
       return obj;

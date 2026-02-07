@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, isNil, isObject, isString } from "../../../util";
 
@@ -19,7 +19,7 @@ export const $getField: ExpressionOperator = (
   expr: InputExpr | string,
   options: Options
 ): Any => {
-  const args = computeValue(obj, expr, null, options) as InputExpr | string;
+  const args = evalExpr(obj, expr, options) as InputExpr | string;
   const [field, input] = isObject(args)
     ? [args.field, args.input || obj]
     : [args, obj];

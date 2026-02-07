@@ -1,14 +1,9 @@
-import { ComputeOptions, computeValue } from "../../core/_internal";
+import { ComputeOptions, evalExpr } from "../../core/_internal";
 import { AccumulatorOperator, Any, Options } from "../../types";
 import { isNil } from "../../util";
 
 /**
  * Returns an array of all values for the selected field among for each document in that group.
- *
- * @param {Any[]} collection The input array
- * @param {Object} expr The right-hand side expression value of the operator
- * @param {Options} options The options to use for this operation
- * @returns {Any[]|*}
  */
 export const $push: AccumulatorOperator<Any[]> = (
   collection: Any[],
@@ -17,7 +12,10 @@ export const $push: AccumulatorOperator<Any[]> = (
 ): Any[] => {
   if (isNil(expr)) return collection;
   const copts = ComputeOptions.init(options);
-  return collection.map(
-    obj => computeValue(obj, expr, null, copts.update({ root: obj })) ?? null
-  );
+  const result = new Array(collection.length);
+  for (let i = 0; i < collection.length; i++) {
+    const root = collection[i];
+    result[i] = evalExpr(root, expr, copts.update({ root })) ?? null;
+  }
+  return result;
 };

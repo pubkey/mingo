@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import {
   adjustDate,
@@ -22,10 +22,9 @@ export const $dateDiff: ExpressionOperator<number> = (
   expr: Any,
   options: Options
 ): number => {
-  const { startDate, endDate, unit, timezone, startOfWeek } = computeValue(
+  const { startDate, endDate, unit, timezone, startOfWeek } = evalExpr(
     obj,
     expr,
-    null,
     options
   ) as {
     startDate: Date;

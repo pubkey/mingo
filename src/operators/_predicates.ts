@@ -1,4 +1,4 @@
-import { ComputeOptions, computeValue } from "../core/_internal";
+import { ComputeOptions, evalExpr } from "../core/_internal";
 import { Query } from "../query";
 import {
   Any,
@@ -59,7 +59,7 @@ export function processExpression(
     isArray(expr) && expr.length === 2,
     `${predicate.name} expects array(2)`
   );
-  const [lhs, rhs] = computeValue(obj, expr, null, options) as Any[];
+  const [lhs, rhs] = evalExpr(obj, expr, options) as Any[];
   return predicate(lhs, rhs, options);
 }
 

@@ -1,4 +1,4 @@
-import { computeValue } from "../../core/_internal";
+import { evalExpr } from "../../core/_internal";
 import { Iterator } from "../../lazy";
 import { AnyObject, Callback, Options, PipelineOperator } from "../../types";
 import { removeValue, setValue } from "../../util";
@@ -26,7 +26,7 @@ export const $addFields: PipelineOperator = (
   return collection.map(((obj: AnyObject) => {
     const newObj = { ...obj };
     for (const field of newFields) {
-      const newValue = computeValue(obj, expr[field], null, options);
+      const newValue = evalExpr(obj, expr[field], options);
       if (newValue !== undefined) {
         setValue(newObj, field, newValue);
       } else {

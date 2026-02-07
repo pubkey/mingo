@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { isNil, isObject } from "../../../util";
 import { errExpectObject } from "../_internal";
@@ -11,7 +11,7 @@ export const $objectToArray: ExpressionOperator = (
   expr: Any,
   options: Options
 ): Any => {
-  const val = computeValue(obj, expr, null, options) as AnyObject;
+  const val = evalExpr(obj, expr, options) as AnyObject;
   if (isNil(val)) return null;
   if (!isObject(val))
     return errExpectObject(options.failOnError, "$objectToArray");

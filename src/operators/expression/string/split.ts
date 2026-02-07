@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, isArray, isNil, isString } from "../../../util";
 import { errExpectArray } from "../_internal";
@@ -13,7 +13,7 @@ export const $split: ExpressionOperator = (
   options: Options
 ): Any => {
   assert(isArray(expr) && expr.length === 2, `$split expects array(2)`);
-  const args = computeValue(obj, expr, null, options) as string[];
+  const args = evalExpr(obj, expr, options) as string[];
   const foe = options.failOnError;
 
   if (isNil(args[0])) return null;

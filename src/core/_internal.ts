@@ -243,30 +243,33 @@ export class Context {
 }
 
 /**
- * Computes the value of the expression on the object for the given operator
- *
- * @param obj the current object from the collection
- * @param expr the expression for the given field
- * @param operator the operator to resolve the field with
- * @param options {Object} extra options
- * @returns {*}
+ * Computes the value of the expression on the object for the given operator.
+ * @deprecated use {@link evalExpr}
  */
 export function computeValue(
   obj: Any,
   expr: Any,
-  operator: string | null,
+  operator: string,
   options: Options
 ): Any {
+  return evalExpr(obj, { [operator]: expr }, options);
+}
+
+/**
+ * Evaluates an expression with the given document context.
+ * @param obj The document or value to use as data context.
+ * @param expr The expression to evaluate.
+ * @param options Options
+ * @returns Result of evaluation.
+ */
+export function evalExpr(obj: Any, expr: Any, options: Options): Any {
   // only intialize compute opts when necessary.
   const copts =
     !(options instanceof ComputeOptions) || isNil(options.local.root)
       ? ComputeOptions.init(options).update({ root: obj })
       : options;
 
-  // ensure valid options exist on first invocation
-  return isOperator(operator)
-    ? computeOperator(obj, expr, operator, copts)
-    : computeExpression(obj, expr, copts);
+  return computeExpression(obj, expr, copts);
 }
 
 const SYSTEM_VARS = ["$$ROOT", "$$CURRENT", "$$REMOVE", "$$NOW"] as const;

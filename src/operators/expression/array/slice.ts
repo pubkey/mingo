@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, isArray, isInteger, isNil } from "../../../util";
 import { errExpectArray, errExpectNumber, INT_OPTS } from "../_internal";
@@ -17,7 +17,7 @@ export const $slice: ExpressionOperator = (
   );
   const foe = options.failOnError;
 
-  const args = computeValue(obj, expr, null, options) as Any[];
+  const args = evalExpr(obj, expr, options) as Any[];
   const arr = args[0] as Any[];
   let skip = args[1] as number;
   let limit = args[2] as number;

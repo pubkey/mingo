@@ -1,4 +1,4 @@
-import { ComputeOptions, computeValue, OpType } from "../../core/_internal";
+import { ComputeOptions, evalExpr, OpType } from "../../core/_internal";
 import { Iterator } from "../../lazy";
 import {
   Any,
@@ -100,7 +100,7 @@ function createHandler(
     if (isArray(v)) {
       handlers[selector] = (t: AnyObject, o: AnyObject) => {
         options.update({ root: o });
-        const newVal = v.map(e => computeValue(o, e, null, options) ?? null);
+        const newVal = v.map(e => evalExpr(o, e, options) ?? null);
         setValue(t, selector, newVal);
       };
     } else if (isNumber(v) || v === true) {
@@ -112,7 +112,7 @@ function createHandler(
     } else if (isObject(v) == false) {
       handlers[selector] = (t: AnyObject, o: AnyObject) => {
         options.update({ root: o });
-        const newVal = computeValue(o, v, null, options);
+        const newVal = evalExpr(o, v, options);
         setValue(t, selector, newVal);
       };
     } else {
@@ -139,7 +139,7 @@ function createHandler(
         // handle expression operator
         handlers[selector] = (t: AnyObject, o: AnyObject) => {
           options.update({ root: o });
-          const newval = computeValue(o, opExpr, operator, options);
+          const newval = evalExpr(o, v, options);
           setValue(t, selector, newval);
         };
       } else {

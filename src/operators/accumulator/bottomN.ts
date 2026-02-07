@@ -1,4 +1,4 @@
-import { ComputeOptions, computeValue } from "../../core/_internal";
+import { ComputeOptions, evalExpr } from "../../core/_internal";
 import { Lazy } from "../../lazy";
 import { AccumulatorOperator, Any, AnyObject, Options } from "../../types";
 import { $sort } from "../pipeline/sort";
@@ -25,7 +25,7 @@ export const $bottomN: AccumulatorOperator<Any[]> = (
   options: Options
 ): Any[] => {
   const copts = options as ComputeOptions;
-  const n = computeValue(copts?.local?.groupId, expr.n, null, copts) as number;
+  const n = evalExpr(copts?.local?.groupId, expr.n, copts) as number;
   const result = $sort(Lazy(collection), expr.sortBy, options).collect();
   const m = result.length;
   return $push(m <= n ? result : result.slice(m - n), expr.output, copts);

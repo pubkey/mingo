@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, isArray, isInteger, isNil } from "../../../util";
 import { errExpectArray, errExpectNumber, INT_OPTS } from "../_internal";
@@ -14,7 +14,7 @@ export const $arrayElemAt: ExpressionOperator = (
   options: Options
 ): Any => {
   assert(isArray(expr) && expr.length === 2, `${OP} expects array(2)`);
-  const args = computeValue(obj, expr, null, options) as Any[];
+  const args = evalExpr(obj, expr, options) as Any[];
   if (args.some(isNil)) return null;
 
   const foe = options.failOnError;

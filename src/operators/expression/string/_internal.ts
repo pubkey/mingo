@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, Options } from "../../../types";
 import { assert, isNil, isString } from "../../../util";
 
@@ -34,7 +34,7 @@ export function trimString(
   options: Options,
   trimOpts: { left: boolean; right: boolean }
 ): string | null {
-  const val = computeValue(obj, expr, null, options) as {
+  const val = evalExpr(obj, expr, options) as {
     input: string;
     chars: string;
   };
@@ -70,7 +70,7 @@ export function regexSearch(
   options: Options,
   reOpts: { global: boolean }
 ): Any[] | undefined {
-  const val = computeValue(obj, expr, null, options) as {
+  const val = evalExpr(obj, expr, options) as {
     input: string;
     regex: string;
     options: string;

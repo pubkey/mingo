@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, isArray, isEqual } from "../../../util";
 import { errInvalidArgs } from "../_internal";
@@ -12,7 +12,7 @@ export const $in: ExpressionOperator = (
   options: Options
 ): boolean => {
   assert(isArray(expr) && expr.length === 2, "$in expects array(2)");
-  const args = computeValue(obj, expr, null, options) as [Any, Any[]];
+  const args = evalExpr(obj, expr, options) as [Any, Any[]];
   const [item, arr] = args;
   if (!isArray(arr))
     return errInvalidArgs(options.failOnError, "$in arg2 <array>");

@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, isNil, isObject } from "../../../util";
 import {
@@ -45,7 +45,7 @@ export const $dateFromString: ExpressionOperator<Any> = (
   expr: InputExpr,
   options: Options
 ): Any => {
-  const args = computeValue(obj, expr, null, options) as InputExpr;
+  const args = evalExpr(obj, expr, options) as InputExpr;
 
   args.format = args.format || DATE_FORMAT;
   args.onNull = args.onNull || null;

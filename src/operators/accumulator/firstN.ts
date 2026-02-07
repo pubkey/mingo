@@ -1,5 +1,5 @@
 import type { ComputeOptions } from "../../core/_internal";
-import { computeValue } from "../../core/_internal";
+import { evalExpr } from "../../core/_internal";
 import type { AccumulatorOperator, Any, AnyObject, Options } from "../../types";
 import { isInteger } from "../../util";
 import { errExpectNumber, INT_OPTS } from "../expression/_internal";
@@ -22,7 +22,7 @@ export const $firstN: AccumulatorOperator = (
   const foe = options.failOnError;
   const copts = options as ComputeOptions;
   const m = collection.length;
-  const n = computeValue(copts?.local?.groupId, expr.n, null, copts) as number;
+  const n = evalExpr(copts?.local?.groupId, expr.n, copts) as number;
   if (!isInteger(n) || n < 1)
     return errExpectNumber(foe, "$firstN 'n'", INT_OPTS.pos);
 

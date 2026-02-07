@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { AnyObject, ExpressionOperator, Options } from "../../../types";
 import { $dateAdd } from "./dateAdd";
 
@@ -10,6 +10,6 @@ export const $dateSubtract: ExpressionOperator<Date> = (
   expr: AnyObject,
   options: Options
 ): Date => {
-  const amount = computeValue(obj, expr?.amount, null, options) as number;
+  const amount = evalExpr(obj, expr?.amount, options) as number;
   return $dateAdd(obj, { ...expr, amount: -1 * amount }, options);
 };

@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import {
   DATE_PART_INTERVAL,
@@ -34,7 +34,7 @@ export const $dateFromParts: ExpressionOperator<Date> = (
   expr: Any,
   options: Options
 ): Date => {
-  const args = computeValue(obj, expr, null, options) as DateArgs;
+  const args = evalExpr(obj, expr, options) as DateArgs;
   const minuteOffset = parseTimezone(args.timezone, new Date());
 
   // assign default and adjust value ranges of the different parts

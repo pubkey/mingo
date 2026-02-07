@@ -1,4 +1,4 @@
-import { computeValue } from "../../core/_internal";
+import { evalExpr } from "../../core/_internal";
 import { Iterator, Lazy } from "../../lazy";
 import { Any, AnyObject, Options, PipelineOperator } from "../../types";
 import { assert, compare, findInsertIndex, isNil, typeOf } from "../../util";
@@ -15,11 +15,6 @@ interface InputExpr {
  * expression and bucket boundaries and outputs a document per each bucket.
  *
  * See {@link https://docs.mongodb.com/manual/reference/operator/aggregation/bucket/ usage}.
- *
- * @param collection
- * @param expr
- * @param options
- * @returns
  */
 export const $bucket: PipelineOperator = (
   collection: Iterator,
@@ -61,7 +56,7 @@ export const $bucket: PipelineOperator = (
     if (!isNil(defaultKey)) buckets.set(defaultKey, []);
 
     collection.each((obj: AnyObject) => {
-      const key = computeValue(obj, expr.groupBy, null, options);
+      const key = evalExpr(obj, expr.groupBy, options);
 
       if (isNil(key) || compare(key, lower) < 0 || compare(key, upper) >= 0) {
         assert(
@@ -96,12 +91,7 @@ export const $bucket: PipelineOperator = (
 
     return Lazy(bounds).map((key: string) => {
       return {
-        ...(computeValue(
-          buckets.get(key),
-          outputExpr,
-          null,
-          options
-        ) as AnyObject[]),
+        ...(evalExpr(buckets.get(key), outputExpr, options) as AnyObject[]),
         _id: key
       };
     });

@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, Options } from "../../../types";
 import { assert, isDate, isNil, isNumber } from "../../../util";
 
@@ -242,7 +242,7 @@ export function adjustDate(d: Date, minuteOffset: number): void {
 export function computeDate(obj: Any, expr: Any, options: Options): Date {
   if (isDate(obj)) return obj;
 
-  const d = computeValue(obj, expr, null, options) as
+  const d = evalExpr(obj, expr, options) as
     | Date
     | number
     | { date: Date | number; timezone?: string };

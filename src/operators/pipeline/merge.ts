@@ -1,5 +1,5 @@
 import { Aggregator } from "../../aggregator";
-import { ComputeOptions, computeValue } from "../../core/_internal";
+import { ComputeOptions, evalExpr } from "../../core/_internal";
 import { Iterator } from "../../lazy";
 import { AnyObject, Options, PipelineOperator } from "../../types";
 import {
@@ -84,10 +84,9 @@ export const $merge: PipelineOperator = (
       const [target, i] = map.get(k);
 
       // compute variables
-      const variables = computeValue(
+      const variables = evalExpr(
         target,
         expr.let || { new: "$$ROOT" },
-        null,
         // 'root' is the item from the iteration.
         copts.update({ root: o })
       ) as AnyObject;

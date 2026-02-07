@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, HashMap, isArray, isNil } from "../../../util";
 import { errExpectArray } from "../_internal";
@@ -14,7 +14,7 @@ export const $setDifference: ExpressionOperator = (
   options: Options
 ): Any => {
   assert(isArray(expr) && expr.length == 2, `${OP} expects array(2)`);
-  const args = computeValue(obj, expr, null, options) as [Any[], Any[]];
+  const args = evalExpr(obj, expr, options) as [Any[], Any[]];
   const foe = options.failOnError;
 
   let ok = true;

@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, Callback, Options } from "../../../types";
 import { truthy } from "../../../util/_internal";
 
@@ -10,6 +10,5 @@ export function $expr(
   expr: Any,
   options: Options
 ): Callback<boolean> {
-  return obj =>
-    truthy(computeValue(obj, expr, null, options), options.useStrictMode);
+  return obj => truthy(evalExpr(obj, expr, options), options.useStrictMode);
 }

@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, Callback, Options } from "../../../types";
 import { isNumber } from "../../../util";
 import { errExpectNumber } from "../_internal";
@@ -31,7 +31,7 @@ export function processOperator(
   };
   const foe = options.failOnError;
   const op = fn.name;
-  const n = computeValue(obj, expr, null, options) as number;
+  const n = evalExpr(obj, expr, options) as number;
   if (n in fp) {
     const res = fp[n] as number | Error;
     if (res instanceof Error)

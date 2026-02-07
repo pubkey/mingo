@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { flatten, isArray, isNil } from "../../../util";
 import { $first as __first } from "../../accumulator/first";
@@ -13,7 +13,7 @@ export const $first: ExpressionOperator = (
   options: Options
 ): Any => {
   if (isArray(obj)) return __first(obj, expr, options);
-  const arr = computeValue(obj, expr, null, options) as Any[];
+  const arr = evalExpr(obj, expr, options) as Any[];
   if (isNil(arr)) return null;
   if (!isArray(arr)) {
     return errExpectArray(options.failOnError, "$first");

@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, isObject, truthy } from "../../../util/_internal";
 
@@ -15,10 +15,10 @@ export const $switch: ExpressionOperator = (
   assert(isObject(expr), "$switch received invalid arguments");
   for (const { case: caseExpr, then } of expr.branches) {
     const condition = truthy(
-      computeValue(obj, caseExpr, null, options),
+      evalExpr(obj, caseExpr, options),
       options.useStrictMode
     );
-    if (condition) return computeValue(obj, then, null, options);
+    if (condition) return evalExpr(obj, then, options);
   }
-  return computeValue(obj, expr.default, null, options);
+  return evalExpr(obj, expr.default, options);
 };

@@ -1,6 +1,6 @@
 // Miscellaneous Operators: https://docs.mongodb.com/manual/reference/operator/aggregation/#miscellaneous-operators
 
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { AnyObject, ExpressionOperator, Options } from "../../../types";
 
 /**
@@ -14,5 +14,4 @@ export const $sampleRate: ExpressionOperator = (
   obj: AnyObject,
   expr: number,
   options: Options
-): boolean =>
-  Math.random() <= (computeValue(obj, expr, null, options) as number);
+): boolean => Math.random() <= (evalExpr(obj, expr, options) as number);

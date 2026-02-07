@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import {
   assert,
@@ -24,7 +24,7 @@ export const $indexOfArray: ExpressionOperator = (
     isArray(expr) && expr.length > 1 && expr.length < 5,
     `${OP} expects array(4)`
   );
-  const args = computeValue(obj, expr, null, options) as Any[];
+  const args = evalExpr(obj, expr, options) as Any[];
   const foe = options.failOnError;
 
   const arr = args[0] as Any[];

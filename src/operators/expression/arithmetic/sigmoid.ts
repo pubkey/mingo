@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { isNil, isNumber, isObject } from "../../../util";
 import { errExpectNumber } from "../_internal";
@@ -16,7 +16,7 @@ export const $sigmoid: ExpressionOperator = (
   options: Options
 ): number | null => {
   if (isNil(expr)) return null;
-  const args = computeValue(obj, expr, null, options);
+  const args = evalExpr(obj, expr, options);
   const { input, onNull } = isObject(args)
     ? (args as { input: number; onNull?: number })
     : { input: args };

@@ -4,6 +4,7 @@ import {
   ComputeOptions,
   computeValue,
   Context,
+  evalExpr,
   OpType,
   ProcessingMode
 } from "../src/core/_internal";
@@ -158,18 +159,13 @@ describe("core", () => {
 
   describe("computeValue", () => {
     it("throws for invalid operator", () => {
-      expect(() => computeValue({}, {}, "$fakeOperator", DEFAULT_OPTS)).toThrow(
+      expect(() => computeValue({}, {}, "$invalid", DEFAULT_OPTS)).toThrow(
         Error
       );
     });
 
     it("computes current timestamp using $$NOW", () => {
-      const result = computeValue(
-        {},
-        { date: "$$NOW" },
-        null,
-        DEFAULT_OPTS
-      ) as {
+      const result = evalExpr({}, { date: "$$NOW" }, DEFAULT_OPTS) as {
         date: Date;
       };
       expect(result.date).toBeInstanceOf(Date);
@@ -178,14 +174,14 @@ describe("core", () => {
 
     it("should return different values for $$NOW for successive calls with same plain options", async () => {
       const expr = { date: "$$NOW" };
-      const result1 = computeValue({}, expr, null, DEFAULT_OPTS) as {
+      const result1 = evalExpr({}, expr, DEFAULT_OPTS) as {
         date: Date;
       };
 
       // Introduce a delay
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      const result2 = computeValue({}, expr, null, DEFAULT_OPTS) as {
+      const result2 = evalExpr({}, expr, DEFAULT_OPTS) as {
         date: Date;
       };
 
@@ -194,12 +190,12 @@ describe("core", () => {
 
     it("should return same value for $$NOW for successive calls with same compute options", async () => {
       const expr = { date: "$$NOW" };
-      const result1 = computeValue({}, expr, null, copts) as { date: Date };
+      const result1 = evalExpr({}, expr, copts) as { date: Date };
 
       // Introduce a delay
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      const result2 = computeValue({}, expr, null, copts) as { date: Date };
+      const result2 = evalExpr({}, expr, copts) as { date: Date };
 
       expect(result2.date.getTime()).toEqual(result1.date.getTime());
     });
@@ -211,7 +207,7 @@ describe("core", () => {
         value30: 30,
         value50: 50
       };
-      const res = computeValue(
+      const res = evalExpr(
         obj,
         {
           data: {
@@ -221,7 +217,6 @@ describe("core", () => {
             ]
           }
         },
-        null,
         DEFAULT_OPTS
       );
       expect(res).toEqual({

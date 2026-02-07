@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { aggregate } from "../src";
-import { computeValue, Context, ProcessingMode } from "../src/core";
+import { Context, ProcessingMode } from "../src/core";
+import { evalExpr } from "../src/core/_internal";
 import * as accumulatorOperators from "../src/operators/accumulator";
 import * as expressionOperators from "../src/operators/expression";
 import * as pipelineOperators from "../src/operators/pipeline";
@@ -94,13 +95,13 @@ export function runTest(
             "[](){}".split("").forEach(v => (msg = msg.replace(v, `\\${v}`)));
             it(`${prefix} => Error("${msg}")`, () => {
               expect(() =>
-                computeValue(obj, input, field, DEFAULT_OPTS)
+                evalExpr(obj, { [field]: input }, DEFAULT_OPTS)
               ).toThrow(new RegExp(msg));
             });
           } else {
             it(`${prefix} => ${JSON.stringify(expected)}`, () => {
               const copts = { ...DEFAULT_OPTS, ...ctx };
-              let actual = computeValue(obj, input, field, copts);
+              let actual = evalExpr(obj, { [field]: input }, copts);
               // NaNs don't compare so normalize
               if (Object.is(actual, expected)) actual = expected = 0;
               expect(actual).toEqual(expected);

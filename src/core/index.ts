@@ -1,1 +1,7 @@
-export { computeValue, Context, OpType, ProcessingMode } from "./_internal";
+export {
+  computeValue,
+  Context,
+  evalExpr,
+  OpType,
+  ProcessingMode
+} from "./_internal";

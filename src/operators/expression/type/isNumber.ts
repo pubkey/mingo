@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { isNumber } from "../../../util";
 
@@ -10,6 +10,6 @@ export const $isNumber: ExpressionOperator = (
   expr: Any,
   options: Options
 ): boolean | null => {
-  const n = computeValue(obj, expr, null, options);
+  const n = evalExpr(obj, expr, options);
   return isNumber(n);
 };

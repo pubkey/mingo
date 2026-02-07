@@ -1,4 +1,4 @@
-import { ComputeOptions, computeValue } from "../../core/_internal";
+import { ComputeOptions, evalExpr } from "../../core/_internal";
 import {
   AccumulatorOperator,
   Any,
@@ -25,13 +25,7 @@ interface AccumulatorExpr {
   readonly lang: "js";
 }
 
-/**
- * Defines a custom accumulator function.
- *
- * @param {Any[]} collection The input array
- * @param {*} expr The expression for the operator
- * @param {Options} options Options
- */
+/** Defines a custom accumulator function. */
 export const $accumulator: AccumulatorOperator = (
   collection: AnyObject[],
   expr: AccumulatorExpr,
@@ -44,10 +38,9 @@ export const $accumulator: AccumulatorOperator = (
 
   const copts = ComputeOptions.init(options);
 
-  const initArgs = computeValue(
+  const initArgs = evalExpr(
     copts?.local?.groupId,
     expr.initArgs || [],
-    null,
     copts.update({ root: copts?.local?.groupId })
   ) as Any[];
 

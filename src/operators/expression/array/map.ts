@@ -1,4 +1,4 @@
-import { ComputeOptions, computeValue } from "../../../core/_internal";
+import { ComputeOptions, evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, has, isArray, isNil, isObject, isString } from "../../../util";
 import { errExpectArray, errExpectString } from "../_internal";
@@ -15,7 +15,7 @@ export const $map: ExpressionOperator = (
     isObject(expr) && has(expr, "input", "in"),
     "$map expects object { input, as, in }"
   );
-  const input = computeValue(obj, expr.input, null, options) as Any[];
+  const input = evalExpr(obj, expr.input, options) as Any[];
   const foe = options.failOnError;
   if (isNil(input)) return null;
   if (!isArray(input)) return errExpectArray(foe, "$map 'input'");
@@ -27,6 +27,6 @@ export const $map: ExpressionOperator = (
   const locals = { variables: { [k]: null } };
   return input.map((o: Any) => {
     locals.variables[k] = o;
-    return computeValue(obj, expr.in, null, copts.update(locals));
+    return evalExpr(obj, expr.in, copts.update(locals));
   });
 };

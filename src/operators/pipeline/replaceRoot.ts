@@ -1,4 +1,4 @@
-import { computeValue } from "../../core/_internal";
+import { evalExpr } from "../../core/_internal";
 import { Iterator } from "../../lazy";
 import { AnyObject, Options, PipelineOperator } from "../../types";
 import { assert, isObject } from "../../util";
@@ -20,7 +20,7 @@ export const $replaceRoot: PipelineOperator = (
   options: Options
 ): Iterator => {
   return collection.map(obj => {
-    obj = computeValue(obj, expr.newRoot, null, options);
+    obj = evalExpr(obj, expr.newRoot, options);
     assert(isObject(obj), "$replaceRoot expression must return an object");
     return obj;
   });

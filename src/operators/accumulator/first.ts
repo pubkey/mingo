@@ -1,4 +1,4 @@
-import { ComputeOptions, computeValue } from "../../core/_internal";
+import { ComputeOptions, evalExpr } from "../../core/_internal";
 import { AccumulatorOperator, Any, AnyObject, Options } from "../../types";
 
 /**
@@ -15,5 +15,5 @@ export const $first: AccumulatorOperator = (
 ): Any => {
   const obj = collection[0];
   const copts = ComputeOptions.init(options).update({ root: obj });
-  return computeValue(obj, expr, null, copts) ?? null;
+  return evalExpr(obj, expr, copts) ?? null;
 };

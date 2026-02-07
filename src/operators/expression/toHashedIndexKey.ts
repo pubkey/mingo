@@ -1,4 +1,4 @@
-import { computeValue } from "../../core/_internal";
+import { evalExpr } from "../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../types";
 import { hashCode } from "../../util";
 
@@ -12,4 +12,4 @@ export const $toHashedIndexKey: ExpressionOperator<number> = (
   obj: AnyObject,
   expr: Any,
   options: Options
-): number => hashCode(computeValue(obj, expr, null, options));
+): number => hashCode(evalExpr(obj, expr, options));

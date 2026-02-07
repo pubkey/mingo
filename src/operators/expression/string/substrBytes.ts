@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, isArray, isInteger, isNil, isString } from "../../../util";
 import {
@@ -22,7 +22,7 @@ export const $substrBytes: ExpressionOperator = (
   options: Options
 ): Any => {
   assert(isArray(expr) && expr.length === 3, `${OP} expects array(3)`);
-  const [s, index, count] = computeValue(obj, expr, null, options) as [
+  const [s, index, count] = evalExpr(obj, expr, options) as [
     string,
     number,
     number

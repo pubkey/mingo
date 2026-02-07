@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { isNil } from "../../../util";
 
@@ -9,7 +9,7 @@ export const $atan2: ExpressionOperator = (
   expr: Any,
   options: Options
 ): number | null => {
-  const [y, x] = computeValue(obj, expr, null, options) as number[];
+  const [y, x] = evalExpr(obj, expr, options) as number[];
   if (isNaN(y) || isNil(y)) return y;
   if (isNaN(x) || isNil(x)) return x;
   return Math.atan2(y, x);

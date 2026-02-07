@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import {
   Any,
   AnyObject,
@@ -34,8 +34,8 @@ export const $cond: ExpressionOperator = (
     elseExpr = expr.else;
   }
   const condition = truthy(
-    computeValue(obj, ifExpr, null, options),
+    evalExpr(obj, ifExpr, options),
     options.useStrictMode
   );
-  return computeValue(obj, condition ? thenExpr : elseExpr, null, options);
+  return evalExpr(obj, condition ? thenExpr : elseExpr, options);
 };

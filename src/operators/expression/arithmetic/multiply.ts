@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, isArray, isNil, isNumber } from "../../../util";
 import { errExpectArray } from "../_internal";
@@ -12,7 +12,7 @@ export const $multiply: ExpressionOperator = (
   options: Options
 ): number => {
   assert(isArray(expr), "$multiply expects array");
-  const args = computeValue(obj, expr, null, options) as number[];
+  const args = evalExpr(obj, expr, options) as number[];
   const foe = options.failOnError;
   if (args.some(isNil)) return null;
   let res = 1;

@@ -1,4 +1,4 @@
-import { ComputeOptions, computeValue } from "../../../core/_internal";
+import { ComputeOptions, evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, has, isArray, isNil, isObject } from "../../../util";
 import { errExpectArray } from "../_internal";
@@ -15,8 +15,8 @@ export const $reduce: ExpressionOperator = (
     isObject(expr) && has(expr, "input", "initialValue", "in"),
     "$reduce expects object { input, initialValue, in }"
   );
-  const input = computeValue(obj, expr.input, null, options) as Any[];
-  const initialValue = computeValue(obj, expr.initialValue, null, options);
+  const input = evalExpr(obj, expr.input, options) as Any[];
+  const initialValue = evalExpr(obj, expr.initialValue, options);
   const inExpr = expr["in"];
 
   if (isNil(input)) return null;
@@ -27,6 +27,6 @@ export const $reduce: ExpressionOperator = (
   const locals = { variables: { value: null } };
   return input.reduce((acc, n) => {
     locals.variables.value = acc;
-    return computeValue(n, inExpr, null, copts.update(locals));
+    return evalExpr(n, inExpr, copts.update(locals));
   }, initialValue);
 };

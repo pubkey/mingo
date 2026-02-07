@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, isArray, isNil } from "../../../util";
 
@@ -13,7 +13,7 @@ export const $ifNull: ExpressionOperator = (
   assert(isArray(expr), "$ifNull expects an array");
   let val = undefined;
   for (const input of expr) {
-    val = computeValue(obj, input, null, options);
+    val = evalExpr(obj, input, options);
     if (!isNil(val)) return val;
   }
   return val;

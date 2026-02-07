@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, Options } from "../../../types";
 import { assert, isDate, isNil, isNumber, isString } from "../../../util";
 
@@ -14,11 +14,7 @@ export function toInteger(
   min: number,
   max: number
 ): number | null {
-  const val = computeValue(obj, expr, null, options) as
-    | string
-    | number
-    | boolean
-    | Date;
+  const val = evalExpr(obj, expr, options) as string | number | boolean | Date;
 
   if (val === true) return 1;
   if (val === false) return 0;

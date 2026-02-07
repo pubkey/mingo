@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, isDate, isNil } from "../../../util";
 import {
@@ -71,7 +71,7 @@ export const $dateTrunc: ExpressionOperator<Date> = (
     binSize: optBinSize,
     timezone,
     startOfWeek: optStartOfWeek
-  } = computeValue(obj, expr, null, options) as InputExpr;
+  } = evalExpr(obj, expr, options) as InputExpr;
 
   // if any of the required input fields except startOfWeek is missing or set to null
   if (isNil(date) || isNil(unit)) return null;

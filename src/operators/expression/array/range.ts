@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { assert, isArray, isInteger } from "../../../util";
 import { errExpectNumber, INT_OPTS } from "../_internal";
@@ -15,7 +15,7 @@ export const $range: ExpressionOperator = (
     isArray(expr) && expr.length > 1 && expr.length < 4,
     "$range expects array(3)"
   );
-  const [start, end, arg3] = computeValue(obj, expr, null, options) as number[];
+  const [start, end, arg3] = evalExpr(obj, expr, options) as number[];
   const foe = options.failOnError;
 
   const step = arg3 ?? 1;

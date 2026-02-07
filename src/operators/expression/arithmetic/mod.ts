@@ -1,4 +1,4 @@
-import { computeValue } from "../../../core/_internal";
+import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
 import { isArray } from "../../../util";
 import { errExpectArray } from "../_internal";
@@ -11,7 +11,7 @@ export const $mod: ExpressionOperator = (
   expr: Any,
   options: Options
 ): number => {
-  const args = computeValue(obj, expr, null, options) as number[];
+  const args = evalExpr(obj, expr, options) as number[];
   let invalid = !isArray(args) || args.length != 2;
   invalid ||= !args.every(v => typeof v === "number");
   if (invalid)
