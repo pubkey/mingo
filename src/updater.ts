@@ -10,7 +10,7 @@ import { $set } from "./operators/pipeline/set";
 import { $sort } from "./operators/pipeline/sort";
 import { $unset } from "./operators/pipeline/unset";
 import * as queryOperators from "./operators/query";
-import * as UPDATE_OPERATORS from "./operators/update";
+import * as updateOperators from "./operators/update";
 import {
   buildParams,
   SingleKeyRecord,
@@ -24,6 +24,8 @@ import {
   CollationSpec,
   Criteria,
   Options,
+  PipelineOperator,
+  PipelineOps,
   UpdateExpr
 } from "./types";
 import {
@@ -37,6 +39,8 @@ import {
 } from "./util";
 import { PathValidator } from "./util/_internal";
 
+const UPDATE_OPERATORS = updateOperators as Record<string, UpdateOperator>;
+
 const PIPELINE_OPERATORS = {
   $addFields,
   $set,
@@ -44,9 +48,7 @@ const PIPELINE_OPERATORS = {
   $unset,
   $replaceRoot,
   $replaceWith
-} as const;
-
-type StageName = keyof typeof PIPELINE_OPERATORS;
+} as Record<string, PipelineOperator>;
 
 export type PipelineStage =
   | { $addFields: AnyObject }
@@ -217,7 +219,7 @@ function updateDocuments<T extends AnyObject>(
     .addExpressionOps(booleanOperators)
     .addExpressionOps(comparisonOperators)
     .addQueryOps(queryOperators)
-    .addPipelineOps(PIPELINE_OPERATORS);
+    .addPipelineOps(PIPELINE_OPERATORS as PipelineOps);
 
   const filterExists = Object.keys(condition).length > 0;
   const matchedDocs = new Map<T, number>();
@@ -287,8 +289,7 @@ function updateDocuments<T extends AnyObject>(
     let updateIter = Lazy(foundDocs);
     for (const stage of modifier) {
       const [op, expr] = Object.entries(stage)[0] as [string, Any];
-      const pipelineOp =
-        PIPELINE_OPERATORS[op as keyof typeof PIPELINE_OPERATORS];
+      const pipelineOp = PIPELINE_OPERATORS[op];
       assert(pipelineOp, `Unknown pipeline operator: '${op}'.`);
       updateIter = pipelineOp(updateIter, expr, opts);
     }
@@ -318,7 +319,7 @@ function updateDocuments<T extends AnyObject>(
     }
 
     // find all the modified fields if firstOnly.
-    if (firstOnly && output.modifiedCount) {
+    if (firstOnly && output.modifiedCount && oldFirstDoc) {
       const newDoc = documents[indexes[0]];
       const modifiedFields = getModifiedFields<T>(
         modifier,
@@ -355,9 +356,9 @@ function updateDocuments<T extends AnyObject>(
   const output = { matchedCount, modifiedCount: 0 };
   const modifiedFields: string[] = [];
 
-  const fns: Callback<string[]>[] = [];
+  const fns: Callback<string[], AnyObject>[] = [];
   for (const [op, expr] of Object.entries(modifier)) {
-    const fn = UPDATE_OPERATORS[op] as UpdateOperator;
+    const fn = UPDATE_OPERATORS[op];
     fns.push(fn(expr, arrayFilters, opts));
   }
 
@@ -389,21 +390,22 @@ function getModifiedFields<T extends AnyObject>(
 ): string[] {
   const stageFields: string[] = [];
   for (const stage of pipeline) {
-    const op = Object.keys(stage)[0] as StageName;
+    const op = Object.keys(stage)[0];
+    const expr = (stage as AnyObject)[op];
     switch (op) {
       case "$addFields":
       case "$set":
       case "$project":
       case "$replaceWith":
-        stageFields.push(...Object.keys(stage[op] as AnyObject));
+        stageFields.push(...Object.keys(expr as AnyObject));
         break;
       case "$unset":
-        stageFields.push(...ensureArray(stage[op] as string[]));
+        stageFields.push(...ensureArray(expr as string[]));
         break;
       case "$replaceRoot":
         stageFields.length = 0; // clear existing fields
         stageFields.push(
-          ...Object.keys((stage[op] as { newRoot: AnyObject })?.newRoot)
+          ...Object.keys((expr as { newRoot: AnyObject })?.newRoot)
         );
         break;
     }

@@ -1,15 +1,15 @@
 import { ComputeOptions } from "../../core/_internal";
-import { AnyObject, ArrayOrObject, Options } from "../../types";
+import { AnyObject, Options } from "../../types";
 import { applyUpdate, DEFAULT_OPTIONS, walkExpression } from "./_internal";
 
 type CurrentDateType = true | { $type: "date" | "timestamp" };
 
 /** Sets the value of a field to the current date. */
-export const $currentDate = (
+export function $currentDate(
   expr: Record<string, CurrentDateType>,
   arrayFilters: AnyObject[] = [],
   options: Options = DEFAULT_OPTIONS
-) => {
+) {
   const copts = options as ComputeOptions;
   return (obj: AnyObject) => {
     return walkExpression<CurrentDateType>(
@@ -21,7 +21,7 @@ export const $currentDate = (
           obj,
           node,
           queries,
-          (o: ArrayOrObject, k: string | number) => {
+          (o: AnyObject, k: string) => {
             o[k] =
               val === true || val.$type === "date"
                 ? copts.now
@@ -33,4 +33,4 @@ export const $currentDate = (
       }
     );
   };
-};
+}

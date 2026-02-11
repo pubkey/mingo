@@ -1,6 +1,7 @@
 import { Iterator } from "../../lazy";
-import type { AnyObject, Options, PipelineOperator } from "../../types";
-import { assert, cloneDeep, isArray, isString } from "../../util";
+import type { AnyObject, Options } from "../../types";
+import { assert, cloneDeep, isArray } from "../../util";
+import { resolveCollection } from "./_internal";
 
 /**
  * Takes the documents returned by the aggregation pipeline and writes them to a specified collection.
@@ -8,27 +9,19 @@ import { assert, cloneDeep, isArray, isString } from "../../util";
  * Unlike in MongoDB, this operator can appear in any position in the pipeline and is
  * useful for collecting intermediate results of an aggregation operation.
  *
- * Note: Object are deep cloned for output regardless of the processing mode.
+ * Objects are deep cloned for output regardless of the processing mode.
  *
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/out/ usage}.
- *
- * @param collection
- * @param expr
- * @param options
- * @returns
  */
-export const $out: PipelineOperator = (
+export function $out(
   collection: Iterator,
   expr: string | AnyObject[],
   options: Options
-): Iterator => {
-  const outputColl: AnyObject[] = isString(expr)
-    ? options?.collectionResolver(expr)
-    : expr;
-  assert(isArray(outputColl), `expression must resolve to an array`);
-
+): Iterator {
+  const out = resolveCollection("$out", expr, options);
+  assert(isArray(out), `$out: expression must resolve to an array`);
   return collection.map((o: AnyObject) => {
-    outputColl.push(cloneDeep(o));
+    out.push(cloneDeep(o));
     return o; // passthrough
   });
-};
+}

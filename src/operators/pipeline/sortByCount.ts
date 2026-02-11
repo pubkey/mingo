@@ -1,5 +1,5 @@
 import { Iterator } from "../../lazy";
-import { Any, Options, PipelineOperator } from "../../types";
+import { Any, Options } from "../../types";
 import { $group } from "./group";
 import { $sort } from "./sort";
 
@@ -8,20 +8,15 @@ import { $sort } from "./sort";
  * then computes the count of documents in each distinct group.
  *
  * {@link https://docs.mongodb.com/manual/reference/operator/aggregation/sortByCount/ usage}.
- *
- * @param collection
- * @param expr
- * @param options
- * @returns
  */
-export const $sortByCount: PipelineOperator = (
+export function $sortByCount(
   collection: Iterator,
   expr: Any,
   options: Options
-): Iterator => {
+): Iterator {
   return $sort(
     $group(collection, { _id: expr, count: { $sum: 1 } }, options),
     { count: -1 },
     options
   );
-};
+}

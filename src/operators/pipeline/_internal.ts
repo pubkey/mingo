@@ -1,7 +1,10 @@
-import { AnyObject, Options } from "../../types";
+import { Lazy } from "../../lazy";
+import { Any, AnyObject, Options } from "../../types";
 import { isNumber, isObject } from "../../util";
-import { assert, PathValidator } from "../../util/_internal";
+import { assert, isArray, isString, PathValidator } from "../../util/_internal";
 import { $documents } from "./documents";
+
+const EMPTY = Lazy([]);
 
 export function filterDocumentsStage(
   pipeline: AnyObject[],
@@ -13,7 +16,7 @@ export function filterDocumentsStage(
   const docs = !!pipeline && pipeline[0]?.$documents;
   if (!docs) return { pipeline };
   return {
-    documents: $documents(null, docs, options).collect(),
+    documents: $documents(EMPTY, docs, options).collect(),
     pipeline: pipeline.slice(1)
   };
 }
@@ -63,7 +66,7 @@ export function validateProjection(
     } else if (!isObject(v)) {
       res.inclusions.push(k);
     } else {
-      const s = validateProjection(v as AnyObject, options, false);
+      const s = validateProjection(v, options, false);
       if (!s.inclusions.length && !s.exclusions.length) {
         // if we got nothing back it means we hit a leaf to be included.
         if (!res.inclusions.includes(k)) res.inclusions.push(k);
@@ -95,4 +98,22 @@ export function validateProjection(
     res.inclusions.sort();
   }
   return res;
+}
+
+export function resolveCollection(
+  op: string,
+  expr: Any,
+  options: Options
+): AnyObject[] {
+  if (isString(expr)) {
+    assert(
+      options.collectionResolver,
+      `${op} requires 'collectionResolver' option to resolve named collection`
+    );
+  }
+  const coll = isString(expr)
+    ? options.collectionResolver(expr)
+    : (expr as AnyObject[]);
+  assert(isArray(coll), `${op} could not resolve input collection`);
+  return coll;
 }

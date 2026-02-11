@@ -3,7 +3,7 @@ import * as booleanOperators from "../../operators/expression/boolean";
 import * as comparisonOperators from "../../operators/expression/comparison";
 import * as queryOperators from "../../operators/query";
 import { Query } from "../../query";
-import { Any, AnyObject, ArrayOrObject, Callback, Options } from "../../types";
+import { Any, AnyObject, Options } from "../../types";
 import {
   assert,
   cloneDeep,
@@ -66,21 +66,21 @@ const ARRAY_WIDE = "$[]";
  * @param opts The optional {@link WalkOptions} passed to the walk function.
  */
 export const applyUpdate = (
-  o: ArrayOrObject,
+  o: AnyObject,
   n: PathNode,
   q: Record<string, Query>,
-  f: Callback<boolean>,
+  f: (_o: AnyObject, _k: string) => boolean,
   opts?: WalkOptions
 ): boolean => {
   const { selector, position: c, next } = n;
   if (!c) {
     // wrapper to collect status
     let b = false;
-    const g: Callback<void> = (u, k) => (b = Boolean(f(u, k)) || b);
+    const g: typeof f = (u, k) => (b = Boolean(f(u, k)) || b);
     walk(o, selector, g, opts);
     return b;
   }
-  const arr = resolve(o, selector) as Any[];
+  const arr = resolve(o, selector) as AnyObject;
   // no update applied if we do not get correct type.
   if (!isArray(arr) || !arr.length) return false;
 
@@ -89,18 +89,18 @@ export const applyUpdate = (
     if (i === -1) return false;
     return next
       ? applyUpdate(arr[i] as AnyObject, next, q, f, opts)
-      : f(arr, i);
+      : f(arr, i as Any as string);
   }
 
   // apply update to matching items.
   return arr
-    .map((e: AnyObject, i) => {
+    .map((e, i) => {
       // filter if applicable.
       if (c !== ARRAY_WIDE && q[c] && !q[c].test({ [c]: [e] })) return false;
       // apply update.
       return next
-        ? applyUpdate(e as ArrayOrObject, next, q, f, opts)
-        : f(arr, i);
+        ? applyUpdate(e as AnyObject, next, q, f, opts)
+        : f(arr, i as Any as string);
     })
     .some(Boolean);
 };
@@ -162,15 +162,16 @@ export function buildParams(
   const filterIndexMap = Object.fromEntries(
     arrayFilters.map((o, i) => [Object.entries(o).pop()[0].split(".")[0], i])
   );
-  const { condition } = options.local;
-  const queryKeys = condition && Object.keys(condition);
+  let { condition } = options.local;
+  condition = condition ?? {};
+  const queryKeys = Object.keys(condition);
   const conflictDetector = new PathValidator();
 
   for (const expr of exprList) {
     for (const selector of Object.keys(expr)) {
       const identifiers: string[] = [];
       const node: PathNode = selector.includes("$")
-        ? { selector: undefined }
+        ? { selector: "" }
         : { selector };
 
       if (!node.selector) {

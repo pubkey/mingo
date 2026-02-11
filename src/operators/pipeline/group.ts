@@ -1,12 +1,6 @@
 import { ComputeOptions, evalExpr } from "../../core/_internal";
-import { Iterator, Source } from "../../lazy";
-import {
-  Any,
-  AnyObject,
-  Callback,
-  Options,
-  PipelineOperator
-} from "../../types";
+import { Iterator, Lazy } from "../../lazy";
+import { Any, AnyObject, Options } from "../../types";
 import { assert, groupBy, has } from "../../util";
 
 // lookup key for grouping
@@ -21,24 +15,24 @@ interface InputExpr extends AnyObject {
  *
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/group usage}.
  */
-export const $group: PipelineOperator = (
+export function $group(
   collection: Iterator,
   expr: InputExpr,
   options: Options
-): Iterator => {
+): Iterator {
   assert(has(expr, ID_KEY), "$group specification must include an '_id'");
   const idExpr = expr[ID_KEY];
   const copts = ComputeOptions.init(options);
 
   const newFields = Object.keys(expr).filter(k => k != ID_KEY);
 
-  return collection.transform(((coll: Any[]) => {
+  return collection.transform((coll: Any[]) => {
     const partitions = groupBy(coll, obj => evalExpr(obj, idExpr, options));
 
     let i = -1;
     const partitionKeys = Array.from(partitions.keys());
 
-    return () => {
+    return Lazy(() => {
       if (++i === partitions.size) return { done: true };
 
       const groupId = partitionKeys[i];
@@ -59,6 +53,6 @@ export const $group: PipelineOperator = (
       }
 
       return { value: obj, done: false };
-    };
-  }) as Callback<Source>);
-};
+    });
+  });
+}

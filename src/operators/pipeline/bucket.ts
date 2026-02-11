@@ -1,6 +1,6 @@
 import { evalExpr } from "../../core/_internal";
 import { Iterator, Lazy } from "../../lazy";
-import { Any, AnyObject, Options, PipelineOperator } from "../../types";
+import { Any, AnyObject, Options } from "../../types";
 import { assert, compare, findInsertIndex, isNil, typeOf } from "../../util";
 
 interface InputExpr {
@@ -16,11 +16,11 @@ interface InputExpr {
  *
  * See {@link https://docs.mongodb.com/manual/reference/operator/aggregation/bucket/ usage}.
  */
-export const $bucket: PipelineOperator = (
+export function $bucket(
   collection: Iterator,
   expr: InputExpr,
   options: Options
-): Iterator => {
+): Iterator {
   const bounds = expr.boundaries.slice();
   const defaultKey = expr.default;
   const lower = bounds[0]; // inclusive
@@ -102,4 +102,4 @@ export const $bucket: PipelineOperator = (
     if (!iterator) iterator = createBuckets();
     return iterator.next();
   });
-};
+}

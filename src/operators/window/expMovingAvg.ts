@@ -40,7 +40,7 @@ export const $expMovingAvg: WindowOperator = (
       const values = $push(collection, input, options) as number[];
       for (let i = 0; i < values.length; i++) {
         if (i === 0) {
-          if (!isNumber(values[i])) values[i] = null;
+          if (!isNumber(values[i])) values[i] = null as Any as number;
           continue;
         }
 

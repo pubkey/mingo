@@ -1,5 +1,5 @@
 import { concat, Iterator, IteratorResult, Lazy } from "../../lazy";
-import { AnyObject, Options, PipelineOperator } from "../../types";
+import { AnyObject, Options } from "../../types";
 import {
   assert,
   HashMap,
@@ -37,17 +37,12 @@ type DateOrNumber = number | Date;
  * Creates new documents in a sequence of documents where certain values in a field are missing.
  *
  * {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/densify usage}.
- *
- * @param collection
- * @param expr
- * @param options
- * @returns
  */
-export const $densify: PipelineOperator = (
+export function $densify(
   collection: Iterator,
   expr: InputExpr,
   options: Options
-): Iterator => {
+): Iterator {
   const { step, bounds, unit } = expr.range;
   // If range.unit is specified, step must be an integer. Otherwise, step can be any numeric value.
   if (unit) {
@@ -84,6 +79,7 @@ export const $densify: PipelineOperator = (
       "$densify: `partitionByFields` must be an array of strings"
     );
   }
+  const partitionByFields = expr.partitionByFields ?? [];
 
   // sort by `expr.field` for densification.
   collection = $sort(collection, { [expr.field]: 1 }, options);
@@ -92,7 +88,7 @@ export const $densify: PipelineOperator = (
   const computeNextValue = (value: DateOrNumber) => {
     return isNumber(value)
       ? value + step
-      : $dateAdd(null, { startDate: value, unit, amount: step }, options);
+      : $dateAdd({}, { startDate: value, unit, amount: step }, options);
   };
 
   const isValidUnit = !!unit && TIME_UNITS.includes(unit);
@@ -135,7 +131,7 @@ export const $densify: PipelineOperator = (
   const [lower, upper] = isArray(bounds) ? bounds : [bounds, bounds];
 
   // tracks the maximum field value seen across the entire collection
-  let maxFieldValue: DateOrNumber = undefined;
+  let maxFieldValue: DateOrNumber;
   // updates the maximum field value across the entire collection.
   const updateMaxFieldValue = (value: DateOrNumber) => {
     maxFieldValue =
@@ -155,10 +151,10 @@ export const $densify: PipelineOperator = (
 
     // compute partition key and values. default to null partition key for entire collection.
     let partitionKey: string[] = rootKey;
-    if (isArray(expr.partitionByFields)) {
-      partitionKey = expr.partitionByFields.map(k =>
-        resolve(item.value as AnyObject, k)
-      ) as string[];
+    if (isArray(partitionByFields)) {
+      partitionKey = partitionByFields.map(
+        k => resolve(item.value as AnyObject, k) as string
+      );
       assert(
         partitionKey.every(isString),
         "$densify: Partition fields must evaluate to string values."
@@ -221,7 +217,7 @@ export const $densify: PipelineOperator = (
     // add extra partition field values.
     if (partitionKey) {
       partitionKey.forEach((v, i) => {
-        denseObj[expr.partitionByFields[i]] = v;
+        denseObj[partitionByFields[i]] = v;
       });
     }
     peekItem.push(item);
@@ -234,7 +230,7 @@ export const $densify: PipelineOperator = (
 
   // used to iterate through the partitions
   let paritionIndex = -1;
-  let partitionKeysSet: string[][] = undefined;
+  let partitionKeysSet: string[][];
   // An iterator to return remaining densify values for 'full' bounds.
   const fullBoundsIterator = Lazy(() => {
     if (paritionIndex === -1) {
@@ -262,7 +258,7 @@ export const $densify: PipelineOperator = (
         );
         const denseObj: AnyObject = { [expr.field]: partitionMaxValue };
         partitionKey.forEach((v, i) => {
-          denseObj[expr.partitionByFields[i]] = v;
+          denseObj[partitionByFields[i]] = v;
         });
         // this is an added dense object
         return { done: false, value: denseObj };
@@ -275,4 +271,4 @@ export const $densify: PipelineOperator = (
   });
 
   return concat(nilFieldsIterator, densifyIterator, fullBoundsIterator);
-};
+}

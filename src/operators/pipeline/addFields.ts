@@ -1,6 +1,6 @@
 import { evalExpr } from "../../core/_internal";
 import { Iterator } from "../../lazy";
-import { AnyObject, Callback, Options, PipelineOperator } from "../../types";
+import { AnyObject, Options } from "../../types";
 import { removeValue, setValue } from "../../util";
 
 /**
@@ -8,22 +8,17 @@ import { removeValue, setValue } from "../../util";
  * all existing fields from the input documents and newly added fields.
  *
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/addFields/ usage}.
- *
- * @param collection
- * @param expr
- * @param options
- * @returns
  */
-export const $addFields: PipelineOperator = (
+export function $addFields(
   collection: Iterator,
   expr: AnyObject,
   options: Options
-): Iterator => {
+): Iterator {
   const newFields = Object.keys(expr);
 
   if (newFields.length === 0) return collection;
 
-  return collection.map(((obj: AnyObject) => {
+  return collection.map((obj: AnyObject) => {
     const newObj = { ...obj };
     for (const field of newFields) {
       const newValue = evalExpr(obj, expr[field], options);
@@ -34,5 +29,5 @@ export const $addFields: PipelineOperator = (
       }
     }
     return newObj;
-  }) as Callback<AnyObject>);
-};
+  });
+}

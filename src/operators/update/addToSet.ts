@@ -1,4 +1,4 @@
-import { Any, AnyObject, ArrayOrObject, Options } from "../../types";
+import { Any, AnyObject, Options } from "../../types";
 import { has, isArray, isObject, unique } from "../../util";
 import {
   applyUpdate,
@@ -8,25 +8,25 @@ import {
 } from "./_internal";
 
 /** Adds a value to an array unless the value is already present. */
-export const $addToSet = (
+export function $addToSet(
   expr: AnyObject,
   arrayFilters: AnyObject[] = [],
   options: Options = DEFAULT_OPTIONS
-) => {
+) {
   return (obj: AnyObject) => {
     return walkExpression(expr, arrayFilters, options, (val, node, queries) => {
       const args = { $each: [val] };
-      if (isObject(val) && has(val as AnyObject, "$each")) {
+      if (isObject(val) && has(val, "$each")) {
         Object.assign(args, val);
       }
       return applyUpdate(
         obj,
         node,
         queries,
-        (o: ArrayOrObject, k: string) => {
+        (o: AnyObject, k: string) => {
           const prev = o[k] as Any[];
           if (isArray(prev)) {
-            const set = unique([].concat(prev).concat(args.$each));
+            const set = unique(prev.concat(args.$each));
             if (set.length === prev.length) return false;
             o[k] = clone(set, options);
           } else if (prev === undefined) {
@@ -40,4 +40,4 @@ export const $addToSet = (
       );
     });
   };
-};
+}

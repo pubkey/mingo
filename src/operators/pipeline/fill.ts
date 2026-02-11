@@ -1,17 +1,20 @@
 import { Iterator } from "../../lazy";
-import { Any, Options, PipelineOperator } from "../../types";
+import { Any, AnyObject, Options } from "../../types";
 import { assert, has, isObject } from "../../util";
 import { $ifNull } from "../expression/conditional/ifNull";
+import type { SetWindowFieldsInput } from "../window/_internal";
 import { $linearFill } from "../window/linearFill";
 import { $locf } from "../window/locf";
 import { $addFields } from "./addFields";
 import { $setWindowFields } from "./setWindowFields";
 
+type Output = [{ value: Any }, { method: "linear" | "locf" }];
+
 interface InputExpr {
   partitionBy?: Any;
   partitionByFields?: string[];
   sortBy?: Record<string, 1 | -1>;
-  output: Record<string, { value: Any } | { method: "linear" | "locf" }>;
+  output: Record<string, Output[number]>;
 }
 
 const FILL_METHODS: Record<string, string> = {
@@ -23,17 +26,12 @@ const FILL_METHODS: Record<string, string> = {
  * Populates null and missing field values within documents.
  *
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/fill/ usage}.
- *
- * @param collection
- * @param expr
- * @param options
- * @returns
  */
-export const $fill: PipelineOperator = (
+export function $fill(
   collection: Iterator,
   expr: InputExpr,
   options: Options
-): Iterator => {
+): Iterator {
   assert(!expr.sortBy || isObject(expr.sortBy), "sortBy must be an object.");
   assert(
     !!expr.sortBy || Object.values(expr.output).every(m => has(m, "value")),
@@ -59,16 +57,18 @@ export const $fill: PipelineOperator = (
   // if there are any fields remaining, process collection using $setWindowFields.
   // if the collected output fields is non-empty, use $addFields to add them to their respective partitions.
 
-  const valueExpr = {};
-  const methodExpr = {};
+  const valueExpr: AnyObject = {};
+  const methodExpr: AnyObject = {};
   for (const [k, m] of Object.entries(expr.output)) {
     if (has(m, "value")) {
       // translate to expression for $addFields
-      valueExpr[k] = { $ifNull: [`$$CURRENT.${k}`, m["value"]] };
+      const out = m as Output[0];
+      valueExpr[k] = { $ifNull: [`$$CURRENT.${k}`, out.value] };
     } else {
       // translate to output expression for $setWindowFields.
-      const fillOp = FILL_METHODS[m["method"] as string];
-      assert(!!fillOp, `invalid fill method '${m["method"] as string}'.`);
+      const out = m as Output[1];
+      const fillOp = FILL_METHODS[out.method];
+      assert(!!fillOp, `invalid fill method '${out.method}'.`);
       methodExpr[k] = { [fillOp]: "$" + k };
     }
   }
@@ -80,7 +80,7 @@ export const $fill: PipelineOperator = (
       {
         sortBy: expr.sortBy || {},
         partitionBy: partitionExpr,
-        output: methodExpr
+        output: methodExpr as SetWindowFieldsInput["output"]
       },
       options
     );
@@ -92,4 +92,4 @@ export const $fill: PipelineOperator = (
   }
 
   return collection;
-};
+}

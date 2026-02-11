@@ -1,12 +1,6 @@
 import { ComputeOptions, evalExpr } from "../../core/_internal";
 import { Iterator } from "../../lazy";
-import {
-  Any,
-  AnyObject,
-  ArrayOrObject,
-  Options,
-  PipelineOperator
-} from "../../types";
+import { Any, AnyObject, ArrayOrObject, Options } from "../../types";
 import { has, isArray, isNil, isObject } from "../../util";
 
 /**
@@ -14,16 +8,16 @@ import { has, isArray, isNil, isObject } from "../../util";
  *
  * See {@link https://docs.mongodb.com/manual/reference/operator/aggregation/redact/ usage}
  */
-export const $redact: PipelineOperator = (
+export function $redact(
   collection: Iterator,
   expr: AnyObject,
   options: Options
-): Iterator => {
+): Iterator {
   const copts = ComputeOptions.init(options);
-  return collection.map((obj: AnyObject) =>
-    redact(obj, expr, copts.update({ root: obj }))
+  return collection.map((root: AnyObject) =>
+    redact(root, expr, copts.update({ root }))
   );
-};
+}
 
 function redact(obj: AnyObject, expr: Any, options: ComputeOptions): Any {
   const action = evalExpr(obj, expr, options);
@@ -36,25 +30,21 @@ function redact(obj: AnyObject, expr: Any, options: ComputeOptions): Any {
       // traverse nested documents iff there is a $cond
       if (!has(expr as AnyObject, "$cond")) return obj;
 
-      const output = {};
+      const output: AnyObject = {};
 
       for (const [key, value] of Object.entries(obj)) {
         if (isArray(value)) {
           const res = new Array<Any>();
           for (let elem of value) {
             if (isObject(elem)) {
-              elem = redact(
-                elem as AnyObject,
-                expr,
-                options.update({ root: elem })
-              );
+              elem = redact(elem, expr, options.update({ root: elem }));
             }
             if (!isNil(elem)) res.push(elem);
           }
           output[key] = res;
         } else if (isObject(value)) {
           const res = redact(
-            value as AnyObject,
+            value,
             expr,
             options.update({ root: value })
           ) as ArrayOrObject;

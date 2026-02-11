@@ -1,16 +1,16 @@
 import { ComputeOptions, evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, has, isArray, isNil, isObject } from "../../../util";
 import { errExpectArray } from "../_internal";
 
 /**
  * Applies an expression to each element in an array and combines them into a single value.
  */
-export const $reduce: ExpressionOperator = (
+export function $reduce(
   obj: AnyObject,
   expr: AnyObject,
   options: Options
-): Any => {
+): Any {
   assert(
     isObject(expr) && has(expr, "input", "initialValue", "in"),
     "$reduce expects object { input, initialValue, in }"
@@ -24,9 +24,11 @@ export const $reduce: ExpressionOperator = (
     return errExpectArray(options.failOnError, "$reduce 'input'");
 
   const copts = ComputeOptions.init(options);
-  const locals = { variables: { value: null } };
-  return input.reduce((acc, n) => {
-    locals.variables.value = acc;
-    return evalExpr(n, inExpr, copts.update(locals));
-  }, initialValue);
-};
+  const locals = { variables: { value: null as Any } };
+  let result = initialValue;
+  for (let i = 0; i < input.length; i++) {
+    locals.variables.value = result;
+    result = evalExpr(input[i], inExpr, copts.update(locals));
+  }
+  return result;
+}

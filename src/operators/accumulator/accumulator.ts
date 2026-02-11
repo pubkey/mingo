@@ -45,12 +45,18 @@ export const $accumulator: AccumulatorOperator = (
   ) as Any[];
 
   const args = $push(collection, expr.accumulateArgs, copts) as Any[][];
-  args.forEach(arr => arr.forEach((v, i) => (arr[i] = v ?? null)));
-  const initialValue = expr.init.apply(null, initArgs) as Any;
-  const result = args.reduce(
-    (acc, v) => expr.accumulate.apply(null, [acc, ...v]) as Any,
-    initialValue
-  );
+  for (let i = 0; i < args.length; i++) {
+    for (let j = 0; j < args[i].length; j++) {
+      args[i][j] = args[i][j] ?? null;
+    }
+  }
 
-  return (expr.finalize ? expr.finalize.call(null, result) : result) as Any;
+  const initialValue = expr.init.apply(null, initArgs) as Any;
+  const f = expr.accumulate;
+  let result = initialValue;
+  for (let i = 0; i < args.length; i++) {
+    result = f.apply(null, [result, ...args[i]]) as Any;
+  }
+  if (expr.finalize) result = expr.finalize.call(null, result);
+  return result;
 };

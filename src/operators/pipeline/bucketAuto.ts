@@ -1,12 +1,6 @@
 import { evalExpr } from "../../core/_internal";
 import { Iterator, Lazy } from "../../lazy";
-import {
-  Any,
-  AnyObject,
-  Callback,
-  Options,
-  PipelineOperator
-} from "../../types";
+import { Any, AnyObject, Callback, Options } from "../../types";
 import {
   assert,
   compare,
@@ -56,11 +50,11 @@ type GetNextBucket = Callback<{
  *
  * See {@link https://docs.mongodb.com/manual/reference/operator/aggregation/bucketAuto/ usage}.
  */
-export const $bucketAuto: PipelineOperator = (
+export function $bucketAuto(
   collection: Iterator,
   expr: InputExpr,
   options: Options
-): Iterator => {
+): Iterator {
   const {
     buckets: bucketCount,
     groupBy: groupByExpr,
@@ -147,7 +141,7 @@ export const $bucketAuto: PipelineOperator = (
       }
     };
   });
-};
+}
 
 function granularityDefault(
   sorted: Array<[Any, AnyObject]>,
@@ -187,7 +181,7 @@ function granularityDefault(
     }
 
     assert(
-      isNil(max) || isNil(min) || min <= max,
+      isNil(max) || isNil(min) || compare(min, max) <= 0,
       `error: $bucketAuto boundary must be in order.`
     );
 

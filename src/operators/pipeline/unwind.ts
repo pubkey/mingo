@@ -1,11 +1,5 @@
 import { Iterator, Lazy } from "../../lazy";
-import {
-  Any,
-  AnyObject,
-  Callback,
-  Options,
-  PipelineOperator
-} from "../../types";
+import { Any, AnyObject, Callback, Options } from "../../types";
 import {
   isArray,
   isEmpty,
@@ -21,13 +15,8 @@ import {
  * For each input document, outputs n documents where n is the number of array elements and can be zero for an empty array.
  *
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/unwind/ usage}.
- *
- * @param collection
- * @param expr
- * @param options
- * @returns
  */
-export const $unwind: PipelineOperator = (
+export function $unwind(
   collection: Iterator,
   expr:
     | string
@@ -37,7 +26,7 @@ export const $unwind: PipelineOperator = (
         preserveNullAndEmptyArrays?: boolean;
       },
   _options: Options
-): Iterator => {
+): Iterator {
   if (isString(expr)) expr = { path: expr };
 
   const path = expr.path;
@@ -91,4 +80,4 @@ export const $unwind: PipelineOperator = (
       }
     }
   });
-};
+}

@@ -1,4 +1,4 @@
-import { AnyObject, ArrayOrObject, Options } from "../../types";
+import { AnyObject, Options } from "../../types";
 import { isEqual } from "../../util";
 import {
   applyUpdate,
@@ -8,18 +8,18 @@ import {
 } from "./_internal";
 
 /** Replaces the value of a field with the specified value. */
-export const $set = (
+export function $set(
   expr: AnyObject,
   arrayFilters: AnyObject[] = [],
   options: Options = DEFAULT_OPTIONS
-) => {
+) {
   return (obj: AnyObject) => {
     return walkExpression(expr, arrayFilters, options, (val, node, queries) => {
       return applyUpdate(
         obj,
         node,
         queries,
-        (o: ArrayOrObject, k: string) => {
+        (o: AnyObject, k: string) => {
           if (isEqual(o[k], val)) return false;
           o[k] = clone(val, options);
           return true;
@@ -28,4 +28,4 @@ export const $set = (
       );
     });
   };
-};
+}

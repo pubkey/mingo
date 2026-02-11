@@ -110,9 +110,8 @@ export class ComputeOptions implements Options {
   }
   get now() {
     // defer setting the current time until accessed.`
-    if (!this.#locals?.timestamp)
+    if (!this.#locals.timestamp)
       Object.assign(this.#locals, { timestamp: Date.now() });
-
     return new Date(this.#locals.timestamp);
   }
   get idKey() {
@@ -339,7 +338,7 @@ function computeExpression(obj: Any, expr: Any, options: ComputeOptions): Any {
 
   if (isObject(expr)) {
     const result: AnyObject = {};
-    const elems = Object.entries(expr as AnyObject);
+    const elems = Object.entries(expr);
     for (const [key, val] of elems) {
       // if object represents an operator expression, there should only be a single key
       if (isOperator(key)) {

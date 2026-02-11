@@ -15,7 +15,7 @@ import type {
 } from "./types";
 import { cloneDeep, has } from "./util";
 
-const OPERATORS: Record<string, PipelineOperator> = { $sort, $skip, $limit };
+const OPERATORS = { $sort, $skip, $limit } as Record<string, PipelineOperator>;
 
 /**
  * The `Cursor` class provides a mechanism for iterating over a collection of data
@@ -45,7 +45,7 @@ export class Cursor<T> {
     source: Source,
     predicate: Predicate<Any>,
     projection: Projection<T>,
-    options?: Options
+    options: Options
   ) {
     this.#source = source;
     this.#predicate = predicate;
@@ -65,13 +65,10 @@ export class Cursor<T> {
     if (mode & ProcessingMode.CLONE_INPUT) this.#result.map(o => cloneDeep(o));
 
     // apply cursor operators
-    for (const op of ["$sort", "$skip", "$limit"]) {
+    for (const op of Object.keys(OPERATORS)) {
       if (has(this.#operators, op)) {
-        this.#result = OPERATORS[op](
-          this.#result,
-          this.#operators[op],
-          this.#options
-        );
+        const f = OPERATORS[op];
+        this.#result = f(this.#result, this.#operators[op], this.#options);
       }
     }
     // apply projection
@@ -153,7 +150,7 @@ export class Cursor<T> {
       return this.#buffer.pop();
     }
     const o = this.fetch().next();
-    if (o.done) return;
+    if (o.done) return undefined as T;
     return o.value as T;
   }
 

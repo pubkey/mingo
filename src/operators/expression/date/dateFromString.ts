@@ -1,5 +1,5 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, isNil, isObject } from "../../../util";
 import {
   adjustDate,
@@ -30,7 +30,7 @@ function regexQuote(s: string): string {
 }
 
 interface InputExpr {
-  dateString?: string;
+  dateString: string;
   timezone?: string;
   format?: string;
   onError?: Any;
@@ -40,24 +40,23 @@ interface InputExpr {
 /**
  * Converts a date/time string to a date object.
  */
-export const $dateFromString: ExpressionOperator<Any> = (
+export function $dateFromString(
   obj: AnyObject,
   expr: InputExpr,
   options: Options
-): Any => {
+): Any {
   const args = evalExpr(obj, expr, options) as InputExpr;
-
-  args.format = args.format || DATE_FORMAT;
-  args.onNull = args.onNull || null;
+  const format = args.format || DATE_FORMAT;
+  const onNull = args.onNull || null;
 
   let dateString = args.dateString;
-  if (isNil(dateString)) return args.onNull;
+  if (isNil(dateString)) return onNull;
 
   // collect all separators of the format string
-  const separators = args.format.split(DATE_FORMAT_SEP_RE);
+  const separators = format.split(DATE_FORMAT_SEP_RE);
   separators.reverse();
 
-  const matches = args.format.match(DATE_FORMAT_SYM_RE);
+  const matches = format.match(DATE_FORMAT_SYM_RE) || [];
 
   const dateParts: {
     year?: number;
@@ -71,7 +70,7 @@ export const $dateFromString: ExpressionOperator<Any> = (
     millisecond?: number;
     timezone?: string;
     minute_offset?: string;
-  } = {};
+  } & AnyObject = {};
 
   // holds the valid regex of parts that matches input date string
   let expectedPattern = "";
@@ -151,4 +150,4 @@ export const $dateFromString: ExpressionOperator<Any> = (
   adjustDate(d, -minuteOffset);
 
   return d;
-};
+}

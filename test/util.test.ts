@@ -707,14 +707,14 @@ describe("util", () => {
       }
     };
 
-    const cycleObject = { name: "cycle", self: undefined };
+    const cycleObject: AnyObject = { name: "cycle", self: undefined };
     cycleObject.self = cycleObject;
 
     const cycleArray: unknown[] = Array.from({ length: 10 }, (_, i) => i);
     cycleArray[0] = cycleArray;
 
     class Node {
-      public next: Node;
+      public next: Node | undefined = undefined;
     }
     const cycleNode = new Node();
     cycleNode.next = cycleNode;

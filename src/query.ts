@@ -83,12 +83,12 @@ export class Query<T = AnyObject> {
   }
 
   private processOperator(field: string, operator: string, value: Any): void {
-    const call = this.#options.context.getOperator(
+    const fn = this.#options.context.getOperator(
       OpType.QUERY,
       operator
     ) as QueryOperator;
-    assert(!!call, `unknown query operator ${operator}`);
-    this.#compiled.push(call(field, value, this.#options));
+    assert(!!fn, `unknown query operator ${operator}`);
+    this.#compiled.push(fn(field, value, this.#options) as Predicate);
   }
 
   /**

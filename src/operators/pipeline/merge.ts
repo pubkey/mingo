@@ -1,7 +1,7 @@
 import { Aggregator } from "../../aggregator";
 import { ComputeOptions, evalExpr } from "../../core/_internal";
 import { Iterator } from "../../lazy";
-import { AnyObject, Options, PipelineOperator } from "../../types";
+import type { AnyObject, Options } from "../../types";
 import {
   assert,
   hashCode,
@@ -12,6 +12,7 @@ import {
   resolve
 } from "../../util";
 import { $mergeObjects } from "../expression";
+import { resolveCollection } from "./_internal";
 
 interface InputExpr {
   /** The output collection. */
@@ -40,22 +41,14 @@ interface InputExpr {
  * NB: Object are deep cloned for outputing regardless of the ProcessingMode.
  *
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/merge/ usage}.
- *
- * @param collection
- * @param expr
- * @param options
- * @returns
  */
-export const $merge: PipelineOperator = (
+export function $merge(
   collection: Iterator,
   expr: InputExpr,
   options: Options
-): Iterator => {
-  const output: AnyObject[] = isString(expr.into)
-    ? options?.collectionResolver(expr.into)
-    : expr.into;
-
-  assert(isArray(output), `$merge: option 'into' must resolve to an array`);
+): Iterator {
+  const output = resolveCollection("$merge", expr.into, options);
+  assert(isArray(output), `$merge: expression 'into' must resolve to an array`);
 
   const onField = expr.on || options.idKey;
 
@@ -136,4 +129,4 @@ export const $merge: PipelineOperator = (
 
     return o; // passthrough
   });
-};
+}

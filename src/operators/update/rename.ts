@@ -1,4 +1,4 @@
-import { Any, AnyObject, ArrayOrObject, Options } from "../../types";
+import { AnyObject, Options } from "../../types";
 import { assert, has } from "../../util";
 import { applyUpdate, DEFAULT_OPTIONS, walkExpression } from "./_internal";
 import { $set } from "./set";
@@ -7,11 +7,11 @@ const isIdPath = (path: string, idKey: string) =>
   path === idKey || path.startsWith(`${idKey}.`);
 
 /** Replaces the value of a field with the specified value. */
-export const $rename = (
+export function $rename(
   expr: Record<string, string>,
   arrayFilters: AnyObject[] = [],
   options: Options = DEFAULT_OPTIONS
-) => {
+) {
   // validate target fields are not id field (source fields validated in walkExpression)
   const idKey = options.idKey;
   for (const target of Object.values(expr)) {
@@ -27,22 +27,17 @@ export const $rename = (
       arrayFilters,
       options,
       (val, node, queries) => {
-        return applyUpdate(
-          obj,
-          node,
-          queries,
-          (o: ArrayOrObject, k: string) => {
-            if (!has(o as AnyObject, k)) return false;
-            Array.prototype.push.apply(
-              res,
-              $set({ [val]: o[k] as Any }, arrayFilters, options)(obj)
-            );
-            delete o[k];
-            return true;
-          }
-        );
+        return applyUpdate(obj, node, queries, (o: AnyObject, k: string) => {
+          if (!has(o, k)) return false;
+          Array.prototype.push.apply(
+            res,
+            $set({ [val]: o[k] }, arrayFilters, options)(obj)
+          );
+          delete o[k];
+          return true;
+        });
       }
     );
     return Array.from(new Set(changed.concat(res)));
   };
-};
+}

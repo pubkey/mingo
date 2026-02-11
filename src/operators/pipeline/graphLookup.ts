@@ -1,7 +1,8 @@
 import { evalExpr } from "../../core/_internal";
 import { Iterator, Lazy } from "../../lazy";
-import { Any, AnyObject, Options, PipelineOperator } from "../../types";
-import { flatten, HashMap, isNil, isString, setValue } from "../../util";
+import type { Any, AnyObject, Options } from "../../types";
+import { assert, flatten, HashMap, isArray, isNil, setValue } from "../../util";
+import { resolveCollection } from "./_internal";
 import { $lookup } from "./lookup";
 
 interface InputExpr {
@@ -28,20 +29,17 @@ interface InputExpr {
  * To each output document, adds a new array field that contains the traversal results of the recursive search for that document.
  *
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/graphLookup/ usage}.
- *
- * @param collection
- * @param expr
- * @param options
- * @returns
  */
-export const $graphLookup: PipelineOperator = (
+export function $graphLookup(
   collection: Iterator,
   expr: InputExpr,
   options: Options
-): Iterator => {
-  const fromColl = isString(expr.from)
-    ? options?.collectionResolver(expr.from)
-    : expr.from;
+): Iterator {
+  const fromColl = resolveCollection("$graphLookup", expr.from, options);
+  assert(
+    isArray(fromColl),
+    "$graphLookup: expression 'from' must resolve to array"
+  );
 
   const {
     connectFromField,
@@ -80,7 +78,7 @@ export const $graphLookup: PipelineOperator = (
           },
           options
         )
-          .map(o => o[asField] as AnyObject)
+          .map((o: AnyObject) => o[asField] as AnyObject)
           .collect()
       ) as AnyObject[];
       const oldSize = map.size;
@@ -96,4 +94,4 @@ export const $graphLookup: PipelineOperator = (
     });
     return { ...obj, [asField]: result };
   });
-};
+}

@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { aggregate } from "../src";
-import { Context, ProcessingMode } from "../src/core";
-import { evalExpr } from "../src/core/_internal";
+import { Context, evalExpr, ProcessingMode } from "../src/core";
 import * as accumulatorOperators from "../src/operators/accumulator";
 import * as expressionOperators from "../src/operators/expression";
 import * as pipelineOperators from "../src/operators/pipeline";

@@ -1,7 +1,7 @@
 import { Aggregator } from "../../aggregator";
 import { ComputeOptions, evalExpr } from "../../core/_internal";
 import { Iterator } from "../../lazy";
-import { Any, AnyObject, Options, PipelineOperator } from "../../types";
+import { Any, AnyObject, Options } from "../../types";
 import {
   assert,
   ensureArray,
@@ -11,7 +11,7 @@ import {
   isString,
   resolve
 } from "../../util";
-import { filterDocumentsStage } from "./_internal";
+import { filterDocumentsStage, resolveCollection } from "./_internal";
 
 interface InputExpr {
   /** Specifies the collection in the same database to perform the join with. */
@@ -32,25 +32,21 @@ interface InputExpr {
  * Performs a left outer join to another collection to filter in documents from the "joined" collection for processing.
  *
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/lookup/ usage}
- *
- * @param collection
- * @param expr
- * @param options
  */
-export const $lookup: PipelineOperator = (
+export function $lookup(
   collection: Iterator,
   expr: InputExpr,
   options: Options
-): Iterator => {
-  let joinColl = isString(expr.from)
-    ? options?.collectionResolver(expr.from)
-    : expr.from;
-
+): Iterator {
   const { let: letExpr, foreignField, localField } = expr;
 
   // we default to a valid equality match.
   // returns [match_found:boolean, matched_items:array]
   let lookupEq = (_: AnyObject): [boolean, Any[]] => [true, []];
+
+  let joinColl = isString(expr.from)
+    ? resolveCollection("$lookup", expr.from, options)
+    : expr.from;
 
   const { documents, pipeline } = filterDocumentsStage(
     expr.pipeline ?? [],
@@ -91,7 +87,7 @@ export const $lookup: PipelineOperator = (
         // only return the predicate result with no values since there is more to check.
         if (pipeline.length) {
           // check that matches exist for this object.
-          return [local.some(v => map.has(v)), null];
+          return [local.some(v => map.has(v)), []];
         }
         // return entire result set.
         const result = Array.from(new Set(flatten(local.map(v => map.get(v)))));
@@ -123,4 +119,4 @@ export const $lookup: PipelineOperator = (
       [expr.as]: ok ? agg.run(joinColl, opts) : res
     };
   });
-};
+}

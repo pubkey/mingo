@@ -6,7 +6,6 @@ import {
   AnyObject,
   Callback,
   Options,
-  PipelineOperator,
   WindowOperator
 } from "../../types";
 import { assert, isNumber, isOperator, isString } from "../../util";
@@ -50,40 +49,41 @@ const isUnbounded = (window: WindowOutputOption): boolean => {
   );
 };
 
+const OP = "$setWindowFields";
+
 /**
  * Groups documents into windows and applies one or more operators to the documents in each window.
  *
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/setWindowFields/ usage}.
- *
- * @param collection
- * @param expr
- * @param options
- * @returns
  */
-export const $setWindowFields: PipelineOperator = (
+export function $setWindowFields(
   collection: Iterator,
   expr: SetWindowFieldsInput,
   options: Options
-): Iterator => {
+): Iterator {
   options = ComputeOptions.init(options);
   options.context.addExpressionOps({ $function });
 
+  const operators: Record<string, string> = {};
+
   // validate inputs early since this can be an expensive operation.
-  for (const outputExpr of Object.values(expr.output)) {
+  const entries = Object.entries(expr.output);
+  for (const [field, outputExpr] of entries) {
     const keys = Object.keys(outputExpr);
     const op = keys.find(isOperator);
     const context = options.context;
     assert(
-      !!context.getOperator(OpType.WINDOW, op) ||
-        !!context.getOperator(OpType.ACCUMULATOR, op),
-      `'${op}' is not a valid window operator`
+      op &&
+        (!!context.getOperator(OpType.WINDOW, op) ||
+          !!context.getOperator(OpType.ACCUMULATOR, op)),
+      `${OP} '${op}' is not a valid window operator`
     );
 
     assert(
       keys.length > 0 &&
         keys.length <= 2 &&
         (keys.length == 1 || keys.includes("window")),
-      "'output' option should have a single window operator."
+      `${OP} 'output' option should have a single window operator.`
     );
 
     if (outputExpr?.window) {
@@ -93,6 +93,8 @@ export const $setWindowFields: PipelineOperator = (
         "'window' option supports only one of 'documents' or 'range'."
       );
     }
+
+    operators[field] = op!;
   }
 
   // we sort first if required
@@ -111,7 +113,7 @@ export const $setWindowFields: PipelineOperator = (
   );
 
   // transform values
-  return collection.transform(((partitions: Any[]) => {
+  return collection.transform((partitions: Any[]) => {
     // let iteratorIndex = 0;
     const iterators: Iterator[] = [];
     const outputConfig: Array<{
@@ -122,22 +124,23 @@ export const $setWindowFields: PipelineOperator = (
       };
       args: Any;
       field: string;
-      window: WindowOutputOption;
+      window?: WindowOutputOption;
     }> = [];
 
-    for (const [field, outputExpr] of Object.entries(expr.output)) {
-      const op = Object.keys(outputExpr).find(isOperator);
+    for (const [field, outputExpr] of entries) {
+      const op = operators[field];
+
       const config = {
         operatorName: op,
         func: {
           left: options.context.getOperator(
             OpType.ACCUMULATOR,
             op
-          ) as AccumulatorOperator,
+          ) as AccumulatorOperator | null,
           right: options.context.getOperator(
             OpType.WINDOW,
             op
-          ) as WindowOperator
+          ) as WindowOperator | null
         },
         args: outputExpr[op],
         field: field,
@@ -264,7 +267,7 @@ export const $setWindowFields: PipelineOperator = (
               const array = new Array<AnyObject>();
               while (i < sliceEnd) {
                 const o = items[i++];
-                const n = +o[sortKey];
+                const n = +(o[sortKey] as number);
                 if (n >= lower && n <= upper) array.push(o);
               }
               return array;
@@ -299,5 +302,5 @@ export const $setWindowFields: PipelineOperator = (
     }) as Callback);
 
     return concat(...iterators);
-  }) as Callback<Iterator>);
-};
+  });
+}

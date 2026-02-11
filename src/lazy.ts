@@ -57,7 +57,7 @@ function isIterable(o: Any) {
   return (
     !!o &&
     (typeof o === "object" || typeof o === "function") &&
-    typeof o[Symbol.iterator] === "function"
+    typeof (o as Iterable<Any>)[Symbol.iterator] === "function"
   );
 }
 
@@ -76,18 +76,13 @@ export class Iterator {
   #done = false;
 
   constructor(source: Source) {
-    const iter: Generator = isIterable(source)
-      ? ((source as Iterable<Any>)[Symbol.iterator]() as Generator)
-      : isGenerator(source)
-        ? (source as Generator)
-        : typeof source === "function"
-          ? { next: source }
-          : null;
-
-    assert(
-      !!iter,
-      `Iterator must be initialized with an iterable or function.`
-    );
+    let iter: Generator;
+    if (isIterable(source))
+      iter = (source as Iterable<Any>)[Symbol.iterator]() as Generator;
+    else if (isGenerator(source)) iter = source as Generator;
+    else if (typeof source === "function") iter = { next: source };
+    else
+      assert(0, "mingo: iterator requires an iterable, generator or function");
 
     // index of successfully transformed and yielded item
     let index = -1;
@@ -116,7 +111,7 @@ export class Iterator {
   /**
    * Add an iteratee to this lazy sequence
    */
-  private push(op: "map" | "filter", fn: Callback<Any>) {
+  private push(op: "map" | "filter", fn: Callback) {
     this.#iteratees.push({ op, fn });
     return this;
   }
@@ -132,7 +127,7 @@ export class Iterator {
    * @param {Function} f
    */
   map<R, T = R>(f: (o: T, n: number) => R): Iterator {
-    return this.push("map", f);
+    return this.push("map", f as Callback);
   }
 
   /**
@@ -169,11 +164,11 @@ export class Iterator {
    *
    * @param {Callback<Source, Any[]>} f Tranform function of type (Array) => (Any)
    */
-  transform(f: Callback<Source, Any[]>): Iterator {
+  transform<T>(f: Callback<Iterator, T[]>): Iterator {
     const self = this;
     let iter: Iterator;
     return Lazy(() => {
-      if (!iter) iter = Lazy(f(self.collect()));
+      if (!iter) iter = f(self.collect());
       return iter.next();
     });
   }
@@ -196,8 +191,8 @@ export class Iterator {
    * Execute the callback for each value.
    * @param f The callback function.
    */
-  each<T>(f: Callback<T>): void {
-    for (let o = this.next(); o.done !== true; o = this.next()) f(o.value);
+  each<T>(f: Callback<void, T>): void {
+    for (let o = this.next(); o.done !== true; o = this.next()) f(o.value as T);
   }
 
   /**

@@ -5,7 +5,6 @@ import {
   AnyObject,
   Callback,
   Options,
-  PipelineOperator,
   Predicate,
   ProjectionOperator,
   QueryOperator
@@ -32,22 +31,24 @@ import {
 } from "../../util/_internal";
 import { validateProjection } from "./_internal";
 
+const OP = "$project";
+
 /**
  * Reshapes each document in the stream, such as by adding new fields or removing existing fields.
  * For each input document, outputs one document.
  *
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/project usage}.
  */
-export const $project: PipelineOperator = (
+export function $project(
   collection: Iterator,
   expr: AnyObject,
   options: Options
-): Iterator => {
+): Iterator {
   if (isEmpty(expr)) return collection;
   const meta = validateProjection(expr, options);
   const handler = createHandler(expr, ComputeOptions.init(options), meta);
   return collection.map(handler);
-};
+}
 
 // handler for transforming the 'target' object based on the 'current'.
 type SelectorHandler = (_target: AnyObject, _current: AnyObject) => void;
@@ -89,7 +90,7 @@ function createHandler(
       const condition = options?.local?.condition;
       assert(
         condition,
-        "positional operator '.$' couldn't find matching element in the array."
+        `${OP}: positional operator '.$' requires array condition.`
       );
       const field = selector.slice(0, -2);
       handlers[field] = getPositionalFilter(field, condition, options);
@@ -109,7 +110,7 @@ function createHandler(
         const extractedVal = resolveGraph(o, selector, resolveOpts);
         mergeInto(t, extractedVal);
       };
-    } else if (isObject(v) == false) {
+    } else if (!isObject(v)) {
       handlers[selector] = (t: AnyObject, o: AnyObject) => {
         options.update({ root: o });
         const newVal = evalExpr(o, v, options);
@@ -124,7 +125,7 @@ function createHandler(
       );
       // handle operators
       const operator = opKeys[0];
-      const opExpr = v[operator] as Any;
+      const opExpr = v[operator];
 
       // get the projection operator as used in Query.find() queries
       const fn = options.context.getOperator(
@@ -166,7 +167,7 @@ function createHandler(
     (noInclusions && exclusions.length && !onlyIdKeyExcluded);
 
   return (o: AnyObject) => {
-    const newObj = {};
+    const newObj: AnyObject = {};
 
     if (allKeysIncluded) Object.assign(newObj, o);
 
@@ -195,14 +196,14 @@ const findMatches = (
 ) => {
   let arr = resolve(o, key) as Any[];
   if (!isArray(arr)) arr = resolve(arr, leaf) as AnyObject[];
-  assert(isArray(arr), "must resolve to array");
+  assert(isArray(arr), `${OP}: field '${key}' must resolve to array`);
   const matches: number[] = [];
   // note: each value is passed in as an arary to support $elemMatch operator.
   arr.forEach((e, i) => pred({ [leaf]: [e] }) && matches.push(i));
   return matches;
 };
 
-const complement = (p: Predicate) => (e: AnyObject) => !p(e);
+const complement = (p: Predicate) => ((e: AnyObject) => !p(e)) as Predicate;
 
 const COMPOUND_OPS = { $and: 1, $or: 1, $nor: 1 } as const;
 
@@ -217,7 +218,7 @@ function getPositionalFilter(
   field: string,
   condition: AnyObject,
   options: ComputeOptions
-): Callback<void> {
+): Callback<void, AnyObject> {
   // we must handle two cases of nested fields. e.g. "a.b.c" can be.
   //  1. {a:{b:[{c:1},{c:2}...]}}
   //  2. {a:{b:{c:[...]}}}
@@ -225,34 +226,37 @@ function getPositionalFilter(
   // then we use the 'leaf' as the selector to the compiled predicate for the case of nested objects in array paths.
   // since we always need to send an object to the predicate, for non-objects we wrap in an object with the 'leaf' as the key.
   const stack: [string, Any, string?][] = Object.entries(condition).slice();
-  const selectors: Partial<
-    Record<"$and" | "$or", [string, Predicate, string][]>
-  > = { $and: [], $or: [] };
+  const selectors: Record<"$and" | "$or", [string, Predicate, string][]> = {
+    $and: [],
+    $or: []
+  };
   for (let i = 0; i < stack.length; i++) {
     const [key, val, op] = stack[i] as [string, Any, string];
     if (key === field || key.startsWith(field + ".")) {
-      const [operator, expr] = Object.entries(normalize(val)).pop() as [
-        string,
-        Any
-      ];
+      const [operator, expr] = Object.entries(
+        normalize(val) as object
+      ).pop() as [string, Any];
       const fn = options.context.getOperator(
         OpType.QUERY,
         operator
       ) as QueryOperator;
       const leaf = key.substring(key.lastIndexOf(".") + 1);
-      const pred = fn(leaf, expr, options);
+      const pred = fn(leaf, expr, options) as Predicate;
       if (!op || op === "$and") {
         // default for all query criteria
-        selectors["$and"].push([key, pred, leaf]);
+        selectors.$and.push([key, pred, leaf]);
       } else if (op === "$nor") {
         // handle $nor by inverting predicate for conjunction evaluation.
-        selectors["$and"].push([key, complement(pred), leaf]);
+        selectors.$and.push([key, complement(pred), leaf]);
       } else if (op === "$or") {
         // must check these as a group to identify all matching indices
-        selectors["$or"].push([key, pred, leaf]);
+        selectors.$or.push([key, pred, leaf]);
       }
     } else if (isOperator(key)) {
-      assert(COMPOUND_OPS[key], `${key} is not allowed in this context`);
+      assert(
+        !!COMPOUND_OPS[key as keyof typeof COMPOUND_OPS],
+        `${OP}: '${key}' is not allowed in this context`
+      );
       for (const item of val as AnyObject[]) {
         Object.entries(item).forEach(([k, v]) => stack.push([k, v, key]));
       }
@@ -265,13 +269,13 @@ function getPositionalFilter(
 
   return (t: AnyObject, o: AnyObject) => {
     const matches: number[][] = [];
-    for (const [key, pred, leaf] of selectors["$and"]) {
+    for (const [key, pred, leaf] of selectors.$and) {
       matches.push(findMatches(o, key, leaf, pred));
     }
 
-    if (selectors["$or"].length) {
+    if (selectors.$or.length) {
       const orMatches: number[] = [];
-      for (const [key, pred, leaf] of selectors["$or"]) {
+      for (const [key, pred, leaf] of selectors.$or) {
         orMatches.push(...findMatches(o, key, leaf, pred));
       }
       matches.push(unique(orMatches));
@@ -292,8 +296,10 @@ function mergeInto(target: Any, input: Any): Any {
   if (target === MISSING || isNil(target)) return input;
   if (isNil(input)) return target;
   // handle both arrays and objects
+  const out = target as AnyObject;
+  const src = input as AnyObject;
   for (const k of Object.keys(input as object)) {
-    target[k] = mergeInto(target[k], input[k]);
+    out[k] = mergeInto(out[k], src[k]);
   }
-  return target;
+  return out;
 }

@@ -1,13 +1,13 @@
-import { AnyObject, ArrayOrObject, Options } from "../../types";
+import { AnyObject, Options } from "../../types";
 import { isNumber } from "../../util";
 import { applyUpdate, DEFAULT_OPTIONS, walkExpression } from "./_internal";
 
 /** Multiply the value of a field by a number. */
-export const $mul = (
+export function $mul(
   expr: Record<string, number>,
   arrayFilters: AnyObject[] = [],
   options: Options = DEFAULT_OPTIONS
-) => {
+) {
   return (obj: AnyObject) => {
     return walkExpression<number>(
       expr,
@@ -18,7 +18,7 @@ export const $mul = (
           obj,
           node,
           queries,
-          (o: ArrayOrObject, k: string | number) => {
+          (o: AnyObject, k: string) => {
             const prev = o[k] as number;
             if (isNumber(o[k])) o[k] = o[k] * val;
             else if (o[k] === undefined) o[k] = 0;
@@ -29,4 +29,4 @@ export const $mul = (
       }
     );
   };
-};
+}

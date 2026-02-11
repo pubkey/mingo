@@ -1,4 +1,4 @@
-import { Any, AnyObject, ArrayOrObject, Options } from "../../types";
+import { Any, AnyObject, Options } from "../../types";
 import {
   compare,
   has,
@@ -18,11 +18,11 @@ import {
 const MODIFIERS = ["$each", "$slice", "$sort", "$position"] as const;
 
 /** Appends a specified value to an array. */
-export const $push = (
+export function $push(
   expr: AnyObject,
   arrayFilters: AnyObject[] = [],
   options: Options = DEFAULT_OPTIONS
-) => {
+) {
   return (obj: AnyObject) => {
     return walkExpression(expr, arrayFilters, options, (val, node, queries) => {
       const args: {
@@ -34,7 +34,7 @@ export const $push = (
         $each: [val]
       };
 
-      if (isObject(val) && MODIFIERS.some(m => has(val as AnyObject, m))) {
+      if (isObject(val) && MODIFIERS.some(m => has(val, m))) {
         Object.assign(args, val);
       }
 
@@ -42,7 +42,7 @@ export const $push = (
         obj,
         node,
         queries,
-        (o: ArrayOrObject, k: string) => {
+        (o: AnyObject, k: string) => {
           const arr = o[k] as Any[];
 
           if (!isArray(arr)) {
@@ -62,16 +62,16 @@ export const $push = (
           arr.splice(pos, 0, ...(clone(args.$each, options) as Any[]));
 
           if (args.$sort) {
-            /* eslint-disable @typescript-eslint/no-unsafe-assignment */
             const sortKey = isObject(args.$sort)
               ? Object.keys(args.$sort)[0]
               : "";
-            const order: number = !sortKey ? args.$sort : args.$sort[sortKey];
+            const order: number = !sortKey
+              ? (args.$sort as number)
+              : (args.$sort as Record<string, 1 | -1>)[sortKey];
             const f = !sortKey
               ? (a: Any) => a
               : (a: Any) => resolve(a as AnyObject, sortKey);
             arr.sort((a, b) => order * compare(f(a), f(b)));
-            /* eslint-enable @typescript-eslint/no-unsafe-assignment */
           }
 
           // handle slicing
@@ -87,4 +87,4 @@ export const $push = (
       );
     });
   };
-};
+}

@@ -1,11 +1,10 @@
-import { Iterator } from "../../lazy";
+import { Iterator, Lazy } from "../../lazy";
 import {
   Any,
   AnyObject,
   CollationSpec,
   Comparator,
-  Options,
-  PipelineOperator
+  Options
 } from "../../types";
 import {
   assert,
@@ -22,17 +21,12 @@ import {
  * Sorts all input documents and returns them to the pipeline in sorted order.
  *
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/sort/ usage}.
- *
- * @param collection
- * @param sortKeys
- * @param options
- * @returns
  */
-export const $sort: PipelineOperator = (
+export function $sort(
   collection: Iterator,
   sortKeys: Record<string, 1 | -1>,
   options: Options
-): Iterator => {
+): Iterator {
   if (isEmpty(sortKeys) || !isObject(sortKeys)) return collection;
   assert(
     isObject(sortKeys) && Object.keys(sortKeys).length > 0,
@@ -48,7 +42,7 @@ export const $sort: PipelineOperator = (
     cmp = collationComparator(collationSpec);
   }
 
-  return collection.transform((coll: Any[]) => {
+  return collection.transform((coll: AnyObject[]) => {
     const modifiers = Object.keys(sortKeys);
     for (const key of modifiers.reverse()) {
       const groups = groupBy(coll, (obj: AnyObject) => resolve(obj, key));
@@ -82,9 +76,9 @@ export const $sort: PipelineOperator = (
       for (const k of sortedKeys) for (const v of groups.get(k)) coll[i++] = v;
       assert(i == coll.length, "bug: counter must match collection size.");
     }
-    return coll;
+    return Lazy(coll);
   });
-};
+}
 
 // MongoDB collation strength to JS localeCompare sensitivity mapping.
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare

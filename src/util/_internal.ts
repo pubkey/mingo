@@ -127,7 +127,8 @@ function mingoCmp(a: Any, b: Any, descendArray: boolean = false): number {
       const keysB = Object.keys(b as object).sort();
       if ((neq = mingoCmp(keysA, keysB))) return neq;
       for (const k of keysA)
-        if ((neq = mingoCmp((a as object)[k], (b as object)[k]))) return neq;
+        if ((neq = mingoCmp((a as AnyObject)[k], (b as AnyObject)[k])))
+          return neq;
       return 0;
     }
   }
@@ -163,7 +164,7 @@ export function isEqual(a: Any, b: Any): boolean {
   if (a === null || b === null) return false;
   if (typeof a !== typeof b) return false;
   if (typeof a !== "object") return false;
-  if (a.constructor !== b.constructor) return false;
+  if (a.constructor !== b?.constructor) return false;
   if (isDate(a)) return isDate(b) && +a === +b;
   if (isRegExp(a))
     return isRegExp(b) && a.source === b.source && a.flags === b.flags;
@@ -173,10 +174,13 @@ export function isEqual(a: Any, b: Any): boolean {
   if (a?.constructor !== Object && hasCustomString(a)) {
     return (a as Str)?.toString() === (b as Str)?.toString();
   }
-  const keysA = Object.keys(a);
-  const keysB = Object.keys(b);
+
+  const objA = a as AnyObject;
+  const objB = b as AnyObject;
+  const keysA = Object.keys(objA);
+  const keysB = Object.keys(objB);
   if (keysA.length !== keysB.length) return false;
-  return keysA.every(k => has(b as AnyObject, k) && isEqual(a[k], b[k]));
+  return keysA.every(k => has(objB, k) && isEqual(objA[k], objB[k]));
 }
 
 /**
@@ -189,9 +193,10 @@ export class HashMap<K, V> extends Map<K, V> {
   // maps the hashcode to key set
   #keyMap = new Map<number, K[]>();
   // returns a tuple of [<masterKey>, <hash>]. Expects an object key.
-  #unpack = (key: K): [K, number] => {
+  #unpack = (key: K): [K | undefined, number] => {
     const hash = hashCode(key);
-    return [(this.#keyMap.get(hash) || []).find(k => isEqual(k, key)), hash];
+    const items = this.#keyMap.get(hash) ?? [];
+    return [items.find(k => isEqual(k, key)), hash];
   };
 
   private constructor() {
@@ -279,8 +284,11 @@ export class HashMap<K, V> extends Map<K, V> {
   }
 }
 
-export function assert(condition: Any, message: string): void {
-  if (!condition) throw new MingoError(message);
+export function assert(
+  condition: Any,
+  msg: string | Callback<string, void>
+): void {
+  if (!condition) throw new MingoError(typeof msg === "function" ? msg() : msg);
 }
 
 /**
@@ -306,7 +314,7 @@ export const isNumber = (v: Any): v is number =>
   !Number.isNaN(v as number) && typeof v === "number";
 export const isInteger = Number.isInteger;
 export const isArray = Array.isArray;
-export const isObject = (v: Any): v is object => typeOf(v) === "object";
+export const isObject = (v: Any): v is AnyObject => typeOf(v) === "object";
 //  objects, arrays, functions, date, custom object
 export const isObjectLike = (v: Any): boolean => !isPrimitive(v);
 export const isDate = (v: Any): v is Date => v instanceof Date;
@@ -378,9 +386,10 @@ export function intersection<T = Any>(input: T[][]): T[] {
   input[input.length - 1].forEach(v => vmaps[0].set(v, true));
   // process collection backwards.
   for (let i = input.length - 2; i > -1; i--) {
-    input[i].forEach(v => {
+    for (let j = 0; j < input[i].length; j++) {
+      const v = input[i][j];
       if (vmaps[0].has(v)) vmaps[1].set(v, true);
-    });
+    }
     if (vmaps[1].size === 0) return [];
     vmaps.reverse();
     vmaps[1].clear();
@@ -429,12 +438,12 @@ export function unique<T = Any>(input: T[]): T[] {
  */
 export function groupBy<T = Any, K = Any>(
   collection: T[],
-  keyFunc: Callback<K>
-): Map<K, T[]> {
+  keyFunc: (a: T, i: number) => K
+): Map<K | null, T[]> {
   if (collection.length < 1) return new Map();
 
   // map of raw key values to matching objects of the same keyFn(obj).
-  const result = HashMap.init<K, T[]>();
+  const result = HashMap.init<K | null, T[]>();
   for (let i = 0; i < collection.length; i++) {
     const obj = collection[i];
     const key = keyFunc(obj, i) ?? null;
@@ -457,7 +466,7 @@ export function groupBy<T = Any, K = Any>(
  * @private
  */
 function getValue(obj: ArrayOrObject, key: string | number): Any {
-  return isObjectLike(obj) ? obj[key] : undefined;
+  return isObjectLike(obj) ? (obj as AnyObject)[key] : undefined;
 }
 
 /**
@@ -552,7 +561,7 @@ export function resolveGraph(
       const index = parseInt(key);
       let value = getValue(obj, index) as ArrayOrObject;
       if (hasNext) {
-        value = resolveGraph(value, next, options);
+        value = resolveGraph(value, next, options)!;
       }
       if (options?.preserveIndex) {
         arr[index] = value;
@@ -569,7 +578,7 @@ export function resolveGraph(
         }
       }
     }
-    return arr;
+    return arr as ArrayOrObject;
   }
 
   const res = options?.preserveKeys ? { ...obj } : {};
@@ -613,6 +622,7 @@ export interface WalkOptions {
 }
 
 const NUMBER_RE = /^\d+$/;
+export type Indexed = string | number;
 
 /**
  * Walk the object graph and execute the given transform function
@@ -624,9 +634,9 @@ const NUMBER_RE = /^\d+$/;
  * @return {*}
  */
 export function walk(
-  obj: ArrayOrObject,
+  obj: AnyObject,
   selector: string,
-  fn: Callback<void>,
+  fn: (_o: AnyObject, _k: string) => void,
   options?: WalkOptions
 ): void {
   const names = selector.split(".");
@@ -644,7 +654,7 @@ export function walk(
     }
 
     // get the next item
-    const item = obj[key] as ArrayOrObject;
+    const item = obj[key] as AnyObject;
     // nothing more to do
     if (!item) return;
     // we peek to see if next key is an array index.
@@ -657,7 +667,7 @@ export function walk(
     //  - individual objecs can be traversed with "array.k"
     //  - a specific object can be traversed with "array.1"
     if (isArray(item) && options?.descendArray && !isNextArrayIndex) {
-      item.forEach(((e: ArrayOrObject) =>
+      item.forEach(((e: AnyObject) =>
         walk(e, next, fn, options)) as Callback<void>);
     } else {
       walk(item, next, fn, options);
@@ -672,12 +682,8 @@ export function walk(
  * @param selector {String} path to field
  * @param value {*} the value to set.
  */
-export function setValue(
-  obj: ArrayOrObject,
-  selector: string,
-  value: Any
-): void {
-  walk(obj, selector, (item: AnyObject, key: string) => (item[key] = value), {
+export function setValue(obj: AnyObject, selector: string, value: Any): void {
+  walk(obj, selector, (item: AnyObject, key: Indexed) => (item[key] = value), {
     buildGraph: true
   });
 }
@@ -691,7 +697,7 @@ export function setValue(
  * @param selector {String} dot separated path to element to remove
  */
 export function removeValue(
-  obj: ArrayOrObject,
+  obj: AnyObject,
   selector: string,
   options?: Pick<WalkOptions, "descendArray">
 ): void {
@@ -715,7 +721,7 @@ export function removeValue(
  * @param {String} name
  */
 export const isOperator = (name: string): boolean =>
-  name && name[0] === "$" && /^\$[a-zA-Z0-9_]+$/.test(name);
+  !!name && name[0] === "$" && /^\$[a-zA-Z0-9_]+$/.test(name);
 
 /**
  * Simplify expression for easy evaluation with query operators map
@@ -732,8 +738,8 @@ export function normalize(expr: Any): Any {
     // no valid query operator found, so we do simple comparison
     if (!Object.keys(expr as AnyObject).some(isOperator)) return { $eq: expr };
     // ensure valid regex
-    if (has(expr as AnyObject, "$regex")) {
-      const newExpr = { ...(expr as AnyObject) };
+    if (isObject(expr) && has(expr, "$regex")) {
+      const newExpr = { ...expr };
       newExpr["$regex"] = new RegExp(
         expr["$regex"] as string,
         expr["$options"] as string
@@ -804,7 +810,7 @@ export class PathValidator {
         });
       }
 
-      current = current.children.get(part);
+      current = current.children.get(part)!;
     }
     // selector path already exists (i.e. either terminal or has children)
     if (current.isTerminal || current.children.size) return false;

@@ -1,5 +1,5 @@
 import { Iterator } from "../../lazy";
-import { Options, PipelineOperator } from "../../types";
+import { Options } from "../../types";
 import { ensureArray } from "../../util";
 import { $project } from "./project";
 
@@ -7,19 +7,14 @@ import { $project } from "./project";
  * Removes/excludes fields from documents.
  *
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/unset usage}.
- *
- * @param collection
- * @param expr
- * @param options
- * @returns {Iterator}
  */
-export const $unset: PipelineOperator = (
+export function $unset(
   collection: Iterator,
   expr: string | string[],
-  options?: Options
-): Iterator => {
+  options: Options
+): Iterator {
   expr = ensureArray(expr);
   const doc: Record<string, number> = {};
   for (const k of expr) doc[k] = 0;
   return $project(collection, doc, options);
-};
+}
