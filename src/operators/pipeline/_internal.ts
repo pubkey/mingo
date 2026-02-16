@@ -112,7 +112,7 @@ export function resolveCollection(
     );
   }
   const coll = isString(expr)
-    ? options.collectionResolver(expr)
+    ? options.collectionResolver!(expr)
     : (expr as AnyObject[]);
   assert(isArray(coll), `${op} could not resolve input collection`);
   return coll;

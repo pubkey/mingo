@@ -1,12 +1,12 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { isNil } from "../../../util";
 import { errExpectNumber } from "../_internal";
 
 /**
  * Returns the largest integer less than or equal to the specified number.
  */
-export const $floor: ExpressionOperator = (
+export const $floor = (
   obj: AnyObject,
   expr: Any,
   options: Options

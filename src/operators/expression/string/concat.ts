@@ -1,16 +1,12 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, isArray, isNil, isString } from "../../../util";
 import { errExpectArray } from "../_internal";
 
 /**
  * Concatenates two strings.
  */
-export const $concat: ExpressionOperator = (
-  obj: AnyObject,
-  expr: Any[],
-  options: Options
-): Any => {
+export const $concat = (obj: AnyObject, expr: Any[], options: Options): Any => {
   assert(isArray(expr), "$concat expects array");
   const foe = options.failOnError;
   const args = evalExpr(obj, expr, options) as string[];

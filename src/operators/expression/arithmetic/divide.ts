@@ -1,16 +1,12 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, isArray, isNil, isNumber } from "../../../util";
 import { errExpectArray, errInvalidArgs } from "../_internal";
 
 /**
  * Takes two numbers and divides the first number by the second.
  */
-export const $divide: ExpressionOperator = (
-  obj: AnyObject,
-  expr: Any,
-  options: Options
-): number => {
+export const $divide = (obj: AnyObject, expr: Any, options: Options) => {
   assert(isArray(expr), "$divide expects array(2)");
   const args = evalExpr(obj, expr, options) as number[];
   const foe = options.failOnError;

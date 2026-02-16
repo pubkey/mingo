@@ -1,5 +1,5 @@
 import { evalExpr } from "../../../core/_internal";
-import { AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, isDate, isNil } from "../../../util";
 import {
   adjustDate,
@@ -60,11 +60,11 @@ const DAYS_OF_WEEK_RE =
  *
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/dateTrunc/}
  */
-export const $dateTrunc: ExpressionOperator<Date> = (
+export const $dateTrunc = (
   obj: AnyObject,
-  expr: InputExpr,
+  expr: Any,
   options: Options
-): Date => {
+): Any => {
   const {
     date,
     unit,
@@ -121,13 +121,7 @@ export const $dateTrunc: ExpressionOperator<Date> = (
         const refPointDayOfWeek = isoWeekday(refPointDate, startOfWeek);
         const daysToAdjustBy =
           (DAYS_PER_WEEK - refPointDayOfWeek) % DAYS_PER_WEEK;
-        // If the reference point was an arbitrary value, we would need to use 'dateAdd()' function
-        // to correctly add a number of days to account for Daylight Saving Time (DST) transitions
-        // that may happen between the initial reference point and the resulting date (DST has a
-        // different offset from UTC than Standard Time). However, since the reference point is the
-        // first of January, 2000 and Daylight Saving Time transitions did not happen in the first
-        // half of January in year 2000, it is correct to just add a number of milliseconds in
-        // 'daysToAdjustBy' days.
+
         refPointDate.setTime(
           refPointDate.getTime() + daysToAdjustBy * TIMEUNIT_IN_MILLIS.day
         );

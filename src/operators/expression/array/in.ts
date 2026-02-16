@@ -1,16 +1,12 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, isArray, isEqual } from "../../../util";
 import { errInvalidArgs } from "../_internal";
 
 /**
  * Returns a boolean indicating whether a specified value is in an array.
  */
-export const $in: ExpressionOperator = (
-  obj: AnyObject,
-  expr: Any,
-  options: Options
-): boolean => {
+export const $in = (obj: AnyObject, expr: Any, options: Options) => {
   assert(isArray(expr) && expr.length === 2, "$in expects array(2)");
   const args = evalExpr(obj, expr, options) as [Any, Any[]];
   const [item, arr] = args;

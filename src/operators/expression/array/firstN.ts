@@ -1,5 +1,5 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, has, isArray, isNil, isObject } from "../../../util";
 import { $firstN as __firstN } from "../../accumulator/firstN";
 import { errExpectArray } from "../_internal";
@@ -12,7 +12,7 @@ interface InputExpr {
 /**
  * Returns a specified number of elements from the beginning of an array.
  */
-export const $firstN: ExpressionOperator = (
+export const $firstN = (
   obj: AnyObject,
   expr: InputExpr,
   options: Options

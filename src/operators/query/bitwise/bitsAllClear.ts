@@ -1,10 +1,10 @@
-import { Any, Options, QueryOperator } from "../../../types";
+import { Any, Options } from "../../../types";
 import { processBitwiseQuery } from "./_internal";
 
 /**
  * Matches numeric or binary values in which a set of bit positions all have a value of 0.
  */
-export const $bitsAllClear: QueryOperator = (
+export const $bitsAllClear = (
   selector: string,
   value: Any,
   _options: Options

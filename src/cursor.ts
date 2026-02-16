@@ -7,6 +7,7 @@ import { $sort } from "./operators/pipeline/sort";
 import type {
   Any,
   AnyObject,
+  Callback,
   CollationSpec,
   Options,
   PipelineOperator,
@@ -15,7 +16,7 @@ import type {
 } from "./types";
 import { cloneDeep, has } from "./util";
 
-const OPERATORS = { $sort, $skip, $limit } as Record<string, PipelineOperator>;
+const OPERATORS: Record<string, PipelineOperator> = { $sort, $skip, $limit };
 
 /**
  * The `Cursor` class provides a mechanism for iterating over a collection of data
@@ -67,7 +68,7 @@ export class Cursor<T> {
     // apply cursor operators
     for (const op of Object.keys(OPERATORS)) {
       if (has(this.#operators, op)) {
-        const f = OPERATORS[op];
+        const f = OPERATORS[op] as Callback<Iterator>;
         this.#result = f(this.#result, this.#operators[op], this.#options);
       }
     }
@@ -147,7 +148,7 @@ export class Cursor<T> {
   next(): T {
     // yield value obtains in hasNext()
     if (this.#buffer.length > 0) {
-      return this.#buffer.pop();
+      return this.#buffer.pop()!;
     }
     const o = this.fetch().next();
     if (o.done) return undefined as T;

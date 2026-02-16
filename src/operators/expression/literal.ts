@@ -1,10 +1,6 @@
-import { Any, AnyObject, ExpressionOperator, Options } from "../../types";
+import { Any, AnyObject, Options } from "../../types";
 
 /**
- * Return a value without parsing.
+ * Return a value without evaluating.
  */
-export const $literal: ExpressionOperator = (
-  _obj: AnyObject,
-  expr: Any,
-  _options: Options
-): Any => expr;
+export const $literal = (_obj: AnyObject, expr: Any, _options: Options) => expr;

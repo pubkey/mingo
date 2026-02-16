@@ -1,5 +1,5 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import {
   assert,
   isArray,
@@ -15,11 +15,11 @@ const OP = "$indexOfArray";
  * Searches an array for an occurrence of a specified value and returns the array index of the first occurrence.
  * If the substring is not found, returns -1.
  */
-export const $indexOfArray: ExpressionOperator = (
+export const $indexOfArray = (
   obj: AnyObject,
   expr: Any[],
   options: Options
-): number => {
+) => {
   assert(
     isArray(expr) && expr.length > 1 && expr.length < 5,
     `${OP} expects array(4)`

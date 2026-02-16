@@ -1,10 +1,10 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { isNil } from "../../../util";
 
 /**
  * Returns the inverse tangent (arc tangent) of y / x in radians, where y and x are the first and second values passed to the expression respectively. */
-export const $atan2: ExpressionOperator = (
+export const $atan2 = (
   obj: AnyObject,
   expr: Any,
   options: Options

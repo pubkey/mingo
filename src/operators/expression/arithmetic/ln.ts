@@ -1,12 +1,12 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { isNil } from "../../../util";
 import { errExpectNumber } from "../_internal";
 
 /**
  * Calculates the natural logarithm ln (i.e loge) of a number and returns the result as a double.
  */
-export const $ln: ExpressionOperator = (
+export const $ln = (
   obj: AnyObject,
   expr: Any,
   options: Options

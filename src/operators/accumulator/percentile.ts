@@ -1,4 +1,4 @@
-import { AccumulatorOperator, Any, AnyObject, Options } from "../../types";
+import { Any, Options } from "../../types";
 import {
   assert,
   findInsertIndex,
@@ -15,24 +15,20 @@ import { $push } from "./push";
  *
  * If 'expr.method' is "approximate", we return the closest value to the computed percentile from the dataset.
  * If 'expr.method' is "exact", we return the computed percentile value as is which may not be found in the dataset.
- *
- * @param collection The collection of objects.
- * @param expr The operator expression.
- * @param options Options to use for processing.
- * @returns {AnyObject|*}
  */
-export const $percentile: AccumulatorOperator<number[]> = (
-  collection: AnyObject[],
+export const $percentile = (
+  coll: Any[],
   expr: { input: Any; p: Any[]; method: "approximate" | "exact" },
   options: Options
-): number[] => {
+) => {
   assert(
     isObject(expr) && has(expr, "input", "p") && isArray(expr.p),
     "$percentile expects object { input, p }"
   );
+
   // MongoDB uses the t-digest algorithm to estimate percentiles.
   // Since this library expects all data in memory we use the linear interpolation method.
-  const X = $push(collection, expr.input, options).filter(isNumber).sort();
+  const X = $push(coll, expr.input, options).filter(isNumber).sort();
   const centiles = $push(expr.p, "$$CURRENT", options) as number[];
   const method = expr.method || "approximate";
 
@@ -52,7 +48,7 @@ export const $percentile: AccumulatorOperator<number[]> = (
     const ri = Math.floor(r);
     // return zero for NaN values when X[ri-1] is undefined.
     const result =
-      r === ri ? X[r - 1] : X[ri - 1] + (r % 1) * (X[ri] - X[ri - 1] || 0);
+      r === ri ? X[r - 1] : X[ri - 1] + (r % 1) * (X[ri] - X[ri - 1]);
     switch (method) {
       case "exact":
         return result;

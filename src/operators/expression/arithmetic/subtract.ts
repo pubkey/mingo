@@ -1,16 +1,12 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, isArray, isDate, isNil, isNumber } from "../../../util";
 import { errExpectArray, errInvalidArgs } from "../_internal";
 
 /**
  * Takes an array that contains two numbers or two dates and subtracts the second value from the first.
  */
-export const $subtract: ExpressionOperator = (
-  obj: AnyObject,
-  expr: Any,
-  options: Options
-): Any => {
+export const $subtract = (obj: AnyObject, expr: Any, options: Options): Any => {
   assert(isArray(expr), "$subtract expects array(2)");
   const args = evalExpr(obj, expr, options) as number[];
   if (args.some(isNil)) return null;

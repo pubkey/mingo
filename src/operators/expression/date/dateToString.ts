@@ -1,5 +1,5 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Callback, Options } from "../../../types";
 import { assert, isNil } from "../../../util";
 import {
   adjustDate,
@@ -8,45 +8,36 @@ import {
   DATE_FORMAT_SYM_RE,
   DATE_SYM_TABLE,
   DatePartFormatter,
+  dayOfYear,
   formatTimezone,
+  isoWeek,
   padDigits,
-  parseTimezone
+  parseTimezone,
+  weekOfYear
 } from "./_internal";
-import { $dayOfMonth } from "./dayOfMonth";
-import { $dayOfWeek } from "./dayOfWeek";
-import { $dayOfYear } from "./dayOfYear";
-import { $hour } from "./hour";
-import { $isoDayOfWeek } from "./isoDayOfWeek";
-import { $isoWeek } from "./isoWeek";
-import { $millisecond } from "./millisecond";
-import { $minute } from "./minute";
-import { $month } from "./month";
-import { $second } from "./second";
-import { $week } from "./week";
-import { $year } from "./year";
 
 interface DateOptions {
   date?: Date;
   format?: string;
   timezone?: string;
-  onNull: string;
+  onNull?: string | null;
 }
 
 // date functions for format specifiers
-const DATE_FUNCTIONS: Record<string, ExpressionOperator<number>> = {
-  "%Y": $year,
-  "%G": $year,
-  "%m": $month,
-  "%d": $dayOfMonth,
-  "%H": $hour,
-  "%M": $minute,
-  "%S": $second,
-  "%L": $millisecond,
-  "%u": $isoDayOfWeek,
-  "%U": $week,
-  "%V": $isoWeek,
-  "%j": $dayOfYear,
-  "%w": (o: AnyObject, e: Any, p: Options) => $dayOfWeek(o, e, p) - 1
+const DATE_FUNCTIONS: Record<string, Callback<number, Date>> = {
+  "%Y": (d: Date) => d.getUTCFullYear(), //year
+  "%G": (d: Date) => d.getUTCFullYear(), //year
+  "%m": (d: Date) => d.getUTCMonth() + 1, //month
+  "%d": (d: Date) => d.getUTCDate(), //dayOfMonth
+  "%H": (d: Date) => d.getUTCHours(), //hour
+  "%M": (d: Date) => d.getUTCMinutes(), //minutes
+  "%S": (d: Date) => d.getUTCSeconds(), //seconds
+  "%L": (d: Date) => d.getUTCMilliseconds(), //milliseconds
+  "%u": (d: Date) => d.getUTCDay() || 7, //isoDayOfWeek
+  "%U": weekOfYear,
+  "%V": isoWeek,
+  "%j": dayOfYear,
+  "%w": (d: Date) => d.getUTCDay() //dayOfWeek
 };
 
 /**
@@ -68,36 +59,34 @@ const DATE_FUNCTIONS: Record<string, ExpressionOperator<number>> = {
  * %Z	The minutes offset from UTC as a number. For example, if the timezone offset (+/-[hhmm]) was +0445, the minutes offset is +285.	+/-mmm
  * %%	Percent Character as a Literal	%
  */
-export const $dateToString: ExpressionOperator<string> = (
-  obj: AnyObject,
-  expr: Any,
-  options: Options
-): string => {
+export const $dateToString = (obj: AnyObject, expr: Any, options: Options) => {
   const args = evalExpr(obj, expr, options) as DateOptions;
 
   if (isNil(args.onNull)) args.onNull = null;
   if (isNil(args.date)) return args.onNull;
 
   const date = computeDate(obj, args.date, options);
-  let format = args.format || DATE_FORMAT;
+  let format = args.format ?? DATE_FORMAT;
   const minuteOffset = parseTimezone(args.timezone, date);
   const matches = format.match(DATE_FORMAT_SYM_RE);
+
+  if (!matches) return format;
 
   // adjust the date to reflect timezone
   adjustDate(date, minuteOffset);
 
   for (let i = 0, len = matches.length; i < len; i++) {
-    const formatSpecifier = matches[i];
+    const formatSpec = matches[i];
     assert(
-      formatSpecifier in DATE_SYM_TABLE,
-      `$dateToString: invalid format specifier ${formatSpecifier}`
+      formatSpec in DATE_SYM_TABLE,
+      `$dateToString: invalid format specifier ${formatSpec}`
     );
-    const { name, padding } = DATE_SYM_TABLE[formatSpecifier];
-    const fn = DATE_FUNCTIONS[formatSpecifier];
-    let value: string | DatePartFormatter;
+    const { name, padding } = DATE_SYM_TABLE[formatSpec];
+    const fn = DATE_FUNCTIONS[formatSpec] as Callback<number, Date>;
+    let value: string | DatePartFormatter = "";
 
     if (fn) {
-      value = padDigits(fn(obj, date, options), padding);
+      value = padDigits(fn(date), padding);
     } else {
       switch (name) {
         case "timezone":
@@ -115,7 +104,7 @@ export const $dateToString: ExpressionOperator<string> = (
       }
     }
     // replace the match with resolved value
-    format = format.replace(formatSpecifier, value as string);
+    format = format.replace(formatSpec, value);
   }
 
   return format;

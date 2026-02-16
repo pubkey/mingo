@@ -39,10 +39,14 @@ export function $bit(
             const v = val[op[0]];
             if (n !== undefined && !(isNumber(n) && isNumber(v))) return false;
             n = n || 0;
-            if (op[0] === "and") return (o[k] = n & v) !== n;
-            if (op[0] === "or") return (o[k] = n | v) !== n;
-            if (op[0] === "xor") return (o[k] = n ^ v) !== n;
-            return false;
+            switch (op[0]) {
+              case "and":
+                return (o[k] = n & v) !== n;
+              case "or":
+                return (o[k] = n | v) !== n;
+              case "xor":
+                return (o[k] = n ^ v) !== n;
+            }
           },
           { buildGraph: true }
         );

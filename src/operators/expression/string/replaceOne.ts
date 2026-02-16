@@ -1,5 +1,5 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { isNil, isString } from "../../../util";
 import { errExpectString } from "../_internal";
 
@@ -8,7 +8,7 @@ const OP = "$replaceOne";
 /**
  * Replaces the first instance of a matched string in a given input.
  */
-export const $replaceOne: ExpressionOperator = (
+export const $replaceOne = (
   obj: AnyObject,
   expr: Any,
   options: Options

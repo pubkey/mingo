@@ -1,31 +1,17 @@
 import { evalExpr } from "../../../core/_internal";
-import {
-  Any,
-  AnyObject,
-  Callback,
-  ExpressionOperator,
-  Options
-} from "../../../types";
+import { Any, AnyObject, Callback, Options } from "../../../types";
 import { assert } from "../../../util";
 
 interface FunctionExpr {
-  readonly body: Callback<Any>;
+  readonly body: Callback;
   readonly args: Any[];
   readonly lang: "js";
 }
 
 /**
  * Defines a custom function.
- *
- * @param {*} obj The target object for this expression
- * @param {*} expr The expression for the operator
- * @param {Options} options Options
  */
-export const $function: ExpressionOperator = (
-  obj: AnyObject,
-  expr: FunctionExpr,
-  options: Options
-): Any => {
+export const $function = (obj: AnyObject, expr: Any, options: Options): Any => {
   assert(
     options.scriptEnabled,
     "$function requires 'scriptEnabled' option to be true"

@@ -9,12 +9,12 @@ import { $project } from "./project";
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/unset usage}.
  */
 export function $unset(
-  collection: Iterator,
+  coll: Iterator,
   expr: string | string[],
   options: Options
 ): Iterator {
   expr = ensureArray(expr);
   const doc: Record<string, number> = {};
   for (const k of expr) doc[k] = 0;
-  return $project(collection, doc, options);
+  return $project(coll, doc, options);
 }

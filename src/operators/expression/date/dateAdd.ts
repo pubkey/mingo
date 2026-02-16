@@ -1,15 +1,11 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { dateAdd, TimeUnit } from "./_internal";
 
 /**
  * Increments a Date object by a specified number of time units.
  */
-export const $dateAdd: ExpressionOperator<Date> = (
-  obj: AnyObject,
-  expr: Any,
-  options: Options
-): Date => {
+export const $dateAdd = (obj: AnyObject, expr: Any, options: Options) => {
   const args = evalExpr(obj, expr, options) as {
     startDate: Date;
     unit: TimeUnit;

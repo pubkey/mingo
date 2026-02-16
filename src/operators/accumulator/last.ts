@@ -1,20 +1,11 @@
 import { ComputeOptions, evalExpr } from "../../core/_internal";
-import { AccumulatorOperator, Any, AnyObject, Options } from "../../types";
+import { Any, AnyObject, Options } from "../../types";
 
 /**
- * Returns the last value in the collection.
- *
- * @param collection The input array
- * @param expr The right-hand side expression value of the operator
- * @param options The options to use for this operation
- * @returns
+ * Returns the last value in the coll.
  */
-export const $last: AccumulatorOperator = (
-  collection: AnyObject[],
-  expr: Any,
-  options: Options
-): Any => {
-  const obj = collection[collection.length - 1];
+export const $last = (coll: AnyObject[], expr: Any, options: Options): Any => {
+  const obj = coll[coll.length - 1];
   const copts = ComputeOptions.init(options).update({ root: obj });
   return evalExpr(obj, expr, copts) ?? null;
 };

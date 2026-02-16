@@ -8,7 +8,7 @@ import { assert, isString } from "../../util";
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/count usage}.
  */
 export function $count(
-  collection: Iterator,
+  coll: Iterator,
   expr: string,
   _options: Options
 ): Iterator {
@@ -22,7 +22,7 @@ export function $count(
 
   let i = 0;
   return Lazy(() => {
-    if (i++ == 0) return { value: { [expr]: collection.size() }, done: false };
+    if (i++ == 0) return { value: { [expr]: coll.size() }, done: false };
     return { done: true };
   });
 }

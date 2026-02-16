@@ -1,14 +1,12 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, isArray } from "../../../util";
 import { truncate } from "./_internal";
 
 /**
  * Rounds a number to to a whole integer or to a specified decimal place.
- * @param {*} obj
- * @param {*} expr
  */
-export const $round: ExpressionOperator = (
+export const $round = (
   obj: AnyObject,
   expr: Any,
   options: Options

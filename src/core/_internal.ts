@@ -1,19 +1,19 @@
+import {
+  AccumulatorOperator,
+  ExpressionOperator,
+  Operator,
+  PipelineOperator,
+  ProjectionOperator,
+  QueryOperator,
+  WindowOperator
+} from "../operators/typings";
 import type { UpdateParams } from "../operators/update/_internal";
 import type {
-  AccumulatorOperator,
-  AccumulatorOps,
   Any,
   AnyObject,
   ArrayOrObject,
-  ExpressionOperator,
-  ExpressionOps,
-  Operator,
-  OperatorName,
-  Options,
-  PipelineOps,
-  ProjectionOps,
-  QueryOps,
-  WindowOps
+  Callback,
+  Options
 } from "../types";
 import type { UpdateConfig } from "../updater";
 import {
@@ -26,6 +26,14 @@ import {
   isString,
   resolve
 } from "../util";
+
+export type OperatorName = `$${string}`;
+export type AccumulatorOps = Record<OperatorName, AccumulatorOperator>;
+export type ExpressionOps = Record<OperatorName, ExpressionOperator>;
+export type ProjectionOps = Record<OperatorName, ProjectionOperator>;
+export type QueryOps = Record<OperatorName, QueryOperator>;
+export type PipelineOps = Record<OperatorName, PipelineOperator>;
+export type WindowOps = Record<OperatorName, WindowOperator>;
 
 /**
  * Enum representing the processing modes for handling input and output documents.
@@ -110,9 +118,12 @@ export class ComputeOptions implements Options {
   }
   get now() {
     // defer setting the current time until accessed.`
-    if (!this.#locals.timestamp)
-      Object.assign(this.#locals, { timestamp: Date.now() });
-    return new Date(this.#locals.timestamp);
+    let timestamp = this.#locals.timestamp ?? 0;
+    if (!timestamp) {
+      timestamp = Date.now();
+      Object.assign(this.#locals, { timestamp });
+    }
+    return new Date(timestamp);
   }
   get idKey() {
     return this.options.idKey;
@@ -164,7 +175,7 @@ export enum OpType {
  * types of operators to the context.
  */
 export class Context {
-  #operators = new Map<OpType, Record<string, Operator>>(
+  #operators: Record<string, Record<string, Callback>> = Object.fromEntries(
     Object.values(OpType).map(k => [k, {}])
   );
 
@@ -183,7 +194,7 @@ export class Context {
     const ctx = new Context();
     // ensure all operator types are initialized
     for (const [type, operators] of Object.entries(ops)) {
-      if (ctx.#operators.has(type as OpType) && operators) {
+      if (ctx.#operators[type] && operators) {
         ctx.addOps(type as OpType, operators);
       }
     }
@@ -195,7 +206,7 @@ export class Context {
     const newCtx = new Context();
     for (const context of ctx) {
       for (const type of Object.values(OpType)) {
-        newCtx.addOps(type, context.#operators.get(type));
+        newCtx.addOps(type, context.#operators[type]);
       }
     }
     return newCtx;
@@ -205,15 +216,12 @@ export class Context {
     type: OpType,
     operators: Record<OperatorName, Operator>
   ): Context {
-    this.#operators.set(
-      type,
-      Object.assign({}, operators, this.#operators.get(type))
-    );
+    this.#operators[type] = Object.assign({}, operators, this.#operators[type]);
     return this;
   }
 
-  getOperator(type: OpType, name: string): Operator | null {
-    return this.#operators.get(type)[name] ?? null;
+  getOperator(type: OpType, name: string): Callback | null {
+    return this.#operators[type][name] ?? null;
   }
 
   addAccumulatorOps(ops: AccumulatorOps) {
@@ -364,20 +372,14 @@ function computeOperator(
 ): Any {
   const context = options.context;
   // if the field of the object is a valid operator
-  const callExpression = context.getOperator(
-    OpType.EXPRESSION,
-    operator
-  ) as ExpressionOperator;
-  if (callExpression) return callExpression(obj as AnyObject, expr, options);
+  const fn = context.getOperator(OpType.EXPRESSION, operator);
+  if (fn) return fn(obj, expr, options);
 
   // handle accumulators
-  const callAccumulator = context.getOperator(
-    OpType.ACCUMULATOR,
-    operator
-  ) as AccumulatorOperator;
+  const accFn = context.getOperator(OpType.ACCUMULATOR, operator)!;
 
   // operator was not found
-  assert(!!callAccumulator, `accumulator '${operator}' is not registered.`);
+  assert(!!accFn, `accumulator '${operator}' is not registered.`);
 
   // if object is not an array, attempt to resolve to array.
   if (!isArray(obj)) {
@@ -388,5 +390,5 @@ function computeOperator(
   assert(isArray(obj), `arguments must resolve to array for ${operator}.`);
 
   // accumulator must override the root accordingly. we pass the full context as is.
-  return callAccumulator(obj as Any[], expr, options);
+  return accFn(obj, expr, options);
 }

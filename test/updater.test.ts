@@ -111,7 +111,7 @@ describe("updater", () => {
     });
 
     it("should contain valid operator in expression", () => {
-      const expr = { $set: { name: "Fred" } };
+      const expr: AnyObject = { $set: { name: "Fred" } };
       expr["$cos"] = { age: 2 };
       delete expr["$set" as string];
       expect(() => update(obj, expr)).toThrow(

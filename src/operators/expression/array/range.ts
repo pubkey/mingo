@@ -1,16 +1,12 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, isArray, isInteger } from "../../../util";
 import { errExpectNumber, INT_OPTS } from "../_internal";
 
 /**
  * Returns an array whose elements are a generated sequence of numbers.
  */
-export const $range: ExpressionOperator = (
-  obj: AnyObject,
-  expr: Any,
-  options: Options
-): Any => {
+export const $range = (obj: AnyObject, expr: Any, options: Options): Any => {
   assert(
     isArray(expr) && expr.length > 1 && expr.length < 4,
     "$range expects array(3)"

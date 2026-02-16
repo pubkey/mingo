@@ -1,4 +1,4 @@
-import { Any, AnyObject, Options } from "../../types";
+import { Any, AnyObject, Options, SortSpec } from "../../types";
 import {
   compare,
   has,
@@ -28,7 +28,7 @@ export function $push(
       const args: {
         $each: Any[];
         $slice?: number;
-        $sort?: Record<string, 1 | -1> | 1 | -1;
+        $sort?: SortSpec | 1 | -1;
         $position?: number;
       } = {
         $each: [val]
@@ -67,7 +67,7 @@ export function $push(
               : "";
             const order: number = !sortKey
               ? (args.$sort as number)
-              : (args.$sort as Record<string, 1 | -1>)[sortKey];
+              : (args.$sort as SortSpec)[sortKey];
             const f = !sortKey
               ? (a: Any) => a
               : (a: Any) => resolve(a as AnyObject, sortKey);

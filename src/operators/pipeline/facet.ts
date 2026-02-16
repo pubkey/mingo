@@ -9,7 +9,7 @@ import { AnyObject, Options } from "../../types";
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/facet usage}.
  */
 export function $facet(
-  collection: Iterator,
+  coll: Iterator,
   expr: Record<string, AnyObject[]>,
   options: Options
 ): Iterator {
@@ -20,7 +20,7 @@ export function $facet(
     };
   }
 
-  return collection.transform((arr: AnyObject[]) => {
+  return coll.transform((arr: AnyObject[]) => {
     const o: AnyObject = {};
     for (const [k, stages] of Object.entries(expr)) {
       o[k] = new Aggregator(stages, options).run(arr);

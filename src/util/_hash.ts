@@ -124,7 +124,10 @@ function hashArray(arr: unknown[], seen: WeakSet<object>): number {
   return h >>> 0;
 }
 
-function hashObject(obj: object, seen: WeakSet<object>): number {
+function hashObject(
+  obj: Record<string, unknown>,
+  seen: WeakSet<object>
+): number {
   if (seen.has(obj)) return Tag.Cycle;
   seen.add(obj);
 
@@ -155,7 +158,7 @@ function internalHash(value: unknown, seen: WeakSet<object>): number {
     case "undefined":
       return UNDEF_HASH;
     case "boolean":
-      return BOOLEAN_HASH[+value];
+      return BOOLEAN_HASH[+(value as number)];
     case "number":
       return mix(Tag.Number, hashNumber(value as number));
     case "string":
@@ -178,7 +181,10 @@ function internalHash(value: unknown, seen: WeakSet<object>): number {
 
       if (Array.isArray(value)) return mix(Tag.Array, hashArray(value, seen));
 
-      return mix(Tag.Object, hashObject(value as object, seen));
+      return mix(
+        Tag.Object,
+        hashObject(value as Record<string, unknown>, seen)
+      );
     }
   }
 }

@@ -56,7 +56,7 @@ export function $dateFromString(
   const separators = format.split(DATE_FORMAT_SEP_RE);
   separators.reverse();
 
-  const matches = format.match(DATE_FORMAT_SYM_RE) || [];
+  const matches = format.match(DATE_FORMAT_SYM_RE)!;
 
   const dateParts: {
     year?: number;

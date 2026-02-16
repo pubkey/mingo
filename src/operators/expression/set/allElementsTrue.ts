@@ -1,12 +1,12 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, isArray, truthy } from "../../../util/_internal";
 import { errExpectArray } from "../_internal";
 
 /**
  * Returns true if all elements of a set evaluate to true, and false otherwise.
  */
-export const $allElementsTrue: ExpressionOperator = (
+export const $allElementsTrue = (
   obj: AnyObject,
   expr: Any,
   options: Options

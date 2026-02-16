@@ -143,7 +143,7 @@ export class Iterator {
    * @param {Number} n A number greater than 0
    */
   take(n: number): Iterator {
-    assert(n >= 0, "value must be a non‑negative integer");
+    assert(n >= 0, "value must be a non-negative integer");
     return this.filter((_: Any) => n-- > 0);
   }
 
@@ -152,7 +152,7 @@ export class Iterator {
    * @param {Number} n Number of items to drop greater than 0
    */
   drop(n: number): Iterator {
-    assert(n >= 0, "value must be a non‑negative integer");
+    assert(n >= 0, "value must be a non-negative integer");
     return this.filter((_: Any) => n-- <= 0);
   }
 
@@ -201,20 +201,20 @@ export class Iterator {
    * @param f The reducing function
    * @param initialValue The initial value
    */
-  reduce<T>(f: Callback<T>, initialValue?: T): T {
+  reduce<R>(f: Callback<R>, initialValue?: R): R {
     let o = this.next();
 
     if (initialValue === undefined && !o.done) {
-      initialValue = o.value as T;
+      initialValue = o.value as R;
       o = this.next();
     }
 
     while (!o.done) {
-      initialValue = f(initialValue, o.value as T);
+      initialValue = f(initialValue, o.value as R);
       o = this.next();
     }
 
-    return initialValue;
+    return initialValue as R;
   }
 
   /**

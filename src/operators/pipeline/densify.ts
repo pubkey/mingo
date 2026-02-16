@@ -5,6 +5,7 @@ import {
   HashMap,
   isArray,
   isDate,
+  isInteger,
   isNil,
   isNumber,
   isObject,
@@ -33,56 +34,62 @@ interface InputExpr {
 
 type DateOrNumber = number | Date;
 
+const OP = "$densify";
+
 /**
  * Creates new documents in a sequence of documents where certain values in a field are missing.
  *
  * {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/densify usage}.
  */
 export function $densify(
-  collection: Iterator,
+  coll: Iterator,
   expr: InputExpr,
   options: Options
 ): Iterator {
   const { step, bounds, unit } = expr.range;
   // If range.unit is specified, step must be an integer. Otherwise, step can be any numeric value.
   if (unit) {
-    assert(TIME_UNITS.includes(unit), "");
     assert(
-      Number.isInteger(step) && step > 0,
-      "The step parameter in a range statement must be a whole number when densifying a date range."
+      TIME_UNITS.includes(unit),
+      `${OP} 'range.unit' value is not supported.`
+    );
+    assert(
+      isInteger(step) && step > 0,
+      `${OP} 'range.step' must resolve to integer if 'range.unit' is specified.`
     );
   } else {
-    assert(
-      isNumber(step) && step > 0,
-      "The step parameter in a range statement must be a strictly positive numeric value."
-    );
+    assert(isNumber(step), `${OP} 'range.step' must resolve to number.`);
   }
 
   if (isArray(bounds)) {
     assert(
       !!bounds && bounds.length === 2,
-      "A bounding array in a range statement must have exactly two elements."
+      `${OP} 'range.bounds' must have exactly two elements.`
     );
     assert(
       (bounds.every(isNumber) || bounds.every(isDate)) && bounds[0] < bounds[1],
-      "A bounding array must be an ascending array of either two dates or two numbers."
+      `${OP} 'range.bounds' must be ordered lower then upper.`
     );
-    assert(
-      unit && !bounds.some(isNumber),
-      "Numeric bounds may not have unit parameter."
-    );
+
+    if (unit) {
+      assert(
+        bounds.every(isDate),
+        `${OP} 'range.bounds' must be dates if 'range.unit' is specified.`
+      );
+    }
   }
 
   if (expr.partitionByFields) {
     assert(
       isArray(expr.partitionByFields),
-      "$densify: `partitionByFields` must be an array of strings"
+      `${OP} 'partitionByFields' must resolve to array of strings.`
     );
   }
+
   const partitionByFields = expr.partitionByFields ?? [];
 
   // sort by `expr.field` for densification.
-  collection = $sort(collection, { [expr.field]: 1 }, options);
+  coll = $sort(coll, { [expr.field]: 1 }, options);
 
   // Compute the next value in the densify sequence for the given partition key.
   const computeNextValue = (value: DateOrNumber) => {
@@ -96,7 +103,7 @@ export function $densify(
     const v = resolve(o, expr.field);
     assert(
       isNil(v) || (isDate(v) && isValidUnit) || (isNumber(v) && !isValidUnit),
-      "$densify: Densify field type must be numeric with 'unit' unspecified, or a date with 'unit' specified."
+      `${OP} Densify field type must be numeric with 'unit' unspecified, or a date with 'unit' specified.`
     );
     return v as DateOrNumber;
   };
@@ -114,7 +121,7 @@ export function $densify(
 
   // The nil fields iterator yields items from the collection whose field value is nil.
   const nilFieldsIterator = Lazy(() => {
-    const item = collection.next();
+    const item = coll.next();
     const fieldValue = getFieldValue(item.value as AnyObject);
     if (isNil(fieldValue)) return item;
     // found the first non-nil value. store and exit nil iterator
@@ -145,7 +152,8 @@ export function $densify(
 
   // An iterator that yields objects from the collection or add a densified object.
   const densifyIterator = Lazy(() => {
-    const item = peekItem.length > 0 ? peekItem.pop() : collection.next();
+    const item: IteratorResult = peekItem.pop() || coll.next();
+
     // nothing more to process
     if (item.done) return item;
 
@@ -177,7 +185,10 @@ export function $densify(
           nextDensifyValueMap.set(rootKey, itemValue);
         }
         // set the start value for the partition.
-        nextDensifyValueMap.set(partitionKey, nextDensifyValueMap.get(rootKey));
+        nextDensifyValueMap.set(
+          partitionKey,
+          nextDensifyValueMap.get(rootKey)!
+        );
       } else if (lower == "partition") {
         // If bounds is "partition": $densify adds documents to each partition, similar to if you had run a full range densification on each partition individually.
         // We use the smallest value within each partition as the start value.
@@ -192,7 +203,7 @@ export function $densify(
     }
 
     // fetch value for partition.
-    const densifyValue = nextDensifyValueMap.get(partitionKey);
+    const densifyValue = nextDensifyValueMap.get(partitionKey)!;
     // return the item if...
     if (
       // current item field value is lower than current densify value.
@@ -234,7 +245,7 @@ export function $densify(
   // An iterator to return remaining densify values for 'full' bounds.
   const fullBoundsIterator = Lazy(() => {
     if (paritionIndex === -1) {
-      const fullDensifyValue = nextDensifyValueMap.get(rootKey);
+      const fullDensifyValue = nextDensifyValueMap.get(rootKey)!;
       nextDensifyValueMap.delete(rootKey);
       // insertion order of keys is preserved so will be stable.
       partitionKeysSet = Array.from(nextDensifyValueMap.keys());
@@ -248,7 +259,7 @@ export function $densify(
 
     do {
       const partitionKey = partitionKeysSet[paritionIndex];
-      const partitionMaxValue = nextDensifyValueMap.get(partitionKey);
+      const partitionMaxValue = nextDensifyValueMap.get(partitionKey)!;
 
       // this partition needs extra documents.
       if (partitionMaxValue < maxFieldValue) {

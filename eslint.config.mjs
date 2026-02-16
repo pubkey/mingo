@@ -107,7 +107,8 @@ export default [
           args: "after-used",
           argsIgnorePattern: "^_"
         }
-      ]
+      ],
+      "@typescript-eslint/no-unnecessary-type-assertion": "off"
     }
   }
 ];

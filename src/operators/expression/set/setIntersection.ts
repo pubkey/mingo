@@ -1,13 +1,14 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, intersection, isArray, isNil } from "../../../util";
 import { errExpectArray } from "../_internal";
 
 const OP = "$setIntersection";
+
 /**
  * Returns the common elements of the input sets.
  */
-export const $setIntersection: ExpressionOperator = (
+export const $setIntersection = (
   obj: AnyObject,
   expr: Any,
   options: Options

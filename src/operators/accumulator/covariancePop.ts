@@ -1,15 +1,12 @@
-import { AccumulatorOperator, Any, AnyObject, Options } from "../../types";
+import { Any, AnyObject, Options } from "../../types";
 import { covariance } from "./_internal";
 import { $push } from "./push";
 
 /**
  * Returns the population covariance of two numeric expressions.
- * @param  {Array} collection
- * @param  {AnyObject} expr
- * @return {Number|null}
  */
-export const $covariancePop: AccumulatorOperator = (
-  collection: AnyObject[],
+export const $covariancePop = (
+  coll: AnyObject[],
   expr: Any,
   options: Options
-): number => covariance($push(collection, expr, options) as number[][], false);
+) => covariance($push(coll, expr, options) as number[][], false);

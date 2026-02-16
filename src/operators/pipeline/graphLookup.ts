@@ -31,7 +31,7 @@ interface InputExpr {
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/graphLookup/ usage}.
  */
 export function $graphLookup(
-  collection: Iterator,
+  coll: Iterator,
   expr: InputExpr,
   options: Options
 ): Iterator {
@@ -53,7 +53,7 @@ export function $graphLookup(
   // extra match condition
   const pipelineExpr = matchExpr ? { pipeline: [{ $match: matchExpr }] } : {};
 
-  return collection.map((obj: AnyObject) => {
+  return coll.map((obj: AnyObject) => {
     // initial object to start matching
     const matchObj = {};
     setValue(

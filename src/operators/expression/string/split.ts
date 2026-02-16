@@ -1,5 +1,5 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, isArray, isNil, isString } from "../../../util";
 import { errExpectArray } from "../_internal";
 
@@ -7,11 +7,7 @@ import { errExpectArray } from "../_internal";
  * Splits a string into substrings based on a delimiter.
  * If the delimiter is not found within the string, returns an array containing the original string.
  */
-export const $split: ExpressionOperator = (
-  obj: AnyObject,
-  expr: Any,
-  options: Options
-): Any => {
+export const $split = (obj: AnyObject, expr: Any, options: Options): Any => {
   assert(isArray(expr) && expr.length === 2, `$split expects array(2)`);
   const args = evalExpr(obj, expr, options) as string[];
   const foe = options.failOnError;

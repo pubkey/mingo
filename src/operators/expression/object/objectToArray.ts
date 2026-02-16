@@ -1,12 +1,12 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { isNil, isObject } from "../../../util";
 import { errExpectObject } from "../_internal";
 
 /**
  * Converts a document to an array of documents representing key-value pairs.
  */
-export const $objectToArray: ExpressionOperator = (
+export const $objectToArray = (
   obj: AnyObject,
   expr: Any,
   options: Options

@@ -3,15 +3,12 @@ import { errExpectNumber } from "../_internal";
 
 /**
  * Truncates integer value to number of places. If roundOff is specified round value instead to the number of places.
- * @param {Number} num
- * @param {Number} precision
- * @param {Object} opts
  */
 export function truncate(
   num: number,
   precision: number,
   opts: { roundOff: boolean; failOnError: boolean; name: string }
-): number {
+) {
   const { name, roundOff, failOnError } = opts;
 
   if (isNil(num)) return null;

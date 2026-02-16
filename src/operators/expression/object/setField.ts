@@ -1,5 +1,5 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, has, isNil, isObject, isString } from "../../../util";
 import { errExpectObject, errExpectString } from "../_internal";
 
@@ -14,7 +14,7 @@ interface InputExpr {
 /**
  * Adds, updates, or removes a specified field in a document.
  */
-export const $setField: ExpressionOperator = (
+export const $setField = (
   obj: AnyObject,
   expr: InputExpr,
   options: Options

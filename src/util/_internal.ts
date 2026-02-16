@@ -193,10 +193,10 @@ export class HashMap<K, V> extends Map<K, V> {
   // maps the hashcode to key set
   #keyMap = new Map<number, K[]>();
   // returns a tuple of [<masterKey>, <hash>]. Expects an object key.
-  #unpack = (key: K): [K | undefined, number] => {
+  #unpack = (key: K): [K, number] => {
     const hash = hashCode(key);
     const items = this.#keyMap.get(hash) ?? [];
-    return [items.find(k => isEqual(k, key)), hash];
+    return [items.find(k => isEqual(k, key)), hash] as [K, number];
   };
 
   private constructor() {
@@ -228,7 +228,8 @@ export class HashMap<K, V> extends Map<K, V> {
     // filter out the deleted key
     this.#keyMap.set(
       hash,
-      this.#keyMap.get(hash).filter(k => !isEqual(k, masterKey))
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+      this.#keyMap.get(hash)!.filter(k => !isEqual(k, masterKey))
     );
     return true;
   }
@@ -320,7 +321,7 @@ export const isObjectLike = (v: Any): boolean => !isPrimitive(v);
 export const isDate = (v: Any): v is Date => v instanceof Date;
 export const isRegExp = (v: Any): v is RegExp => v instanceof RegExp;
 export const isFunction = (v: Any): boolean => typeof v === "function";
-export const isNil = (v: Any): boolean => v === null || v === undefined;
+export const isNil = (v: Any): v is undefined => v === null || v === undefined;
 export const truthy = (arg: Any, strict = true): boolean =>
   !!arg || (strict && arg === "");
 export const isEmpty = (x: Any): boolean =>

@@ -1,5 +1,5 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, HashMap, isArray } from "../../../util";
 import { errExpectArray } from "../_internal";
 
@@ -9,7 +9,7 @@ const OP = "$setIsSubset";
  * Takes two arrays and returns true when the first array is a subset of the second,
  * including when the first array equals the second array, and false otherwise.
  */
-export const $setIsSubset: ExpressionOperator = (
+export const $setIsSubset = (
   obj: AnyObject,
   expr: Any,
   options: Options

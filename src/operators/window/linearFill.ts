@@ -1,4 +1,4 @@
-import { Any, AnyObject, Callback, Options, WindowOperator } from "../../types";
+import { Any, AnyObject, Callback, Options } from "../../types";
 import { isNumber } from "../../util";
 import { $push } from "../accumulator/push";
 import { WindowOperatorInput, withMemo } from "./_internal";
@@ -19,24 +19,21 @@ const interpolate = (
 /**
  * Fills null and missing fields in a window using linear interpolation based on surrounding field values.
  */
-export const $linearFill: WindowOperator = (
+export const $linearFill = (
   _: AnyObject,
-  collection: AnyObject[],
+  coll: AnyObject[],
   expr: WindowOperatorInput,
   options: Options
 ): Any => {
   return withMemo(
-    collection,
+    coll,
     expr,
-    () => {
+    (): number[] => {
       const sortKey = "$" + Object.keys(expr.parentExpr.sortBy)[0];
-      const points = $push(
-        collection,
-        [sortKey, expr.inputExpr],
-        options
-      ).filter((([x, _]: number[]) => isNumber(+x)) as Callback) as number[][];
-
-      if (points.length !== collection.length) return null;
+      const points = $push(coll, [sortKey, expr.inputExpr], options).filter((([
+        x,
+        _
+      ]: number[]) => isNumber(+x)) as Callback) as number[][];
 
       let lindex = -1;
       let rindex = 0;

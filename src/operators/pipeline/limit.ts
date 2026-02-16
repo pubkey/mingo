@@ -7,9 +7,9 @@ import { Options } from "../../types";
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/limit/ usage}.
  */
 export function $limit(
-  collection: Iterator,
+  coll: Iterator,
   expr: number,
   _options: Options
 ): Iterator {
-  return collection.take(expr);
+  return coll.take(expr);
 }

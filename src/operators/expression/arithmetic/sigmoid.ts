@@ -1,5 +1,5 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { isNil, isNumber, isObject } from "../../../util";
 import { errExpectNumber } from "../_internal";
 
@@ -7,10 +7,9 @@ const PRECISION = 1e10;
 
 /**
  * Returns the result of the sigmoid function (the integration of the normal distribution with standard deviation 1).
- * @param {*} obj
- * @param {*} expr
+
  */
-export const $sigmoid: ExpressionOperator = (
+export const $sigmoid = (
   obj: AnyObject,
   expr: string | { input: Any; onNull: Any },
   options: Options

@@ -1,5 +1,5 @@
 import { ComputeOptions } from "./core/_internal";
-import { Lazy } from "./lazy";
+import { Iterator, Lazy } from "./lazy";
 import * as booleanOperators from "./operators/expression/boolean";
 import * as comparisonOperators from "./operators/expression/comparison";
 import { $addFields } from "./operators/pipeline/addFields";
@@ -24,8 +24,7 @@ import {
   CollationSpec,
   Criteria,
   Options,
-  PipelineOperator,
-  PipelineOps,
+  SortSpec,
   UpdateExpr
 } from "./types";
 import {
@@ -48,7 +47,9 @@ const PIPELINE_OPERATORS = {
   $unset,
   $replaceRoot,
   $replaceWith
-} as Record<string, PipelineOperator>;
+} as const; //as Record<string, PipelineOperator>;
+
+type StageName = keyof typeof PIPELINE_OPERATORS;
 
 export type PipelineStage =
   | { $addFields: AnyObject }
@@ -90,7 +91,7 @@ export interface UpdateConfig {
   /** Determines how to set values to fields. */
   cloneMode?: CloneMode;
   /** {@link updateOne} updates the first document in the sort order specified by this argument. */
-  sort?: Record<string, 1 | -1>;
+  sort?: SortSpec;
   /** The collation to use for the operation. Merged into {@link Options.collation} when specified. */
   collation?: CollationSpec;
   /** A document with a list of variables. Merged into {@link Options.variables} when specified. */
@@ -219,7 +220,7 @@ function updateDocuments<T extends AnyObject>(
     .addExpressionOps(booleanOperators)
     .addExpressionOps(comparisonOperators)
     .addQueryOps(queryOperators)
-    .addPipelineOps(PIPELINE_OPERATORS as PipelineOps);
+    .addPipelineOps(PIPELINE_OPERATORS);
 
   const filterExists = Object.keys(condition).length > 0;
   const matchedDocs = new Map<T, number>();
@@ -288,8 +289,8 @@ function updateDocuments<T extends AnyObject>(
     // apply pipeline stages
     let updateIter = Lazy(foundDocs);
     for (const stage of modifier) {
-      const [op, expr] = Object.entries(stage)[0] as [string, Any];
-      const pipelineOp = PIPELINE_OPERATORS[op];
+      const [op, expr] = Object.entries(stage)[0] as [StageName, Any];
+      const pipelineOp = PIPELINE_OPERATORS[op] as Callback<Iterator>;
       assert(pipelineOp, `Unknown pipeline operator: '${op}'.`);
       updateIter = pipelineOp(updateIter, expr, opts);
     }
@@ -356,10 +357,10 @@ function updateDocuments<T extends AnyObject>(
   const output = { matchedCount, modifiedCount: 0 };
   const modifiedFields: string[] = [];
 
-  const fns: Callback<string[], AnyObject>[] = [];
-  for (const [op, expr] of Object.entries(modifier)) {
+  const fns: Callback<string[]>[] = [];
+  for (const [op, expr] of Object.entries(modifier) as [string, Any][]) {
     const fn = UPDATE_OPERATORS[op];
-    fns.push(fn(expr, arrayFilters, opts));
+    fns.push(fn(expr, arrayFilters, opts) as Callback<string[]>);
   }
 
   for (const doc of foundDocs) {

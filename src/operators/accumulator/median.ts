@@ -1,4 +1,4 @@
-import { AccumulatorOperator, Any, AnyObject, Options } from "../../types";
+import { Any, Options } from "../../types";
 import { $percentile } from "./percentile";
 
 /**
@@ -7,14 +7,9 @@ import { $percentile } from "./percentile";
  * If 'expr.method' is "approximate", we return the smallest of the middle values when dataset is even.
  * If 'expr.method' is "exact", we return the average of the middle values when dataset is even.
  * For an odd dataset, the middle value is always returned regardless of 'expr.method'.
- *
- * @param collection The collection of objects.
- * @param expr The operator expression.
- * @param options Options to use for processing.
- * @returns {Number}
  */
-export const $median: AccumulatorOperator<number> = (
-  collection: AnyObject[],
+export const $median = (
+  coll: Any[],
   expr: { input: Any; method: "approximate" | "exact" },
   options: Options
-): number => $percentile(collection, { ...expr, p: [0.5] }, options).pop();
+) => $percentile(coll, { ...expr, p: [0.5] }, options)?.pop();

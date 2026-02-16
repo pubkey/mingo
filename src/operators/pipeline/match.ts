@@ -8,10 +8,10 @@ import { AnyObject, Options } from "../../types";
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/match usage}.
  */
 export function $match(
-  collection: Iterator,
+  coll: Iterator,
   expr: AnyObject,
   options: Options
 ): Iterator {
   const q = new Query(expr, options);
-  return collection.filter((o: AnyObject) => q.test(o));
+  return coll.filter((o: AnyObject) => q.test(o));
 }

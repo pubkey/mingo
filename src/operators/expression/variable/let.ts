@@ -1,16 +1,16 @@
 import { ComputeOptions, evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 
 /**
  * Defines variables for use within the scope of a sub-expression and returns the result of the sub-expression.
  */
-export const $let: ExpressionOperator = (
+export const $let = (
   obj: AnyObject,
   expr: { vars: AnyObject; in: Any },
   options: Options
 ): Any => {
   // resolve vars
-  const variables = {};
+  const variables: AnyObject = {};
   for (const [key, val] of Object.entries(expr.vars)) {
     variables[key] = evalExpr(obj, val, options);
   }

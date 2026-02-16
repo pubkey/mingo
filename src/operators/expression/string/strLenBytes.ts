@@ -1,12 +1,12 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { isString } from "../../../util";
 import { errExpectString } from "../_internal";
 
 /**
  * Returns the number of UTF-8 encoded bytes in the specified string.
  */
-export const $strLenBytes: ExpressionOperator = (
+export const $strLenBytes = (
   obj: AnyObject,
   expr: Any,
   options: Options

@@ -1,5 +1,5 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import {
   adjustDate,
   dateDiffDay,
@@ -17,7 +17,7 @@ import {
 /**
  * Returns the difference between two dates.
  */
-export const $dateDiff: ExpressionOperator<number> = (
+export const $dateDiff = (
   obj: AnyObject,
   expr: Any,
   options: Options

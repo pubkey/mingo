@@ -1,10 +1,10 @@
-import { Any, AnyObject, Options } from "../../types";
+import { Any, AnyObject, Options, SortSpec } from "../../types";
 import { isArray } from "../../util";
 import { applyUpdate, DEFAULT_OPTIONS, walkExpression } from "./_internal";
 
 /** Removes the first or last element of an array. */
 export function $pop(
-  expr: Record<string, 1 | -1>,
+  expr: SortSpec,
   arrayFilters: AnyObject[] = [],
   options: Options = DEFAULT_OPTIONS
 ) {

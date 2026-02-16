@@ -33,11 +33,13 @@ import {
 
 type ConversionType = number | Exclude<JsType, "function"> | BsonType;
 
+export type QueryPredicate = (_a: Any, _b: Any, _o: Options) => boolean;
+
 export function processQuery(
   selector: string,
   value: Any,
   options: Options,
-  predicate: Predicate<Any>
+  predicate: QueryPredicate
 ): (_: AnyObject) => boolean {
   const opts = { unwrapArray: true };
   const depth = Math.max(1, selector.split(".").length - 1);
@@ -53,7 +55,7 @@ export function processExpression(
   obj: AnyObject,
   expr: Any,
   options: Options,
-  predicate: Predicate<Any>
+  predicate: (_a: Any, _b: Any, _o?: Options) => boolean
 ): boolean {
   assert(
     isArray(expr) && expr.length === 2,
@@ -94,7 +96,7 @@ export function $ne(a: Any, b: Any, options?: Options): boolean {
 /**
  * Matches any of the values that exist in an array specified in the query.
  */
-export function $in(a: Any[], b: Any[], options?: Options): boolean {
+export function $in(a: Any[], b: Any[], _options?: Options): boolean {
   // queries for null should be able to find undefined fields
   if (isNil(a)) return b.some(v => v === null);
   return intersection([ensureArray(a), b]).length > 0;
@@ -138,7 +140,7 @@ export function $gte(a: Any, b: Any, _options?: Options): boolean {
 /**
  * Performs a modulo operation on the value of a field and selects documents with a specified result.
  */
-export function $mod(a: Any, b: number[], _options?: Options): boolean {
+export function $mod(a: Any, b: number[], _options: Options): boolean {
   return ensureArray(a).some(
     ((x: number) => b.length === 2 && x % b[0] === b[1]) as Callback
   );
@@ -160,7 +162,7 @@ export function $regex(a: Any, b: RegExp, options?: Options): boolean {
 export function $all(
   values: Any[],
   queries: AnyObject[],
-  options?: Options
+  options: Options
 ): boolean {
   if (
     !isArray(values) ||
@@ -200,7 +202,7 @@ function isNonBooleanOperator(name: string): boolean {
 /**
  * Selects documents if element in the array field matches all the specified $elemMatch condition.
  */
-export function $elemMatch(a: Any[], b: AnyObject, options?: Options): boolean {
+export function $elemMatch(a: Any[], b: AnyObject, options: Options): boolean {
   // should return false for non-matching input
   if (isArray(a) && !isEmpty(a)) {
     let format = (x: Any) => x;
@@ -229,7 +231,7 @@ const isNull = (a: Any) => a === null;
 
 /** Mapping of type to predicate */
 const compareFuncs: Record<ConversionType, Predicate<Any>> = {
-  array: isArray as Predicate<Any>,
+  array: isArray,
   boolean: isBoolean,
   bool: isBoolean,
   date: isDate,

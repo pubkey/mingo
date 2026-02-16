@@ -1,5 +1,5 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, HashMap, isArray, isNil } from "../../../util";
 import { errExpectArray } from "../_internal";
 
@@ -8,7 +8,7 @@ const OP = "$setDifference";
 /**
  * Returns elements of a set that do not appear in a second set.
  */
-export const $setDifference: ExpressionOperator = (
+export const $setDifference = (
   obj: AnyObject,
   expr: Any[],
   options: Options

@@ -1,11 +1,11 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, isNil } from "../../../util";
 
 /**
  * Calculates the square root of a positive number and returns the result as a double.
  */
-export const $sqrt: ExpressionOperator = (
+export const $sqrt = (
   obj: AnyObject,
   expr: Any,
   options: Options

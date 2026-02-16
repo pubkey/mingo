@@ -1,16 +1,12 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, isArray, isNil, isNumber } from "../../../util";
 import { errExpectArray, errInvalidArgs } from "../_internal";
 
 /**
  * Raises a number to the specified exponent and returns the result.
  */
-export const $pow: ExpressionOperator = (
-  obj: AnyObject,
-  expr: Any,
-  options: Options
-): number => {
+export const $pow = (obj: AnyObject, expr: Any, options: Options): number => {
   assert(isArray(expr) && expr.length === 2, "$pow expects array(2)");
   const args = evalExpr(obj, expr, options) as number[];
   const foe = options.failOnError;

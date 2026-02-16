@@ -1,5 +1,5 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import {
   assert,
   isArray,
@@ -15,7 +15,7 @@ const OP = "$indexOfBytes";
  * Searches a string for an occurrence of a substring and returns the UTF-8 code point index of the first occurence.
  * If the substring is not found, returns -1.
  */
-export const $indexOfBytes: ExpressionOperator = (
+export const $indexOfBytes = (
   obj: AnyObject,
   expr: Any,
   options: Options

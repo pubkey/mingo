@@ -159,9 +159,23 @@ export function buildParams(
   const params: ReturnType<typeof buildParams> = {};
 
   arrayFilters ||= [];
-  const filterIndexMap = Object.fromEntries(
-    arrayFilters.map((o, i) => [Object.entries(o).pop()[0].split(".")[0], i])
+
+  // group filters by root field. handles multiple keys per filter object.
+  const filterIndexMap = arrayFilters.reduce(
+    (res: Record<string, AnyObject>, filter) => {
+      for (const k of Object.keys(filter)) {
+        const parent = k.split(".")[0];
+        if (res[parent]) {
+          res[parent][k] = filter[k];
+        } else {
+          res[parent] = { [k]: filter[k] };
+        }
+      }
+      return res;
+    },
+    {}
   );
+
   let { condition } = options.local;
   condition = condition ?? {};
   const queryKeys = Object.keys(condition);
@@ -203,9 +217,7 @@ export function buildParams(
       if (identifiers.length) {
         // extract filters for each identifier
         const filters: Record<string, AnyObject> = {};
-        identifiers.forEach(v => {
-          filters[v] = arrayFilters[filterIndexMap[v]];
-        });
+        identifiers.forEach(v => (filters[v] = filterIndexMap[v]));
         // create query for each filter
         for (const [k, c] of Object.entries(filters)) {
           queries[k] = new Query(c, options);

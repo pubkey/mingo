@@ -14,13 +14,13 @@ import { resolveCollection } from "./_internal";
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/out/ usage}.
  */
 export function $out(
-  collection: Iterator,
+  coll: Iterator,
   expr: string | AnyObject[],
   options: Options
 ): Iterator {
   const out = resolveCollection("$out", expr, options);
   assert(isArray(out), `$out: expression must resolve to an array`);
-  return collection.map((o: AnyObject) => {
+  return coll.map((o: AnyObject) => {
     out.push(cloneDeep(o));
     return o; // passthrough
   });

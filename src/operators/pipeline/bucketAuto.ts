@@ -51,7 +51,7 @@ type GetNextBucket = Callback<{
  * See {@link https://docs.mongodb.com/manual/reference/operator/aggregation/bucketAuto/ usage}.
  */
 export function $bucketAuto(
-  collection: Iterator,
+  coll: Iterator,
   expr: InputExpr,
   options: Options
 ): Iterator {
@@ -83,7 +83,7 @@ export function $bucketAuto(
   const setKey = !granularity
     ? (o: AnyObject, k: Any) => keyMap.set(o, k)
     : (_: AnyObject, _2: Any) => {};
-  const sorted: Array<[Any, AnyObject]> = collection
+  const sorted: Array<[Any, AnyObject]> = coll
     .map((o: AnyObject) => {
       const k = evalExpr(o, groupByExpr, options) ?? null;
       assert(
@@ -384,11 +384,6 @@ function granularityPreferredSeries(
 
     assert(min < max, `$bucketAuto: ${min} < ${max}.`);
 
-    return {
-      min,
-      max,
-      bucket,
-      done: index >= size
-    };
+    return { min, max, bucket, done: index >= size };
   };
 }

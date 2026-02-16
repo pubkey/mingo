@@ -3,6 +3,11 @@ import { describe, expect, it } from "vitest";
 import { $pull } from "../../../src/operators/update";
 
 describe("operators/update/pull", () => {
+  it("Do nothing if value is empty or not an array", () => {
+    const state = { arr: [], num: 100 };
+    expect($pull({ arr: "1", num: 100 })(state)).toEqual([]);
+  });
+
   it("Remove All Items That Equal a Specified Value", () => {
     const state = {
       _id: 1,

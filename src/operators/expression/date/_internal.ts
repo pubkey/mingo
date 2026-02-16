@@ -1,6 +1,6 @@
 import { evalExpr } from "../../../core/_internal";
 import { Any, Options } from "../../../types";
-import { assert, isDate, isNil, isNumber } from "../../../util";
+import { assert, isDate, isNumber } from "../../../util";
 
 export const TIME_UNITS = [
   "year",
@@ -86,6 +86,17 @@ export function isoWeek(d: Date): number {
   if (w < 1) return weeks(d.getUTCFullYear() - 1);
   if (w > weeks(d.getUTCFullYear())) return 1;
   return w;
+}
+
+export function weekOfYear(d: Date): number {
+  const result = isoWeek(d);
+  // check for starting of year and adjust accordingly
+  if (d.getUTCDay() > 0 && d.getUTCDate() == 1 && d.getUTCMonth() == 0)
+    return 0;
+  // adjust for week start on Sunday
+  if (d.getUTCDay() == 0) return result + 1;
+  // else
+  return result;
 }
 
 export function isoWeekYear(d: Date): number {
@@ -195,7 +206,7 @@ export function parseTimezone(
   timeZone: string | undefined,
   date: Date
 ): number {
-  if (isNil(timeZone)) return 0;
+  if (timeZone === undefined) return 0;
 
   if (TIMEZONE_RE.test(timeZone)) {
     const utcDate = new Date(date.toLocaleString("en-US", { timeZone: "UTC" }));
@@ -203,11 +214,11 @@ export function parseTimezone(
     return Math.round((tzDate.getTime() - utcDate.getTime()) / 6e4);
   }
 
-  const m = DATE_SYM_TABLE["%z"].re.exec(timeZone);
-  assert(!!m, `timezone '${timeZone}' is invalid or not supported.`);
+  const match = DATE_SYM_TABLE["%z"].re.exec(timeZone) ?? [];
+  assert(!!match, `timezone '${timeZone}' is invalid or not supported.`);
 
-  const hr = parseInt(m[2]) || 0;
-  const min = parseInt(m[3]) || 0;
+  const hr = parseInt(match[2]) || 0;
+  const min = parseInt(match[3]) || 0;
 
   return (Math.abs(hr * MINUTES_PER_HOUR) + min) * (hr < 0 ? -1 : 1);
 }

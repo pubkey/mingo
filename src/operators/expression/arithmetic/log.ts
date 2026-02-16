@@ -1,12 +1,12 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { isArray, isNil } from "../../../util";
 import { errExpectArray } from "../_internal";
 
 /**
  * Calculates the log of a number in the specified base and returns the result as a double.
  */
-export const $log: ExpressionOperator = (
+export const $log = (
   obj: AnyObject,
   expr: Any,
   options: Options

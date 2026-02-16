@@ -1,5 +1,5 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { isArray, isNil, isString } from "../../../util";
 import { assert, simpleCmp } from "../../../util/_internal";
 import { errExpectArray } from "../_internal";
@@ -7,7 +7,7 @@ import { errExpectArray } from "../_internal";
 /**
  * Performs case-insensitive comparison of two strings.
  */
-export const $strcasecmp: ExpressionOperator = (
+export const $strcasecmp = (
   obj: AnyObject,
   expr: Any,
   options: Options

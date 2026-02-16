@@ -10,11 +10,11 @@ import { assert, isObject } from "../../util";
  * See {@link https://docs.mongodb.com/manual/reference/operator/aggregation/replaceRoot/ usage}.
  */
 export function $replaceRoot(
-  collection: Iterator,
+  coll: Iterator,
   expr: { newRoot: AnyObject },
   options: Options
 ): Iterator {
-  return collection.map(obj => {
+  return coll.map(obj => {
     obj = evalExpr(obj, expr.newRoot, options);
     assert(isObject(obj), "$replaceRoot expression must return an object");
     return obj;

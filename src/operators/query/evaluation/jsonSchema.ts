@@ -8,11 +8,11 @@ export function $jsonSchema(
   _: string,
   schema: Any,
   options: Options
-): Predicate<Any> {
+): Predicate<AnyObject> {
   assert(
     !!options?.jsonSchemaValidator,
-    "$jsonSchema: must configure 'jsonSchemaValidator' option to this operator."
+    "$jsonSchema requires 'jsonSchemaValidator' option to be defined."
   );
-  const validate = options?.jsonSchemaValidator(schema as AnyObject);
+  const validate = options.jsonSchemaValidator!(schema as AnyObject);
   return (obj: AnyObject) => validate(obj);
 }

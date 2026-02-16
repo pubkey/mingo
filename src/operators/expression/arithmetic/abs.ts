@@ -1,12 +1,12 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { isNil } from "../../../util";
 import { errExpectNumber } from "../_internal";
 
 /**
  * Returns the absolute value of a number.
  */
-export const $abs: ExpressionOperator = (
+export const $abs = (
   obj: AnyObject,
   expr: Any,
   options: Options

@@ -1,5 +1,5 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, has, isArray, isNil, isObject } from "../../../util";
 import { $lastN as __lastN } from "../../accumulator/lastN";
 import { errExpectArray } from "../_internal";
@@ -12,11 +12,7 @@ interface InputExpr {
 /**
  * Returns a specified number of elements from the end of an array.
  */
-export const $lastN: ExpressionOperator = (
-  obj: AnyObject,
-  expr: InputExpr,
-  options: Options
-): Any => {
+export const $lastN = (obj: Any, expr: InputExpr, options: Options): Any => {
   assert(
     isObject(expr) && has(expr, "input", "n"),
     "$lastN expects object { input, n }"

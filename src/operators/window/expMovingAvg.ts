@@ -1,4 +1,4 @@
-import { Any, AnyObject, Options, WindowOperator } from "../../types";
+import { Any, AnyObject, Options } from "../../types";
 import { assert, isNumber } from "../../util";
 import { $push } from "../accumulator/push";
 import { WindowOperatorInput, withMemo } from "./_internal";
@@ -7,9 +7,9 @@ import { WindowOperatorInput, withMemo } from "./_internal";
  * Returns the exponential moving average of numeric expressions applied to documents
  * in a partition defined in the $setWindowFields stage.
  */
-export const $expMovingAvg: WindowOperator = (
+export const $expMovingAvg = (
   _: AnyObject,
-  collection: AnyObject[],
+  coll: AnyObject[],
   expr: WindowOperatorInput,
   options: Options
 ): Any => {
@@ -33,11 +33,11 @@ export const $expMovingAvg: WindowOperator = (
   );
 
   return withMemo(
-    collection,
+    coll,
     expr,
     () => {
       const weight = N != undefined ? 2 / (N + 1) : alpha;
-      const values = $push(collection, input, options) as number[];
+      const values = $push(coll, input, options) as number[];
       for (let i = 0; i < values.length; i++) {
         if (i === 0) {
           if (!isNumber(values[i])) values[i] = null as Any as number;

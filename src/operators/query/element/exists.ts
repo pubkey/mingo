@@ -13,7 +13,9 @@ export const $exists = (selector: string, value: Any, _options: Options) => {
   }
   // for nested keys we resolve the entire value path so we don't confuse array scalars with plural values.
   return (o: AnyObject) => {
-    const path = resolveGraph(o, selector, { preserveIndex: true });
+    const path = resolveGraph(o, selector, {
+      preserveIndex: true
+    }) as AnyObject;
     const val = resolve(path, selector.substring(0, selector.lastIndexOf(".")));
     return isArray(val)
       ? val.some(v => v !== undefined) === b

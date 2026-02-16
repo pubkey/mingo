@@ -1,16 +1,12 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { flatten, isArray, isNil, unique } from "../../../util";
 import { errExpectArray } from "../_internal";
 
 /**
  * Returns a set that holds all elements of the input sets.
  */
-export const $setUnion: ExpressionOperator = (
-  obj: AnyObject,
-  expr: Any,
-  options: Options
-): Any => {
+export const $setUnion = (obj: AnyObject, expr: Any, options: Options): Any => {
   const args = evalExpr(obj, expr, options) as Any[];
   const foe = options.failOnError;
   if (isNil(args)) return null;

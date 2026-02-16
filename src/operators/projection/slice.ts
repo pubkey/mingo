@@ -1,11 +1,11 @@
-import { Any, AnyObject, Options, ProjectionOperator } from "../../types";
+import { Any, AnyObject, Options } from "../../types";
 import { isArray, resolve } from "../../util";
 import { $slice as __slice } from "../expression/array/slice";
 
 /**
  * Limits the number of elements projected from an array. Supports skip and limit slices.
  */
-export const $slice: ProjectionOperator = (
+export const $slice = (
   obj: AnyObject,
   expr: Any,
   field: string,

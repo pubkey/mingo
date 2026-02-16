@@ -1,10 +1,10 @@
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { regexSearch } from "./_internal";
 
 /**
  * Applies a regular expression (regex) to a string and returns information on the all matched substrings.
  */
-export const $regexFindAll: ExpressionOperator = (
+export const $regexFindAll = (
   obj: AnyObject,
   expr: Any,
   options: Options

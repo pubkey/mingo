@@ -8,10 +8,10 @@ import { assert } from "../../util";
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/skip usage}.
  */
 export function $skip(
-  collection: Iterator,
+  coll: Iterator,
   expr: number,
   _options: Options
 ): Iterator {
   assert(expr >= 0, "$skip value must be a non-negative integer");
-  return collection.drop(expr);
+  return coll.drop(expr);
 }

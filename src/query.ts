@@ -4,11 +4,11 @@ import { Source } from "./lazy";
 import type {
   Any,
   AnyObject,
+  Callback,
   Criteria,
   Options,
   Predicate,
-  Projection,
-  QueryOperator
+  Projection
 } from "./types";
 import { assert, cloneDeep, isObject, isOperator, normalize } from "./util";
 
@@ -86,9 +86,9 @@ export class Query<T = AnyObject> {
     const fn = this.#options.context.getOperator(
       OpType.QUERY,
       operator
-    ) as QueryOperator;
+    ) as Callback<Predicate>;
     assert(!!fn, `unknown query operator ${operator}`);
-    this.#compiled.push(fn(field, value, this.#options) as Predicate);
+    this.#compiled.push(fn(field, value, this.#options));
   }
 
   /**

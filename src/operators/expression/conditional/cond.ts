@@ -1,11 +1,5 @@
 import { evalExpr } from "../../../core/_internal";
-import {
-  Any,
-  AnyObject,
-  ArrayOrObject,
-  ExpressionOperator,
-  Options
-} from "../../../types";
+import { Any, AnyObject, ArrayOrObject, Options } from "../../../types";
 import { assert, isArray, isObject, truthy } from "../../../util/_internal";
 
 const err = "$cond expects array(3) or object with 'if-then-else' expressions";
@@ -13,7 +7,7 @@ const err = "$cond expects array(3) or object with 'if-then-else' expressions";
 /**
  * A ternary operator that evaluates one expression, and depending on the result returns the value of one following expressions.
  */
-export const $cond: ExpressionOperator = (
+export const $cond = (
   obj: AnyObject,
   expr: ArrayOrObject,
   options: Options

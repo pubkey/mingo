@@ -1,5 +1,5 @@
 import { evalExpr } from "../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../types";
+import { Any, AnyObject, Options } from "../../types";
 import { hashCode } from "../../util";
 
 /**
@@ -8,7 +8,7 @@ import { hashCode } from "../../util";
  *
  * See {@link https://docs.mongodb.com/manual/reference/operator/aggregation/toHashedIndexKey/}
  */
-export const $toHashedIndexKey: ExpressionOperator<number> = (
+export const $toHashedIndexKey = (
   obj: AnyObject,
   expr: Any,
   options: Options

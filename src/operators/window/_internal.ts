@@ -1,4 +1,4 @@
-import type { Any, AnyObject, Callback, Options } from "../../types";
+import type { Any, AnyObject, Callback, Options, SortSpec } from "../../types";
 import { groupBy } from "../../util";
 import { $push } from "../accumulator/push";
 import { TimeUnit } from "../expression/date/_internal";
@@ -14,7 +14,7 @@ export interface WindowOutputOption {
 
 export interface SetWindowFieldsInput {
   readonly partitionBy?: Any;
-  readonly sortBy: Record<string, 1 | -1>;
+  readonly sortBy: SortSpec;
   readonly output: Record<
     string,
     {
@@ -63,7 +63,7 @@ export function withMemo<T = Any, R = Any>(
   if (!memo.has(collection)) {
     memo.set(collection, {});
   }
-  const data = memo.get(collection);
+  const data: AnyObject = memo.get(collection)!;
   // cache the computation for the field
   if (!(expr.field in data)) {
     data[expr.field] = initialize();
@@ -108,7 +108,7 @@ export function rank(
       let offset = 0;
       for (const key of groups.keys()) {
         // capture length before overriding
-        const len = groups.get(key).length;
+        const len = groups.get(key)!.length;
         groups.set(key, [i++, offset]);
         offset += len;
       }

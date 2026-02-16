@@ -1,12 +1,12 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { adjustDate, isoWeek, isoWeekYear, parseTimezone } from "./_internal";
 
 /**
  * Returns a document that contains the constituent parts of a given Date value as individual properties.
  * The properties returned are year, month, day, hour, minute, second and millisecond.
  */
-export const $dateToParts: ExpressionOperator<AnyObject> = (
+export const $dateToParts = (
   obj: AnyObject,
   expr: Any,
   options: Options

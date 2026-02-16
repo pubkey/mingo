@@ -1,12 +1,12 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, HashMap, isArray } from "../../../util";
 import { errExpectArray } from "../_internal";
 
 /**
  * Returns true if two sets have the same elements.
  */
-export const $setEquals: ExpressionOperator = (
+export const $setEquals = (
   obj: AnyObject,
   expr: Any[],
   options: Options

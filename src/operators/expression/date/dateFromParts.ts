@@ -1,5 +1,5 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import {
   DATE_PART_INTERVAL,
   isLeapYear,
@@ -7,7 +7,7 @@ import {
   parseTimezone
 } from "./_internal";
 
-interface DateArgs {
+interface DateArgs extends AnyObject {
   year: number;
   month?: number;
   day?: number;
@@ -20,7 +20,8 @@ interface DateArgs {
 
 const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
-const getDaysInMonth = (date: DateArgs): number => {
+// eslint-disable @typescript-eslint/no-unnecessary-type-assertion
+const getDaysInMonth = (date: Required<DateArgs>): number => {
   return date.month == 2 && isLeapYear(date.year)
     ? 29
     : DAYS_IN_MONTH[date.month - 1];
@@ -29,12 +30,8 @@ const getDaysInMonth = (date: DateArgs): number => {
 /**
  * Constructs and returns a Date object given the date’s constituent properties.
  */
-export const $dateFromParts: ExpressionOperator<Date> = (
-  obj: AnyObject,
-  expr: Any,
-  options: Options
-): Date => {
-  const args = evalExpr(obj, expr, options) as DateArgs;
+export const $dateFromParts = (obj: AnyObject, expr: Any, options: Options) => {
+  const args = evalExpr(obj, expr, options) as Required<DateArgs>;
   const minuteOffset = parseTimezone(args.timezone, new Date());
 
   // assign default and adjust value ranges of the different parts

@@ -1,12 +1,12 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, isDate, isNil } from "../../../util";
 
 /**
  * Converts a value to a date. If the value cannot be converted to a date, $toDate errors.
  * If the value is null or missing, $toDate returns null.
  */
-export const $toDate: ExpressionOperator = (
+export const $toDate = (
   obj: AnyObject,
   expr: Any,
   options: Options

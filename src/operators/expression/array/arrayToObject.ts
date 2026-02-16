@@ -1,5 +1,5 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { flatten, has, isArray, isNil, isObject } from "../../../util";
 import { errExpectArray } from "../_internal";
 
@@ -12,11 +12,7 @@ const ERR_OPTS = {
 /**
  * Converts an array of key value pairs to a document.
  */
-export const $arrayToObject: ExpressionOperator = (
-  obj: AnyObject,
-  expr: Any,
-  options: Options
-): AnyObject => {
+export const $arrayToObject = (obj: Any, expr: Any, options: Options) => {
   const foe = options.failOnError;
   const arr = evalExpr(obj, expr, options) as Any[];
   if (isNil(arr)) return null;
@@ -24,7 +20,7 @@ export const $arrayToObject: ExpressionOperator = (
     return errExpectArray(foe, "$arrayToObject", ERR_OPTS.generic);
 
   let tag = 0;
-  const newObj = {};
+  const newObj: AnyObject = {};
 
   for (const item of arr) {
     if (isArray(item)) {
@@ -35,7 +31,7 @@ export const $arrayToObject: ExpressionOperator = (
       }
       const [k, v] = val as [string, Any];
       newObj[k] = v;
-    } else if (isObject(item) && has(item, "k") && has(item, "v")) {
+    } else if (isObject(item) && has(item, "k", "v")) {
       if (!tag) tag = 2;
       if (tag !== 2) {
         return errExpectArray(foe, "$arrayToObject", ERR_OPTS.array);

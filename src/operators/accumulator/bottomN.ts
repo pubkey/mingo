@@ -1,32 +1,24 @@
 import { ComputeOptions, evalExpr } from "../../core/_internal";
 import { Lazy } from "../../lazy";
-import { AccumulatorOperator, Any, AnyObject, Options } from "../../types";
+import { Any, Options, SortSpec } from "../../types";
 import { $sort } from "../pipeline/sort";
 import { $push } from "./push";
 
 interface InputExpr {
   n: Any;
-  sortBy: Record<string, number>;
-  output: Any;
+  sortBy: SortSpec;
+  output: string;
 }
 
 /**
  * Returns an aggregation of the bottom n elements within a group, according to the specified sort order.
  * If the group contains fewer than n elements, $bottomN returns all elements in the group.
- *
- * @param {Any[]} collection The input array
- * @param {AnyObject} expr The right-hand side expression value of the operator
- * @param {Options} options The options to use for this operation
- * @returns {*}
  */
-export const $bottomN: AccumulatorOperator<Any[]> = (
-  collection: AnyObject[],
-  expr: InputExpr,
-  options: Options
-): Any[] => {
+export const $bottomN = (coll: Any[], expr: Any, options: Options) => {
   const copts = options as ComputeOptions;
-  const n = evalExpr(copts?.local?.groupId, expr.n, copts) as number;
-  const result = $sort(Lazy(collection), expr.sortBy, options).collect();
+  const args = expr as InputExpr;
+  const n = evalExpr(copts?.local?.groupId, args.n, copts) as number;
+  const result = $sort(Lazy(coll), args.sortBy, options).collect();
   const m = result.length;
-  return $push(m <= n ? result : result.slice(m - n), expr.output, copts);
+  return $push(m <= n ? result : result.slice(m - n), args.output, copts);
 };

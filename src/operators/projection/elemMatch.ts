@@ -1,18 +1,18 @@
 import { Query } from "../../query";
-import { Any, AnyObject, Options, ProjectionOperator } from "../../types";
+import { Any, AnyObject, Options } from "../../types";
 import { isArray, resolve } from "../../util";
 
 /**
  * Projects only the first element from an array that matches the specified $elemMatch condition.
  */
-export const $elemMatch: ProjectionOperator = (
+export const $elemMatch = (
   obj: AnyObject,
-  expr: AnyObject,
+  expr: Any,
   field: string,
   options: Options
 ): Any => {
   const arr = resolve(obj, field) as AnyObject[];
-  const query = new Query(expr, options);
+  const query = new Query(expr as AnyObject, options);
 
   if (!isArray(arr)) return undefined;
 

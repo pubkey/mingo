@@ -7,11 +7,11 @@ import { Any, Options } from "../../types";
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/sample/ usage}.
  */
 export function $sample(
-  collection: Iterator,
+  coll: Iterator,
   expr: { size: number },
   _options: Options
 ): Iterator {
-  return collection.transform((xs: Any[]) => {
+  return coll.transform((xs: Any[]) => {
     const len = xs.length;
     let i = -1;
     return Lazy(() => {

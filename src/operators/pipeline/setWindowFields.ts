@@ -1,13 +1,6 @@
 import { ComputeOptions, OpType } from "../../core/_internal";
 import { concat, Iterator, Lazy } from "../../lazy";
-import {
-  AccumulatorOperator,
-  Any,
-  AnyObject,
-  Callback,
-  Options,
-  WindowOperator
-} from "../../types";
+import { Any, AnyObject, Callback, Options } from "../../types";
 import { assert, isNumber, isOperator, isString } from "../../util";
 import { $function } from "../expression/custom/function";
 import { $dateAdd } from "../expression/date/dateAdd";
@@ -57,7 +50,7 @@ const OP = "$setWindowFields";
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/setWindowFields/ usage}.
  */
 export function $setWindowFields(
-  collection: Iterator,
+  coll: Iterator,
   expr: SetWindowFieldsInput,
   options: Options
 ): Iterator {
@@ -99,12 +92,12 @@ export function $setWindowFields(
 
   // we sort first if required
   if (expr.sortBy) {
-    collection = $sort(collection, expr.sortBy, options);
+    coll = $sort(coll, expr.sortBy, options);
   }
 
   // then partition collection
-  collection = $group(
-    collection,
+  coll = $group(
+    coll,
     {
       _id: expr.partitionBy,
       items: { $push: "$$CURRENT" }
@@ -113,14 +106,14 @@ export function $setWindowFields(
   );
 
   // transform values
-  return collection.transform((partitions: Any[]) => {
+  return coll.transform((partitions: Any[]) => {
     // let iteratorIndex = 0;
     const iterators: Iterator[] = [];
     const outputConfig: Array<{
       operatorName: string;
       func: {
-        left: AccumulatorOperator | null;
-        right: WindowOperator | null;
+        left: Callback | null;
+        right: Callback | null;
       };
       args: Any;
       field: string;
@@ -133,14 +126,8 @@ export function $setWindowFields(
       const config = {
         operatorName: op,
         func: {
-          left: options.context.getOperator(
-            OpType.ACCUMULATOR,
-            op
-          ) as AccumulatorOperator | null,
-          right: options.context.getOperator(
-            OpType.WINDOW,
-            op
-          ) as WindowOperator | null
+          left: options.context.getOperator(OpType.ACCUMULATOR, op),
+          right: options.context.getOperator(OpType.WINDOW, op)
         },
         args: outputExpr[op],
         field: field,
@@ -162,9 +149,9 @@ export function $setWindowFields(
     }
 
     // each parition maintains its own closure to process the documents in the window.
-    partitions.forEach(((group: { items: Any[] }) => {
+    partitions.forEach(((group: { items: AnyObject[] }) => {
       // get the items to process
-      const items = group.items as AnyObject[];
+      const items = group.items;
 
       // create an iterator per group.
       // we need the index of each document so we track it using a special field.
@@ -231,7 +218,7 @@ export function $setWindowFields(
               index: number
             ): AnyObject[] => {
               // handle string boundaries or documents
-              if (!!documents || boundary.every(isString)) {
+              if (!!documents || boundary?.every(isString)) {
                 return items.slice(toBeginIndex(index), toEndIndex(index));
               }
 
@@ -242,16 +229,11 @@ export function $setWindowFields(
 
               if (unit) {
                 // we are dealing with datetimes
+                const startDate = new Date(current[sortKey] as Date);
                 const getTime = (amount: number): number => {
-                  return $dateAdd(
-                    current,
-                    {
-                      startDate: new Date(current[sortKey] as Date),
-                      unit,
-                      amount
-                    },
-                    options
-                  ).getTime();
+                  const addExpr = { startDate, unit, amount };
+                  const d = $dateAdd(current, addExpr, options);
+                  return d.getTime();
                 };
                 lower = isNumber(begin) ? getTime(begin) : -Infinity;
                 upper = isNumber(end) ? getTime(end) : Infinity;

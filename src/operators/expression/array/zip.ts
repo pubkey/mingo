@@ -1,5 +1,5 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import {
   assert,
   has,
@@ -16,7 +16,7 @@ import { errExpectArray, errInvalidArgs } from "../_internal";
  * Transposes an array of input arrays so that the first element of the output array would be an array containing,
  * the first element of the first input array, the first element of the second input array, etc.
  */
-export const $zip: ExpressionOperator = (
+export const $zip = (
   obj: AnyObject,
   expr: { inputs: Any[]; useLongestLength: boolean; defaults: Any },
   options: Options

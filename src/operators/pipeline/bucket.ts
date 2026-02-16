@@ -17,7 +17,7 @@ interface InputExpr {
  * See {@link https://docs.mongodb.com/manual/reference/operator/aggregation/bucket/ usage}.
  */
 export function $bucket(
-  collection: Iterator,
+  coll: Iterator,
   expr: InputExpr,
   options: Options
 ): Iterator {
@@ -55,7 +55,7 @@ export function $bucket(
     // add default key if provided
     if (!isNil(defaultKey)) buckets.set(defaultKey, []);
 
-    collection.each((obj: AnyObject) => {
+    coll.each((obj: AnyObject) => {
       const key = evalExpr(obj, expr.groupBy, options);
 
       if (isNil(key) || compare(key, lower) < 0 || compare(key, upper) >= 0) {
@@ -63,7 +63,7 @@ export function $bucket(
           !isNil(defaultKey),
           "$bucket require a default for out of range values"
         );
-        buckets.get(defaultKey).push(obj);
+        buckets.get(defaultKey)?.push(obj);
       } else {
         assert(
           compare(key, lower) >= 0 && compare(key, upper) < 0,
@@ -71,7 +71,7 @@ export function $bucket(
         );
         const index = findInsertIndex(bounds, key);
         const boundKey = bounds[Math.max(0, index - 1)] as string;
-        buckets.get(boundKey).push(obj);
+        buckets.get(boundKey)?.push(obj);
       }
     });
 
@@ -80,7 +80,7 @@ export function $bucket(
 
     // add items in the default bucket if any
     if (!isNil(defaultKey)) {
-      if (buckets.get(defaultKey).length) bounds.push(defaultKey);
+      if (buckets.get(defaultKey)?.length) bounds.push(defaultKey);
       else buckets.delete(defaultKey);
     }
 

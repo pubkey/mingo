@@ -1,5 +1,5 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, isObject, truthy } from "../../../util/_internal";
 
 /**
@@ -7,7 +7,7 @@ import { assert, isObject, truthy } from "../../../util/_internal";
  * evaluates to true, it returns the resulting expression for that case. If none of the cases
  * evaluate to true, it returns the default expression.
  */
-export const $switch: ExpressionOperator = (
+export const $switch = (
   obj: AnyObject,
   expr: { branches: Array<{ case: Any; then: Any }>; default: Any },
   options: Options

@@ -4,7 +4,8 @@ import {
   AnyObject,
   CollationSpec,
   Comparator,
-  Options
+  Options,
+  SortSpec
 } from "../../types";
 import {
   assert,
@@ -23,11 +24,11 @@ import {
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/sort/ usage}.
  */
 export function $sort(
-  collection: Iterator,
-  sortKeys: Record<string, 1 | -1>,
+  coll: Iterator,
+  sortKeys: SortSpec,
   options: Options
 ): Iterator {
-  if (isEmpty(sortKeys) || !isObject(sortKeys)) return collection;
+  if (isEmpty(sortKeys) || !isObject(sortKeys)) return coll;
   assert(
     isObject(sortKeys) && Object.keys(sortKeys).length > 0,
     "$sort specification is invalid"
@@ -42,7 +43,7 @@ export function $sort(
     cmp = collationComparator(collationSpec);
   }
 
-  return collection.transform((coll: AnyObject[]) => {
+  return coll.transform((coll: AnyObject[]) => {
     const modifiers = Object.keys(sortKeys);
     for (const key of modifiers.reverse()) {
       const groups = groupBy(coll, (obj: AnyObject) => resolve(obj, key));
@@ -73,7 +74,7 @@ export function $sort(
 
       // modify collection in place.
       let i = 0;
-      for (const k of sortedKeys) for (const v of groups.get(k)) coll[i++] = v;
+      for (const k of sortedKeys) for (const v of groups.get(k)!) coll[i++] = v;
       assert(i == coll.length, "bug: counter must match collection size.");
     }
     return Lazy(coll);

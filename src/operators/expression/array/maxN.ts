@@ -1,5 +1,5 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, has, isArray, isNil, isObject } from "../../../util";
 import { $maxN as __maxN } from "../../accumulator/maxN";
 import { errExpectArray } from "../_internal";
@@ -12,7 +12,7 @@ interface InputExpr {
 /**
  * Returns the n largest values in an array.
  */
-export const $maxN: ExpressionOperator = (
+export const $maxN = (
   obj: AnyObject,
   expr: InputExpr,
   options: Options

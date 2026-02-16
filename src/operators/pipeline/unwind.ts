@@ -17,7 +17,7 @@ import {
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/unwind/ usage}.
  */
 export function $unwind(
-  collection: Iterator,
+  coll: Iterator,
   expr:
     | string
     | {
@@ -50,7 +50,7 @@ export function $unwind(
       }
 
       // fetch next object
-      const wrapper = collection.next();
+      const wrapper = coll.next();
       if (wrapper.done) return wrapper;
 
       // unwrap value

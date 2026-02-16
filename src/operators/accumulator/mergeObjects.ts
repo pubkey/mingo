@@ -1,16 +1,12 @@
-import { AccumulatorOperator, Any, AnyObject, Options } from "../../types";
+import { Any, AnyObject, Options } from "../../types";
 import { isNil } from "../../util";
 
 /**
  * Combines multiple documents into a single document.
  */
-export const $mergeObjects: AccumulatorOperator<AnyObject> = (
-  collection: AnyObject[],
-  _expr: Any,
-  _options: Options
-): AnyObject => {
-  const acc = {} as AnyObject;
-  for (const o of collection) {
+export const $mergeObjects = (coll: Any[], _expr: Any, _options: Options) => {
+  const acc: AnyObject = {};
+  for (const o of coll as AnyObject[]) {
     // filter out nil values
     if (isNil(o)) continue;
     for (const k of Object.keys(o)) {

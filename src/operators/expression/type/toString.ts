@@ -1,9 +1,9 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { isDate, isNil, isPrimitive, isRegExp } from "../../../util/_internal";
 import { errInvalidArgs } from "../_internal";
 
-export const $toString: ExpressionOperator = (
+export const $toString = (
   obj: AnyObject,
   expr: Any,
   options: Options

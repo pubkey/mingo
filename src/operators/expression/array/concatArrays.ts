@@ -1,12 +1,12 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { isArray, isNil } from "../../../util";
 import { errExpectArray } from "../_internal";
 
 /**
  * Concatenates arrays to return the concatenated array.
  */
-export const $concatArrays: ExpressionOperator = (
+export const $concatArrays = (
   obj: AnyObject,
   expr: Any,
   options: Options

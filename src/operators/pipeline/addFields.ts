@@ -10,15 +10,15 @@ import { removeValue, setValue } from "../../util";
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/addFields/ usage}.
  */
 export function $addFields(
-  collection: Iterator,
+  coll: Iterator,
   expr: AnyObject,
   options: Options
 ): Iterator {
   const newFields = Object.keys(expr);
 
-  if (newFields.length === 0) return collection;
+  if (newFields.length === 0) return coll;
 
-  return collection.map((obj: AnyObject) => {
+  return coll.map((obj: AnyObject) => {
     const newObj = { ...obj };
     for (const field of newFields) {
       const newValue = evalExpr(obj, expr[field], options);

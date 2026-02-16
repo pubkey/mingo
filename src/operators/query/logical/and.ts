@@ -1,5 +1,5 @@
 import { Query } from "../../../query";
-import { AnyObject, Callback, Options, QueryOperator } from "../../../types";
+import { AnyObject, Options, Predicate } from "../../../types";
 import { assert, isArray } from "../../../util";
 
 /**
@@ -9,15 +9,12 @@ import { assert, isArray } from "../../../util";
  * @param rhs
  * @returns {Function}
  */
-export const $and: QueryOperator = (
+export const $and = (
   _: string,
   rhs: AnyObject[],
   options: Options
-): Callback<boolean> => {
-  assert(
-    isArray(rhs),
-    "Invalid expression: $and expects value to be an Array."
-  );
+): Predicate<AnyObject> => {
+  assert(isArray(rhs), "$and expects value to be an Array.");
   const queries = rhs.map(expr => new Query(expr, options));
   return (obj: AnyObject) => queries.every(q => q.test(obj));
 };

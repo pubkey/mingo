@@ -34,7 +34,7 @@ interface InputExpr {
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/lookup/ usage}
  */
 export function $lookup(
-  collection: Iterator,
+  coll: Iterator,
   expr: InputExpr,
   options: Options
 ): Iterator {
@@ -98,11 +98,8 @@ export function $lookup(
     };
 
     if (pipeline.length === 0) {
-      return collection.map((obj: AnyObject) => {
-        return {
-          ...obj,
-          [expr.as]: lookupEq(obj).pop()
-        };
+      return coll.map((obj: AnyObject) => {
+        return { ...obj, [expr.as]: lookupEq(obj).pop() };
       });
     }
   }
@@ -110,13 +107,10 @@ export function $lookup(
   // options to use for processing each stage.
   const agg = new Aggregator(pipeline, options);
   const opts = ComputeOptions.init(options);
-  return collection.map((obj: AnyObject) => {
+  return coll.map((obj: AnyObject) => {
     const vars = evalExpr(obj, letExpr, options) as AnyObject;
     opts.update({ root: null, variables: vars });
     const [ok, res] = lookupEq(obj);
-    return {
-      ...obj,
-      [expr.as]: ok ? agg.run(joinColl, opts) : res
-    };
+    return { ...obj, [expr.as]: ok ? agg.run(joinColl, opts) : res };
   });
 }

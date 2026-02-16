@@ -9,11 +9,11 @@ import { assert, isObject } from "../../util";
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/replaceWith/ usage}.
  */
 export function $replaceWith(
-  collection: Iterator,
+  coll: Iterator,
   expr: AnyObject,
   options: Options
 ): Iterator {
-  return collection.map(obj => {
+  return coll.map(obj => {
     obj = evalExpr(obj, expr, options);
     assert(isObject(obj), "$replaceWith expression must return an object");
     return obj;

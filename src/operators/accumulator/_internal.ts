@@ -8,7 +8,7 @@ export function stddev(data: number[], sampled = true): number {
   );
 }
 
-export function covariance(dataset: number[][], sampled = true): number {
+export function covariance(dataset: number[][], sampled = true) {
   if (dataset.length < 2) return sampled ? null : 0;
 
   let meanX = 0.0;

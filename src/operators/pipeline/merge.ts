@@ -43,7 +43,7 @@ interface InputExpr {
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/merge/ usage}.
  */
 export function $merge(
-  collection: Iterator,
+  coll: Iterator,
   expr: InputExpr,
   options: Options
 ): Iterator {
@@ -71,10 +71,10 @@ export function $merge(
 
   const copts = ComputeOptions.init(options);
 
-  return collection.map((o: AnyObject) => {
+  return coll.map((o: AnyObject) => {
     const k = getHash(o);
     if (map.has(k)) {
-      const [target, i] = map.get(k);
+      const [target, i] = map.get(k)!;
 
       // compute variables
       const variables = evalExpr(
@@ -108,7 +108,7 @@ export function $merge(
               [target, o],
               // 'root' is the item from the iteration.
               copts.update({ root: o, variables })
-            );
+            )!;
             break;
         }
       }

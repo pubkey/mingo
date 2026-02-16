@@ -1,14 +1,6 @@
 import { ComputeOptions, evalExpr, OpType } from "../../core/_internal";
 import { Iterator } from "../../lazy";
-import {
-  Any,
-  AnyObject,
-  Callback,
-  Options,
-  Predicate,
-  ProjectionOperator,
-  QueryOperator
-} from "../../types";
+import { Any, AnyObject, Callback, Options, Predicate } from "../../types";
 import {
   assert,
   ensureArray,
@@ -40,14 +32,14 @@ const OP = "$project";
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/project usage}.
  */
 export function $project(
-  collection: Iterator,
+  coll: Iterator,
   expr: AnyObject,
   options: Options
 ): Iterator {
-  if (isEmpty(expr)) return collection;
+  if (isEmpty(expr)) return coll;
   const meta = validateProjection(expr, options);
   const handler = createHandler(expr, ComputeOptions.init(options), meta);
-  return collection.map(handler);
+  return coll.map(handler);
 }
 
 // handler for transforming the 'target' object based on the 'current'.
@@ -87,13 +79,10 @@ function createHandler(
     // get predicate for field if used as a positional projection "<array-selector>.$".
     if (selector.endsWith(".$") && v === 1) {
       // ensure there is query condition
-      const condition = options?.local?.condition;
-      assert(
-        condition,
-        `${OP}: positional operator '.$' requires array condition.`
-      );
+      const cond: AnyObject = options?.local?.condition ?? {};
+      assert(cond, `${OP}: positional operator '.$' requires array condition.`);
       const field = selector.slice(0, -2);
-      handlers[field] = getPositionalFilter(field, condition, options);
+      handlers[field] = getPositionalFilter(field, cond, options);
       continue;
     }
 
@@ -128,10 +117,7 @@ function createHandler(
       const opExpr = v[operator];
 
       // get the projection operator as used in Query.find() queries
-      const fn = options.context.getOperator(
-        OpType.PROJECTION,
-        operator
-      ) as ProjectionOperator;
+      const fn = options.context.getOperator(OpType.PROJECTION, operator);
 
       // $slice can either be the projection operator or expression operator with different syntax
       const foundSlice = operator === "$slice";
@@ -239,9 +225,9 @@ function getPositionalFilter(
       const fn = options.context.getOperator(
         OpType.QUERY,
         operator
-      ) as QueryOperator;
+      ) as Callback<Predicate>;
       const leaf = key.substring(key.lastIndexOf(".") + 1);
-      const pred = fn(leaf, expr, options) as Predicate;
+      const pred = fn(leaf, expr, options);
       if (!op || op === "$and") {
         // default for all query criteria
         selectors.$and.push([key, pred, leaf]);

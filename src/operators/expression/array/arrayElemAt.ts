@@ -1,5 +1,5 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, isArray, isInteger, isNil } from "../../../util";
 import { errExpectArray, errExpectNumber, INT_OPTS } from "../_internal";
 
@@ -8,7 +8,7 @@ const OP = "$arrayElemAt";
 /**
  * Returns the element at the specified array index.
  */
-export const $arrayElemAt: ExpressionOperator = (
+export const $arrayElemAt = (
   obj: AnyObject,
   expr: Any,
   options: Options

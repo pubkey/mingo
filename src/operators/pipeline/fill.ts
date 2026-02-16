@@ -1,5 +1,5 @@
 import { Iterator } from "../../lazy";
-import { Any, AnyObject, Options } from "../../types";
+import { Any, AnyObject, Options, SortSpec } from "../../types";
 import { assert, has, isObject } from "../../util";
 import { $ifNull } from "../expression/conditional/ifNull";
 import type { SetWindowFieldsInput } from "../window/_internal";
@@ -13,14 +13,11 @@ type Output = [{ value: Any }, { method: "linear" | "locf" }];
 interface InputExpr {
   partitionBy?: Any;
   partitionByFields?: string[];
-  sortBy?: Record<string, 1 | -1>;
+  sortBy?: SortSpec;
   output: Record<string, Output[number]>;
 }
 
-const FILL_METHODS: Record<string, string> = {
-  locf: "$locf",
-  linear: "$linearFill"
-};
+const FILL_METHODS = { locf: "$locf", linear: "$linearFill" };
 
 /**
  * Populates null and missing field values within documents.
@@ -28,7 +25,7 @@ const FILL_METHODS: Record<string, string> = {
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/fill/ usage}.
  */
 export function $fill(
-  collection: Iterator,
+  coll: Iterator,
   expr: InputExpr,
   options: Options
 ): Iterator {
@@ -75,8 +72,8 @@ export function $fill(
 
   // perform filling with $setWindowFields
   if (Object.keys(methodExpr).length > 0) {
-    collection = $setWindowFields(
-      collection,
+    coll = $setWindowFields(
+      coll,
       {
         sortBy: expr.sortBy || {},
         partitionBy: partitionExpr,
@@ -88,8 +85,8 @@ export function $fill(
 
   // fill with values
   if (Object.keys(valueExpr).length > 0) {
-    collection = $addFields(collection, valueExpr, options);
+    coll = $addFields(coll, valueExpr, options);
   }
 
-  return collection;
+  return coll;
 }

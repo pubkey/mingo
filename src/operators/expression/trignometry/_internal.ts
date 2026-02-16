@@ -18,10 +18,10 @@ export function processOperator(
   obj: AnyObject,
   expr: Any,
   options: Options,
-  fn: Callback<number | null>,
+  fn: Callback<number, number>,
   fixedPoints?: Record<string, null | number | Error>
 ): number | null {
-  const fp = {
+  const fp: AnyObject = {
     undefined: null,
     null: null,
     NaN: NaN,

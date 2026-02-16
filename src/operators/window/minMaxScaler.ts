@@ -1,4 +1,4 @@
-import { Any, AnyObject, Options, WindowOperator } from "../../types";
+import { Any, AnyObject, Options } from "../../types";
 import { assert, isArray, isNumber } from "../../util";
 import { $push } from "../accumulator/push";
 import { WindowOperatorInput, withMemo } from "./_internal";
@@ -10,14 +10,14 @@ import { WindowOperatorInput, withMemo } from "./_internal";
  *
  * See {@link https://docs.mongodb.com/manual/reference/operator/aggregation/minMaxScaler/}
  */
-export const $minMaxScaler: WindowOperator = (
+export const $minMaxScaler = (
   _: AnyObject,
-  collection: AnyObject[],
+  coll: AnyObject[],
   expr: WindowOperatorInput,
   options: Options
 ): Any => {
   return withMemo(
-    collection,
+    coll,
     expr,
     () => {
       const args = expr.inputExpr as {
@@ -29,7 +29,7 @@ export const $minMaxScaler: WindowOperator = (
       const max = args.max || 1;
       // compute numeric values in range using the available expression syntax option.
       const nums = $push(
-        collection,
+        coll,
         args.input || expr.inputExpr,
         options
       ) as number[];

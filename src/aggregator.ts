@@ -1,6 +1,6 @@
 import { ComputeOptions, OpType, ProcessingMode } from "./core/_internal";
 import { Iterator, Lazy, Source } from "./lazy";
-import type { Any, AnyObject, Options, PipelineOperator } from "./types";
+import type { Any, AnyObject, Callback, Options } from "./types";
 import { assert, cloneDeep } from "./util";
 
 /**
@@ -48,7 +48,7 @@ export class Aggregator {
 
     // validate and build pipeline
     iter = this.#pipeline
-      .map<[PipelineOperator, Any]>((stage, i) => {
+      .map<[Callback<Iterator>, Any]>((stage, i) => {
         const keys = Object.keys(stage);
         assert(
           keys.length === 1,
@@ -60,12 +60,9 @@ export class Aggregator {
           name !== "$documents" || i == 0,
           "$documents must be first stage in pipeline."
         );
-        const op = opts.context.getOperator(
-          OpType.PIPELINE,
-          name
-        ) as PipelineOperator;
+        const op = opts.context.getOperator(OpType.PIPELINE, name);
         assert(!!op, `unregistered pipeline operator ${name}.`);
-        return [op, stage[name]];
+        return [op, stage[name]] as [Callback<Iterator>, Any];
       })
       .reduce((acc, [op, expr]) => op(acc, expr, opts), iter);
 

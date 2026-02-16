@@ -1,13 +1,11 @@
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { computeDate } from "./_internal";
 
 /**
  * Returns the weekday number in ISO 8601 format, ranging from 1 (Monday) to 7 (Sunday).
  */
-export const $isoDayOfWeek: ExpressionOperator<number> = (
+export const $isoDayOfWeek = (
   obj: AnyObject,
   expr: Any,
   options: Options
-): number => {
-  return computeDate(obj, expr, options).getUTCDay() || 7;
-};
+): number => computeDate(obj, expr, options).getUTCDay() || 7;

@@ -1,16 +1,11 @@
-import { AccumulatorOperator, Any, AnyObject, Options } from "../../types";
+import { Any, AnyObject, Options, SortSpec } from "../../types";
 import { $topN } from "./topN";
 
 /**
  * Returns the top element within a group according to the specified sort order.
- *
- * @param {Any[]} collection The input array
- * @param {AnyObject} expr The right-hand side expression value of the operator
- * @param {Options} options The options to use for this operation
- * @returns {*}
  */
-export const $top: AccumulatorOperator = (
-  collection: AnyObject[],
-  expr: { sortBy: Record<string, number>; output: Any },
+export const $top = (
+  coll: AnyObject[],
+  expr: { sortBy: SortSpec; output: Any },
   options: Options
-): Any[] => $topN(collection, { ...expr, n: 1 }, options);
+): Any[] => $topN(coll, { ...expr, n: 1 }, options);

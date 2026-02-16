@@ -1,4 +1,4 @@
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { $setField } from "./setField";
 
 interface InputExpr {
@@ -9,22 +9,11 @@ interface InputExpr {
 
 /**
  * Adds, updates, or removes a specified field in a document.
- *
- * @param {*} obj The target object for this expression
- * @param {*} expr The right-hand side of the operator
- * @param {Options} options Options to use for operation
  */
-export const $unsetField: ExpressionOperator = (
+export const $unsetField = (
   obj: AnyObject,
   expr: InputExpr,
   options: Options
 ): Any => {
-  return $setField(
-    obj,
-    {
-      ...expr,
-      value: "$$REMOVE"
-    },
-    options
-  );
+  return $setField(obj, { ...expr, value: "$$REMOVE" }, options);
 };

@@ -9,12 +9,12 @@ import { has, isArray, isNil, isObject } from "../../util";
  * See {@link https://docs.mongodb.com/manual/reference/operator/aggregation/redact/ usage}
  */
 export function $redact(
-  collection: Iterator,
+  coll: Iterator,
   expr: AnyObject,
   options: Options
 ): Iterator {
   const copts = ComputeOptions.init(options);
-  return collection.map((root: AnyObject) =>
+  return coll.map((root: AnyObject) =>
     redact(root, expr, copts.update({ root }))
   );
 }

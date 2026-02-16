@@ -1,10 +1,20 @@
 import type { Context, ProcessingMode } from "./core";
-import type { Iterator } from "./lazy";
-import type { WindowOperatorInput } from "./operators/window/_internal";
+
+export type {
+  AccumulatorOperator,
+  ExpressionOperator,
+  PipelineOperator,
+  ProjectionOperator,
+  QueryOperator,
+  UpdateOperator,
+  WindowOperator
+} from "./operators/typings";
 
 export type Any = unknown;
 export type AnyObject = Record<string, Any>;
 export type ArrayOrObject = AnyObject | Any[];
+
+export type SortSpec = Record<string, 1 | -1>;
 
 // Generic callback
 export interface Callback<R = Any, T = Any> {
@@ -99,60 +109,6 @@ export interface Options {
   /** Extra references to operators to be used for processing. */
   readonly context: Context;
 }
-
-export type AccumulatorOperator<R = Any> = (
-  collection: Any[],
-  expr: Any,
-  options: Options
-) => R;
-
-export type ExpressionOperator<R = Any> = (
-  obj: AnyObject,
-  expr: Any,
-  options: Options
-) => R;
-
-export type PipelineOperator = (
-  collection: Iterator,
-  expr: Any,
-  options: Options
-) => Iterator;
-
-export type ProjectionOperator = (
-  obj: AnyObject,
-  expr: Any,
-  selector: string,
-  options: Options
-) => Any;
-
-export type QueryOperator = (
-  selector: string,
-  value: Any,
-  options: Options
-) => (obj: AnyObject) => boolean;
-
-export type WindowOperator = (
-  obj: AnyObject,
-  array: AnyObject[],
-  expr: WindowOperatorInput,
-  options: Options
-) => Any;
-
-export type Operator =
-  | AccumulatorOperator
-  | ExpressionOperator
-  | PipelineOperator
-  | ProjectionOperator
-  | QueryOperator
-  | WindowOperator;
-
-export type OperatorName = `$${string}`;
-export type AccumulatorOps = Record<OperatorName, AccumulatorOperator>;
-export type ExpressionOps = Record<OperatorName, ExpressionOperator>;
-export type ProjectionOps = Record<OperatorName, ProjectionOperator>;
-export type QueryOps = Record<OperatorName, QueryOperator>;
-export type PipelineOps = Record<OperatorName, PipelineOperator>;
-export type WindowOps = Record<OperatorName, WindowOperator>;
 
 // -------------------- Core building blocks --------------------
 

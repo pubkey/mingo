@@ -1,5 +1,5 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, has, isNil, isObject } from "../../../util";
 import { errInvalidArgs } from "../_internal";
 import { $toBool } from "./toBool";
@@ -19,7 +19,7 @@ interface InputExpr {
 /**
  * Converts a value to a specified type.
  */
-export const $convert: ExpressionOperator = (
+export const $convert = (
   obj: AnyObject,
   expr: InputExpr,
   options: Options

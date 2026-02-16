@@ -1,5 +1,5 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, has, isArray, isNil, isObject } from "../../../util";
 import { $minN as __minN } from "../../accumulator/minN";
 import { errExpectArray } from "../_internal";
@@ -12,7 +12,7 @@ interface InputExpr {
 /**
  * Returns the n smallest values in an array.
  */
-export const $minN: ExpressionOperator = (
+export const $minN = (
   obj: AnyObject,
   expr: InputExpr,
   options: Options

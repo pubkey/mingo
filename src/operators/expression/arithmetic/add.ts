@@ -1,5 +1,5 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { isArray, isDate, isNil } from "../../../util";
 import { errInvalidArgs } from "../_internal";
 
@@ -8,11 +8,7 @@ const err = "$add expression must resolve to array of numbers.";
 /**
  * Computes the sum of an array of numbers.
  */
-export const $add: ExpressionOperator = (
-  obj: AnyObject,
-  expr: Any,
-  options: Options
-): number | Date => {
+export const $add = (obj: AnyObject, expr: Any, options: Options) => {
   const args = evalExpr(obj, expr, options) as number[];
   const failOnError = options.failOnError;
   let dateFound = false;

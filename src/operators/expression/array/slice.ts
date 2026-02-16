@@ -1,16 +1,12 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, isArray, isInteger, isNil } from "../../../util";
 import { errExpectArray, errExpectNumber, INT_OPTS } from "../_internal";
 
 /**
  * Returns a subset of an array.
  */
-export const $slice: ExpressionOperator = (
-  obj: AnyObject,
-  expr: Any,
-  options: Options
-): Any => {
+export const $slice = (obj: AnyObject, expr: Any, options: Options): Any => {
   assert(
     isArray(expr) && expr.length > 1 && expr.length < 4,
     "$slice expects array(3)"

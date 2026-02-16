@@ -1,5 +1,5 @@
 import { ComputeOptions, evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import {
   assert,
   has,
@@ -14,16 +14,11 @@ import { errExpectArray, errExpectNumber } from "../_internal";
 /**
  * Selects a subset of the array to return an array with only the elements that match the filter condition.
  */
-export const $filter: ExpressionOperator = (
+export const $filter = (
   obj: AnyObject,
-  expr: {
-    input: Any;
-    as?: string;
-    cond: Any;
-    limit?: Any;
-  },
+  expr: { input: Any; as?: string; cond: Any; limit?: Any },
   options: Options
-): Any[] => {
+) => {
   assert(
     isObject(expr) && has(expr, "input", "cond"),
     "$filter expects object { input, as, cond, limit }"
@@ -43,11 +38,9 @@ export const $filter: ExpressionOperator = (
 
   const copts = ComputeOptions.init(options);
   const k = expr?.as || "this";
-  const locals = {
-    variables: { [k]: null }
-  };
+  const locals = { variables: {} as AnyObject };
 
-  const res = [];
+  const res: Any[] = [];
 
   for (let i = 0, j = 0; i < input.length && j < limit; i++) {
     locals.variables[k] = input[i];

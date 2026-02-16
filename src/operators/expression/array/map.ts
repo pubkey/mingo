@@ -1,12 +1,12 @@
 import { ComputeOptions, evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, has, isArray, isNil, isObject, isString } from "../../../util";
 import { errExpectArray, errExpectString } from "../_internal";
 
 /**
  * Applies a sub-expression to each element of an array and returns the array of resulting values in order.
  */
-export const $map: ExpressionOperator = (
+export const $map = (
   obj: AnyObject,
   expr: { input: Any[]; as: string; in: Any },
   options: Options
@@ -24,7 +24,7 @@ export const $map: ExpressionOperator = (
 
   const copts = ComputeOptions.init(options);
   const k = expr.as || "this";
-  const locals = { variables: { [k]: null } };
+  const locals = { variables: {} as AnyObject };
   return input.map((o: Any) => {
     locals.variables[k] = o;
     return evalExpr(obj, expr.in, copts.update(locals));

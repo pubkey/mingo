@@ -1,11 +1,11 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, isDate, isNil, isNumber } from "../../../util";
 
 /**
  * Converts a value to a double. If the value cannot be converted to an double, $toDouble errors. If the value is null or missing, $toDouble returns null.
  */
-export const $toDouble: ExpressionOperator = (
+export const $toDouble = (
   obj: AnyObject,
   expr: Any,
   options: Options

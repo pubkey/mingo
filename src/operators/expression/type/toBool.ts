@@ -1,11 +1,11 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { isNil, isString } from "../../../util";
 
 /**
  * Converts a value to a boolean.
  */
-export const $toBool: ExpressionOperator = (
+export const $toBool = (
   obj: AnyObject,
   expr: Any,
   options: Options

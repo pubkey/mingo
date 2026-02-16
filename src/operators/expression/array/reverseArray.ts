@@ -1,12 +1,12 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { isArray, isNil } from "../../../util";
 import { errExpectArray } from "../_internal";
 
 /**
  * Returns an array with the elements in reverse order.
  */
-export const $reverseArray: ExpressionOperator = (
+export const $reverseArray = (
   obj: AnyObject,
   expr: Any,
   options: Options

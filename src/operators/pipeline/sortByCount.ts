@@ -10,12 +10,12 @@ import { $sort } from "./sort";
  * {@link https://docs.mongodb.com/manual/reference/operator/aggregation/sortByCount/ usage}.
  */
 export function $sortByCount(
-  collection: Iterator,
+  coll: Iterator,
   expr: Any,
   options: Options
 ): Iterator {
   return $sort(
-    $group(collection, { _id: expr, count: { $sum: 1 } }, options),
+    $group(coll, { _id: expr, count: { $sum: 1 } }, options),
     { count: -1 },
     options
   );

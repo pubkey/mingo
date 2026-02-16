@@ -16,7 +16,7 @@ interface InputExpr extends AnyObject {
  * See {@link https://www.mongodb.com/docs/manual/reference/operator/aggregation/group usage}.
  */
 export function $group(
-  collection: Iterator,
+  coll: Iterator,
   expr: InputExpr,
   options: Options
 ): Iterator {
@@ -26,7 +26,7 @@ export function $group(
 
   const newFields = Object.keys(expr).filter(k => k != ID_KEY);
 
-  return collection.transform((coll: Any[]) => {
+  return coll.transform((coll: Any[]) => {
     const partitions = groupBy(coll, obj => evalExpr(obj, idExpr, options));
 
     let i = -1;

@@ -1,16 +1,12 @@
 import { evalExpr } from "../../../core/_internal";
-import { Any, AnyObject, ExpressionOperator, Options } from "../../../types";
+import { Any, AnyObject, Options } from "../../../types";
 import { assert, isArray, isInteger, isNil, isString } from "../../../util";
 import { errExpectNumber, errExpectString } from "../_internal";
 
 const OP = "$substrCP";
 
 /** Returns the substring of a string by UTF-8 code point index (zero-based).  */
-export const $substrCP: ExpressionOperator = (
-  obj: AnyObject,
-  expr: Any,
-  options: Options
-): Any => {
+export const $substrCP = (obj: AnyObject, expr: Any, options: Options): Any => {
   assert(isArray(expr) && expr.length === 3, `${OP} expects array(3)`);
   const [s, index, count] = evalExpr(obj, expr, options) as [
     string,
