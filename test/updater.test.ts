@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { find, update, updateMany, updateOne } from "../src";
 import { ComputeOptions } from "../src/core/_internal";
 import { clone } from "../src/operators/update/_internal";
-import { AnyObject } from "../src/types";
+import { Any, AnyObject } from "../src/types";
 import { isArray } from "../src/util";
 import { ISODate } from "./support";
 
@@ -1009,6 +1009,12 @@ describe("updater", () => {
   });
 
   describe("Positional Operators", () => {
+    it("skip update when field is not an array", () => {
+      const state = { num: 10 as Any as Any[] /* testing edge case */ };
+      update(state, { $set: { "num.$": 82 } }, [], { num: 10 });
+      expect(state).toEqual({ num: 10 });
+    });
+
     it("Update Values in an Array", () => {
       const input = [
         { _id: 1, grades: [85, 80, 80] },

@@ -7,7 +7,7 @@ type BitOp = (typeof BIT_OPS)[number];
 
 /** Performs a bitwise update of a field. The operator supports AND, OR, and XOR.*/
 export function $bit(
-  expr: Record<string, Record<BitOp, number>>,
+  expr: Record<string, Partial<Record<BitOp, number>>>,
   arrayFilters: AnyObject[] = [],
   options = DEFAULT_OPTIONS
 ) {

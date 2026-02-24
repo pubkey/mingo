@@ -338,7 +338,7 @@ const isTypedArray = (v: Any): v is ArrayBuffer =>
 /**
  * Deep clone an object.
  */
-export const cloneDeep = <T>(v: T, refs?: Set<Any>): T => {
+export const cloneDeep = <T>(v: T, refs?: WeakSet<object>): T => {
   if (isNil(v) || isBoolean(v) || isNumber(v) || isString(v)) return v;
   if (isDate(v)) return new Date(v) as T;
   if (isRegExp(v)) return new RegExp(v) as T;
@@ -346,9 +346,9 @@ export const cloneDeep = <T>(v: T, refs?: Set<Any>): T => {
     const ctor = v.constructor as Constructor;
     return new ctor(v) as T;
   }
-  if (!(refs instanceof Set)) refs = new Set();
-  if (refs.has(v)) throw new Error(ERR_CYCLE_FOUND);
-  refs.add(v);
+  if (!(refs instanceof WeakSet)) refs = new WeakSet();
+  if (refs.has(v as object)) throw new Error(ERR_CYCLE_FOUND);
+  refs.add(v as object);
   try {
     if (isArray(v)) {
       const arr = new Array<Any>(v.length);
@@ -361,7 +361,7 @@ export const cloneDeep = <T>(v: T, refs?: Set<Any>): T => {
       return obj as T;
     }
   } finally {
-    refs.delete(v);
+    refs.delete(v as object);
   }
 
   // custom-type. will be treated as immutable so return as is.

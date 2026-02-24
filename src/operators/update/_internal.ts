@@ -3,7 +3,7 @@ import * as booleanOperators from "../../operators/expression/boolean";
 import * as comparisonOperators from "../../operators/expression/comparison";
 import * as queryOperators from "../../operators/query";
 import { Query } from "../../query";
-import { Any, AnyObject, Options } from "../../types";
+import { Any, AnyObject } from "../../types";
 import {
   assert,
   cloneDeep,
@@ -28,9 +28,8 @@ export const DEFAULT_OPTIONS = ComputeOptions.init({
     .addExpressionOps(comparisonOperators)
 }).update({ updateConfig: { cloneMode: "copy" } });
 
-export const clone = (val: Any, opts: Options): Any => {
-  const mode =
-    (opts as ComputeOptions)?.local?.updateConfig?.cloneMode ?? "copy";
+export const clone = (val: Any, opts: ComputeOptions): Any => {
+  const mode = opts?.local?.updateConfig?.cloneMode;
   switch (mode) {
     case "deep":
       return cloneDeep(val);
@@ -41,9 +40,8 @@ export const clone = (val: Any, opts: Options): Any => {
       if (isRegExp(val)) return new RegExp(val);
       return val;
     }
-    default:
-      return val;
   }
+  return val;
 };
 
 export type PathNode = {
@@ -86,7 +84,8 @@ export const applyUpdate = (
 
   if (c === FIRST_ONLY) {
     const i = arr.findIndex(e => q[selector].test({ [selector]: [e] }));
-    if (i === -1) return false;
+    // only matching documents should make it here, so this should never happen.
+    assert(i > -1, "BUG: positional operator found no match for " + selector);
     return next
       ? applyUpdate(arr[i] as AnyObject, next, q, f, opts)
       : f(arr, i as Any as string);

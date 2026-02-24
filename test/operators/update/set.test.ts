@@ -9,6 +9,7 @@ describe("operators/update/set", () => {
       quantity: 250,
       instock: true,
       reorder: false,
+      rule: /abc/,
       details: { model: "14QQ", make: "Clothes Corp" },
       tags: ["apparel", "clothing"],
       ratings: [{ by: "Customer007", rating: 4 }]
@@ -16,16 +17,18 @@ describe("operators/update/set", () => {
     expect(
       $set({
         quantity: 500,
+        rule: /xyz/,
         details: { model: "2600", make: "Fashionaires" },
         tags: ["coats", "outerwear", "clothing"]
       })(state)
-    ).toEqual(["details", "quantity", "tags"]);
+    ).toEqual(["details", "quantity", "rule", "tags"]);
 
     expect(state).toEqual({
       _id: 100,
       quantity: 500,
       instock: true,
       reorder: false,
+      rule: /xyz/,
       details: { model: "2600", make: "Fashionaires" },
       tags: ["coats", "outerwear", "clothing"],
       ratings: [{ by: "Customer007", rating: 4 }]

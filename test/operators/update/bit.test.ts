@@ -3,12 +3,14 @@ import { describe, expect, it } from "vitest";
 import { $bit } from "../../../src/operators/update";
 
 describe("operators/update/bit", () => {
+  it("should skip operation if value is not a number.", () => {
+    const state = { name: "hello" };
+    expect($bit({ name: { and: 10 } })(state)).toEqual([]);
+    expect(state).toEqual({ name: "hello" });
+  });
+
   it("should apply bitwise AND, OR, XOR on values.", () => {
-    const state = {
-      AND: [13, 3, 1],
-      OR: [13, 3, 1],
-      XOR: [13, 3, 1]
-    };
+    const state = { AND: [13, 3, 1], OR: [13, 3, 1], XOR: [13, 3, 1] };
     expect(
       $bit({
         "AND.$[]": { and: 10 },
@@ -16,11 +18,7 @@ describe("operators/update/bit", () => {
         "XOR.$[]": { xor: 5 }
       })(state)
     ).toEqual(["AND", "OR", "XOR"]);
-    expect(state).toEqual({
-      AND: [8, 2, 0],
-      OR: [13, 7, 5],
-      XOR: [8, 6, 4]
-    });
+    expect(state).toEqual({ AND: [8, 2, 0], OR: [13, 7, 5], XOR: [8, 6, 4] });
   });
 
   it("should build object graph for missing value.", () => {
@@ -42,11 +40,9 @@ describe("operators/update/bit", () => {
   it("should returns null if value is not a number.", () => {
     const state = { _id: 1 };
 
-    $bit({
-      "a.and": { and: 5 },
-      "b.or": { or: 5 },
-      "c.xor": { xor: 5 }
-    })(state);
+    $bit({ "a.and": { and: 5 }, "b.or": { or: 5 }, "c.xor": { xor: 5 } })(
+      state
+    );
     expect(state).toEqual({
       _id: 1,
       a: { and: 0 },

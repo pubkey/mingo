@@ -211,7 +211,8 @@ function updateDocuments<T extends AnyObject>(
   }).update({
     condition: condition,
     updateConfig: { cloneMode: "copy", ...updateConfig },
-    variables: updateConfig.let
+    variables: updateConfig.let,
+    updateParams: {}
   });
   opts.context
     .addExpressionOps(booleanOperators)
