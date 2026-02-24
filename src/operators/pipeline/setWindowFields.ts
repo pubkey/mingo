@@ -14,7 +14,7 @@ import { $group } from "./group";
 import { $sort } from "./sort";
 
 // Operators that require 'sortBy' option.
-const SORT_REQUIRED_OPS = new Set([
+const SORT_REQUIRED_OPS: string[] = [
   "$denseRank",
   "$documentNumber",
   "$first",
@@ -22,17 +22,17 @@ const SORT_REQUIRED_OPS = new Set([
   "$linearFill",
   "$rank",
   "$shift"
-]);
+] as const;
 
 // Operators that require unbounded 'window' option.
-const WINDOW_UNBOUNDED_OPS = new Set([
+const WINDOW_UNBOUNDED_OPS: string[] = [
   "$denseRank",
   "$expMovingAvg",
   "$linearFill",
   "$locf",
   "$rank",
   "$shift"
-]);
+] as const;
 
 /** Checks whether the specified window is unbounded. */
 const isUnbounded = (window: WindowOutputOption): boolean => {
@@ -133,17 +133,16 @@ export function $setWindowFields(
         field: field,
         window: outputExpr.window
       };
+      const unbounded = isUnbounded(config.window!);
       // sortBy option required for specific operators or bounded window.
-      assert(
-        !!expr.sortBy || !(SORT_REQUIRED_OPS.has(op) || !config.window),
-        `${
-          SORT_REQUIRED_OPS.has(op) ? `'${op}'` : "bounded window operation"
-        } requires a sortBy.`
-      );
+      if (unbounded == false || SORT_REQUIRED_OPS.includes(op)) {
+        const suffix = unbounded ? `'${op}'` : "bounded window operations";
+        assert(expr.sortBy, `${OP} 'sortBy' is required for ${suffix}.`);
+      }
       // window must be unbounded for specific operators.
       assert(
-        !config.window || !WINDOW_UNBOUNDED_OPS.has(op),
-        `${op} does not accept a 'window' field.`
+        unbounded || !WINDOW_UNBOUNDED_OPS.includes(op),
+        `${OP} cannot use bounded window for operator '${op}'.`
       );
       outputConfig.push(config);
     }
