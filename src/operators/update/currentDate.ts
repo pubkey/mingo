@@ -1,5 +1,4 @@
-import { ComputeOptions } from "../../core/_internal";
-import { AnyObject, Options } from "../../types";
+import { AnyObject } from "../../types";
 import { applyUpdate, DEFAULT_OPTIONS, walkExpression } from "./_internal";
 
 type CurrentDateType = true | { $type: "date" | "timestamp" };
@@ -8,9 +7,8 @@ type CurrentDateType = true | { $type: "date" | "timestamp" };
 export function $currentDate(
   expr: Record<string, CurrentDateType>,
   arrayFilters: AnyObject[] = [],
-  options: Options = DEFAULT_OPTIONS
+  options = DEFAULT_OPTIONS
 ) {
-  const copts = options as ComputeOptions;
   return (obj: AnyObject) => {
     return walkExpression<CurrentDateType>(
       expr,
@@ -24,8 +22,8 @@ export function $currentDate(
           (o: AnyObject, k: string) => {
             o[k] =
               val === true || val.$type === "date"
-                ? copts.now
-                : copts.now.getTime();
+                ? options.now
+                : options.now.getTime();
             return true;
           },
           { buildGraph: true }

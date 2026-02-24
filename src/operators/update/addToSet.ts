@@ -1,4 +1,4 @@
-import { Any, AnyObject, Options } from "../../types";
+import { Any, AnyObject } from "../../types";
 import { has, isArray, isObject, unique } from "../../util";
 import {
   applyUpdate,
@@ -11,7 +11,7 @@ import {
 export function $addToSet(
   expr: AnyObject,
   arrayFilters: AnyObject[] = [],
-  options: Options = DEFAULT_OPTIONS
+  options = DEFAULT_OPTIONS
 ) {
   return (obj: AnyObject) => {
     return walkExpression(expr, arrayFilters, options, (val, node, queries) => {

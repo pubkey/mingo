@@ -1,4 +1,4 @@
-import { AnyObject, Options } from "../../types";
+import { AnyObject } from "../../types";
 import { compare } from "../../util";
 import { applyUpdate, DEFAULT_OPTIONS, walkExpression } from "./_internal";
 
@@ -6,7 +6,7 @@ import { applyUpdate, DEFAULT_OPTIONS, walkExpression } from "./_internal";
 export function $max(
   expr: AnyObject,
   arrayFilters: AnyObject[] = [],
-  options: Options = DEFAULT_OPTIONS
+  options = DEFAULT_OPTIONS
 ) {
   return (obj: AnyObject) => {
     return walkExpression(expr, arrayFilters, options, (val, node, queries) => {

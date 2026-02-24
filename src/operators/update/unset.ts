@@ -1,4 +1,4 @@
-import { AnyObject, ArrayOrObject, Options } from "../../types";
+import { AnyObject, ArrayOrObject } from "../../types";
 import { has, isArray, isEqual } from "../../util";
 import { applyUpdate, DEFAULT_OPTIONS, walkExpression } from "./_internal";
 
@@ -6,7 +6,7 @@ import { applyUpdate, DEFAULT_OPTIONS, walkExpression } from "./_internal";
 export function $unset(
   expr: Record<string, "">,
   arrayFilters: AnyObject[] = [],
-  options: Options = DEFAULT_OPTIONS
+  options = DEFAULT_OPTIONS
 ) {
   return (obj: AnyObject) => {
     return walkExpression(expr, arrayFilters, options, (_, node, queries) => {

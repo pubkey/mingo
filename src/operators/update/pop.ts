@@ -1,4 +1,4 @@
-import { Any, AnyObject, Options, SortSpec } from "../../types";
+import { Any, AnyObject, SortSpec } from "../../types";
 import { isArray } from "../../util";
 import { applyUpdate, DEFAULT_OPTIONS, walkExpression } from "./_internal";
 
@@ -6,7 +6,7 @@ import { applyUpdate, DEFAULT_OPTIONS, walkExpression } from "./_internal";
 export function $pop(
   expr: SortSpec,
   arrayFilters: AnyObject[] = [],
-  options: Options = DEFAULT_OPTIONS
+  options = DEFAULT_OPTIONS
 ) {
   return (obj: AnyObject) => {
     return walkExpression<1 | -1>(

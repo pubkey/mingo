@@ -21,7 +21,7 @@ export type SingleKeyRecord<K extends PropertyKey, V> = {
   [P in K]: Record<P, V>;
 }[K];
 
-export const DEFAULT_OPTIONS: Options = ComputeOptions.init({
+export const DEFAULT_OPTIONS = ComputeOptions.init({
   context: Context.init()
     .addQueryOps(queryOperators)
     .addExpressionOps(booleanOperators)
@@ -129,11 +129,10 @@ const ERR_IMMUTABLE_FIELD = (path: string, idKey: string) =>
 export function walkExpression<T>(
   expr: AnyObject,
   arrayFilters: AnyObject[],
-  options: Options,
+  options: ComputeOptions,
   callback: Action<T>
 ): string[] {
-  const opts =
-    options instanceof ComputeOptions ? options : ComputeOptions.init(options);
+  const opts = options as ComputeOptions;
   const params =
     opts.local.updateParams ?? buildParams([expr], arrayFilters, opts);
 
@@ -258,9 +257,3 @@ export function buildParams(
 }
 
 export type UpdateParams = ReturnType<typeof buildParams>;
-
-export type UpdateOperator = (
-  expr: Any,
-  arrayFilters: AnyObject[],
-  options: Options
-) => (obj: AnyObject) => string[];

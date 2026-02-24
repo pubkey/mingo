@@ -1,4 +1,4 @@
-import { AnyObject, Options } from "../../types";
+import { AnyObject } from "../../types";
 import { isEqual } from "../../util";
 import {
   applyUpdate,
@@ -11,7 +11,7 @@ import {
 export function $set(
   expr: AnyObject,
   arrayFilters: AnyObject[] = [],
-  options: Options = DEFAULT_OPTIONS
+  options = DEFAULT_OPTIONS
 ) {
   return (obj: AnyObject) => {
     return walkExpression(expr, arrayFilters, options, (val, node, queries) => {

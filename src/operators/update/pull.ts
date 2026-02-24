@@ -1,5 +1,5 @@
 import { Query } from "../../query";
-import { Any, AnyObject, Options } from "../../types";
+import { Any, AnyObject } from "../../types";
 import { isArray, isObject, isOperator } from "../../util";
 import { applyUpdate, DEFAULT_OPTIONS, walkExpression } from "./_internal";
 
@@ -7,7 +7,7 @@ import { applyUpdate, DEFAULT_OPTIONS, walkExpression } from "./_internal";
 export function $pull(
   expr: AnyObject,
   arrayFilters: AnyObject[] = [],
-  options: Options = DEFAULT_OPTIONS
+  options = DEFAULT_OPTIONS
 ) {
   return (obj: AnyObject) => {
     return walkExpression(expr, arrayFilters, options, (val, node, queries) => {

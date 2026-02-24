@@ -1,4 +1,4 @@
-import { Any, AnyObject, Options, SortSpec } from "../../types";
+import { Any, AnyObject, SortSpec } from "../../types";
 import {
   compare,
   has,
@@ -21,7 +21,7 @@ const MODIFIERS = ["$each", "$slice", "$sort", "$position"] as const;
 export function $push(
   expr: AnyObject,
   arrayFilters: AnyObject[] = [],
-  options: Options = DEFAULT_OPTIONS
+  options = DEFAULT_OPTIONS
 ) {
   return (obj: AnyObject) => {
     return walkExpression(expr, arrayFilters, options, (val, node, queries) => {

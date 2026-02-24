@@ -1,4 +1,4 @@
-import { AnyObject, Options } from "../../types";
+import { AnyObject } from "../../types";
 import { assert, has } from "../../util";
 import { applyUpdate, DEFAULT_OPTIONS, walkExpression } from "./_internal";
 import { $set } from "./set";
@@ -10,7 +10,7 @@ const isIdPath = (path: string, idKey: string) =>
 export function $rename(
   expr: Record<string, string>,
   arrayFilters: AnyObject[] = [],
-  options: Options = DEFAULT_OPTIONS
+  options = DEFAULT_OPTIONS
 ) {
   // validate target fields are not id field (source fields validated in walkExpression)
   const idKey = options.idKey;

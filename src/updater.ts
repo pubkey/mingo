@@ -11,11 +11,7 @@ import { $sort } from "./operators/pipeline/sort";
 import { $unset } from "./operators/pipeline/unset";
 import * as queryOperators from "./operators/query";
 import * as updateOperators from "./operators/update";
-import {
-  buildParams,
-  SingleKeyRecord,
-  UpdateOperator
-} from "./operators/update/_internal";
+import { buildParams, SingleKeyRecord } from "./operators/update/_internal";
 import { Query } from "./query";
 import {
   Any,
@@ -25,7 +21,8 @@ import {
   Criteria,
   Options,
   SortSpec,
-  UpdateExpr
+  UpdateExpr,
+  UpdateOperator
 } from "./types";
 import {
   assert,
@@ -34,9 +31,9 @@ import {
   hashCode,
   isArray,
   isEqual,
+  PathValidator,
   resolve
-} from "./util";
-import { PathValidator } from "./util/_internal";
+} from "./util/_internal";
 
 const UPDATE_OPERATORS = updateOperators as Record<string, UpdateOperator>;
 
@@ -359,7 +356,7 @@ function updateDocuments<T extends AnyObject>(
 
   const fns: Callback<string[]>[] = [];
   for (const [op, expr] of Object.entries(modifier) as [string, Any][]) {
-    const fn = UPDATE_OPERATORS[op];
+    const fn = UPDATE_OPERATORS[op] as Callback<(_: AnyObject) => string[]>;
     fns.push(fn(expr, arrayFilters, opts) as Callback<string[]>);
   }
 

@@ -1,4 +1,4 @@
-import { AnyObject, Options } from "../../types";
+import { AnyObject } from "../../types";
 import { assert, isNumber, isObject } from "../../util";
 import { applyUpdate, DEFAULT_OPTIONS, walkExpression } from "./_internal";
 
@@ -9,7 +9,7 @@ type BitOp = (typeof BIT_OPS)[number];
 export function $bit(
   expr: Record<string, Record<BitOp, number>>,
   arrayFilters: AnyObject[] = [],
-  options: Options = DEFAULT_OPTIONS
+  options = DEFAULT_OPTIONS
 ) {
   for (const vals of Object.values(expr)) {
     assert(isObject(vals), `$bit operator expression must be an object.`);
