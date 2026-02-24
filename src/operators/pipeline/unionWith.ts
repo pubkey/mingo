@@ -19,14 +19,14 @@ export function $unionWith(
   expr: InputExpr | string | AnyObject[],
   options: Options
 ): Iterator {
-  const { coll: inputColl, pipeline: p } =
+  const { coll: inputColl, pipeline: stages } =
     isString(expr) || isArray(expr) ? { coll: expr } : expr;
   const docsFromInput = isString(inputColl)
     ? resolveCollection("$unionWith", inputColl, options)
     : inputColl;
-  const { documents, pipeline } = filterDocumentsStage(p ?? [], options);
+  const { documents, pipeline } = filterDocumentsStage(stages, options);
   assert(
-    !docsFromInput !== !documents,
+    docsFromInput || documents,
     "$unionWith must specify single collection input with `expr.coll` or `expr.pipeline`."
   );
 

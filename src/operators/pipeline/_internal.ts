@@ -7,14 +7,17 @@ import { $documents } from "./documents";
 const EMPTY = Lazy([]);
 
 export function filterDocumentsStage(
-  pipeline: AnyObject[],
+  pipeline: AnyObject[] | undefined,
   options: Options
 ): {
   documents?: AnyObject[];
-  pipeline: AnyObject[];
+  pipeline?: AnyObject[];
 } {
-  const docs = !!pipeline && pipeline[0]?.$documents;
+  if (!pipeline) return {};
+
+  const docs = pipeline[0]?.$documents;
   if (!docs) return { pipeline };
+
   return {
     documents: $documents(EMPTY, docs, options).collect(),
     pipeline: pipeline.slice(1)

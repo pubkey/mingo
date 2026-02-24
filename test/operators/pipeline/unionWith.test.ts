@@ -102,8 +102,30 @@ describe("operators/pipeline/unionWith", () => {
 
     const options = {
       collectionResolver: (s: string): AnyObject[] =>
-        cloneDeep(collections[s]) as AnyObject[]
+        cloneDeep(collections[s as keyof typeof collections]) as AnyObject[]
     };
+
+    it("Aggregated Sales by Items", () => {
+      const res = aggregate(
+        collections.sales_2017,
+        [
+          { $unionWith: "sales_2018" },
+          { $unionWith: "sales_2019" },
+          { $unionWith: "sales_2020" },
+          { $group: { _id: "$item", total: { $sum: "$quantity" } } },
+          { $sort: { total: -1 } }
+        ],
+        options
+      );
+
+      expect(res).toEqual([
+        { _id: "Cookies", total: 1720 },
+        { _id: "Chocolates", total: 1250 },
+        { _id: "Nuts", total: 510 },
+        { _id: "Pie", total: 395 },
+        { _id: "Cheese", total: 350 }
+      ]);
+    });
 
     it("Duplicates Results", () => {
       const suppliers = [

@@ -22,7 +22,7 @@ export type Source = Generator | Callback<IteratorResult> | Iterable<Any>;
  * Creates a lazy iterator from the given source.
  */
 export function Lazy(source: Source): Iterator {
-  return source instanceof Iterator ? source : new Iterator(source);
+  return new Iterator(source);
 }
 
 /**

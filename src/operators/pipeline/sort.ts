@@ -11,7 +11,6 @@ import {
   assert,
   compare,
   groupBy,
-  isEmpty,
   isNumber,
   isObject,
   isString,
@@ -28,7 +27,6 @@ export function $sort(
   sortKeys: SortSpec,
   options: Options
 ): Iterator {
-  if (isEmpty(sortKeys) || !isObject(sortKeys)) return coll;
   assert(
     isObject(sortKeys) && Object.keys(sortKeys).length > 0,
     "$sort specification is invalid"
@@ -113,7 +111,7 @@ const COLLATION_STRENGTH: Record<number, "base" | "accent" | "variant"> = {
 function collationComparator(spec: CollationSpec): Comparator<Any> {
   const localeOpt: Intl.CollatorOptions = {
     sensitivity: COLLATION_STRENGTH[spec.strength || 3],
-    caseFirst: spec.caseFirst === "off" ? "false" : spec.caseFirst || "false",
+    caseFirst: spec.caseFirst === "off" ? "false" : spec.caseFirst,
     numeric: spec.numericOrdering || false,
     ignorePunctuation: spec.alternate === "shifted"
   };
@@ -126,14 +124,6 @@ function collationComparator(spec: CollationSpec): Comparator<Any> {
 
   const collator = new Intl.Collator(spec.locale, localeOpt);
 
-  return (a: Any, b: Any) => {
-    // non strings
-    if (!isString(a) || !isString(b)) return compare(a, b);
-
-    // only for strings
-    const i = collator.compare(a, b);
-    if (i < 0) return -1;
-    if (i > 0) return 1;
-    return 0;
-  };
+  return (a: Any, b: Any) =>
+    isString(a) && isString(b) ? collator.compare(a, b) : compare(a, b);
 }

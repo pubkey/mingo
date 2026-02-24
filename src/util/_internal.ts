@@ -228,7 +228,7 @@ export class HashMap<K, V> extends Map<K, V> {
     // filter out the deleted key
     this.#keyMap.set(
       hash,
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+
       this.#keyMap.get(hash)!.filter(k => !isEqual(k, masterKey))
     );
     return true;
@@ -285,11 +285,8 @@ export class HashMap<K, V> extends Map<K, V> {
   }
 }
 
-export function assert(
-  condition: Any,
-  msg: string | Callback<string, void>
-): void {
-  if (!condition) throw new MingoError(typeof msg === "function" ? msg() : msg);
+export function assert(condition: Any, msg: string): void {
+  if (!condition) throw new MingoError(msg);
 }
 
 /**
