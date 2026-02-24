@@ -174,7 +174,7 @@ export function buildParams(
       return res;
     },
     {}
-  );
+  ) as Record<string, AnyObject>;
 
   let { condition } = options.local;
   condition = condition ?? {};
