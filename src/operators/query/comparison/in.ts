@@ -1,4 +1,3 @@
-import { ComputeOptions } from "../../../core/_internal";
 import { Any, AnyObject, Options } from "../../../types";
 import {
   ensureArray,
@@ -14,7 +13,7 @@ import {
 export const $in = (
   selector: string,
   value: Any,
-  options: Options
+  _options: Options
 ): ((_: AnyObject) => boolean) => {
   const opts = { unwrapArray: true };
   const b = value as Any[];
@@ -24,8 +23,6 @@ export const $in = (
   const hasNull = b.some(v => v === null);
   // pre-split the path once
   const pathArray = selector.split(".");
-  const depth = Math.max(1, pathArray.length - 1);
-  const copts = ComputeOptions.init(options).update({ depth });
 
   return (o: AnyObject): boolean => {
     const a = resolve(o, selector, opts, pathArray) as Any[];
