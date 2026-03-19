@@ -21,6 +21,16 @@ export const isPrimitive = (v: Any): boolean =>
 /** Scalar types provided by the JS runtime. Includes primitives, RegExp, and Date */
 const isScalar = (v: Any) => isPrimitive(v) || isDate(v) || isRegExp(v);
 
+/** Check if a string contains only digits (equivalent to /^\d+$/ but faster). */
+const isDigitStr = (s: string): boolean => {
+  if (s.length === 0) return false;
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    if (c < 48 || c > 57) return false;
+  }
+  return true;
+};
+
 /** MongoDB sort comparison order. https://www.mongodb.com/docs/manual/reference/bson-type-comparison-order */
 const SORT_ORDER: Record<string, number> = {
   undefined: 1,
@@ -60,6 +70,11 @@ function mingoCmp(a: Any, b: Any, descendArray: boolean = false): number {
   if (b === MISSING) b = undefined;
   // null, undefined, same object ref, same primitive value
   if (a === b || Object.is(a, b)) return 0;
+  // fast path: both numbers (very common in sorting/comparisons)
+  if (typeof a === "number" && typeof b === "number") return a < b ? -1 : 1;
+  // fast path: both strings
+  if (typeof a === "string" && typeof b === "string")
+    return a < b ? -1 : a > b ? 1 : 0;
   const typeA = isTypedArray(a) ? "arraybuffer" : typeOf(a);
   const typeB = isTypedArray(b) ? "arraybuffer" : typeOf(b);
   // unequal types
@@ -312,7 +327,12 @@ export const isNumber = (v: Any): v is number =>
   !Number.isNaN(v as number) && typeof v === "number";
 export const isInteger = Number.isInteger;
 export const isArray = Array.isArray;
-export const isObject = (v: Any): v is AnyObject => typeOf(v) === "object";
+export const isObject = (v: Any): v is AnyObject => {
+  if (v === null || typeof v !== "object") return false;
+  if (isArray(v) || isDate(v) || isRegExp(v)) return false;
+  const ctor = v.constructor;
+  return ctor === Object || ctor === undefined;
+};
 //  objects, arrays, functions, date, custom object
 export const isObjectLike = (v: Any): boolean => !isPrimitive(v);
 export const isDate = (v: Any): v is Date => v instanceof Date;
@@ -495,19 +515,30 @@ interface ResolveOptions {
  * Resolve the value of the field (dot separated) on the given object
  * @param obj {AnyObject} the object context
  * @param selector {String} dot separated path to field
+ * @param options Optional resolve options
+ * @param pathArray Optional pre-split path segments to avoid repeated string splitting
  * @returns {*}
  */
 export function resolve(
   obj: ArrayOrObject,
   selector: string,
-  options?: Pick<ResolveOptions, "unwrapArray">
+  options?: Pick<ResolveOptions, "unwrapArray">,
+  pathArray?: string[]
 ): Any {
+  if (isScalar(obj)) return obj;
+
+  // fast path for simple single-segment selectors on non-array objects (e.g., "active", "age")
+  const path = pathArray || selector.split(".");
+  if (path.length === 1 && !isArray(obj)) {
+    return getValue(obj, path[0]);
+  }
+
   let depth = 0;
   function resolve2(o: ArrayOrObject, path: string[]): Any {
     let value: Any = o;
     for (let i = 0; i < path.length; i++) {
       const field = path[i];
-      const isText = /^\d+$/.exec(field) === null;
+      const isText = !isDigitStr(field);
       // using instanceof to aid typescript compiler
       if (isText && isArray(value)) {
         // On the first iteration, we check if we received a stop flag.
@@ -531,7 +562,7 @@ export function resolve(
     return value;
   }
 
-  const res = isScalar(obj) ? obj : resolve2(obj, selector.split("."));
+  const res = resolve2(obj, path);
   return isArray(res) && options?.unwrapArray ? unwrap(res, depth) : res;
 }
 
@@ -553,7 +584,7 @@ export function resolveGraph(
 
   if (isArray(obj)) {
     // obj is an array
-    const isIndex = /^\d+$/.test(key);
+    const isIndex = isDigitStr(key);
     const arr = isIndex && options?.preserveIndex ? obj.slice() : [];
     if (isIndex) {
       const index = parseInt(key);
@@ -619,7 +650,6 @@ export interface WalkOptions {
   descendArray?: boolean;
 }
 
-const NUMBER_RE = /^\d+$/;
 export type Indexed = string | number;
 
 /**
@@ -642,7 +672,7 @@ export function walk(
   const next = names.slice(1).join(".");
 
   if (names.length === 1) {
-    if (isObject(obj) || (isArray(obj) && NUMBER_RE.test(key))) {
+    if (isObject(obj) || (isArray(obj) && isDigitStr(key))) {
       fn(obj, key);
     }
   } else {
@@ -656,7 +686,7 @@ export function walk(
     // nothing more to do
     if (!item) return;
     // we peek to see if next key is an array index.
-    const isNextArrayIndex = !!(names.length > 1 && NUMBER_RE.test(names[1]));
+    const isNextArrayIndex = !!(names.length > 1 && isDigitStr(names[1]));
     // if we have an array value but the next key is not an index and the 'descendArray' option is set,
     // we walk each item in the array separately. This allows for handling traversing keys for objects
     // nested within an array.
@@ -734,7 +764,14 @@ export function normalize(expr: Any): Any {
   // normalize object expression. using ObjectLike handles custom types
   if (isObjectLike(expr)) {
     // no valid query operator found, so we do simple comparison
-    if (!Object.keys(expr as AnyObject).some(isOperator)) return { $eq: expr };
+    let hasOp = false;
+    for (const k in expr as AnyObject) {
+      if (Object.prototype.hasOwnProperty.call(expr, k) && isOperator(k)) {
+        hasOp = true;
+        break;
+      }
+    }
+    if (!hasOp) return { $eq: expr };
     // ensure valid regex
     if (isObject(expr) && has(expr, "$regex")) {
       const newExpr = { ...expr };

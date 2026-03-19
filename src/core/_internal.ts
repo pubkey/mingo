@@ -195,7 +195,8 @@ export class Context {
     // ensure all operator types are initialized
     for (const [type, operators] of Object.entries(ops)) {
       if (ctx.#operators[type] && operators) {
-        ctx.addOps(type as OpType, operators);
+        // direct assignment since operators are empty at init time
+        ctx.#operators[type] = { ...operators };
       }
     }
     return ctx;
@@ -203,6 +204,8 @@ export class Context {
 
   /** Returns a new context with the operators from the provided contexts merged left to right. */
   static from(...ctx: Context[]): Context {
+    // fast path: single context can be reused directly
+    if (ctx.length === 1) return ctx[0];
     const newCtx = new Context();
     for (const context of ctx) {
       for (const type of Object.values(OpType)) {
