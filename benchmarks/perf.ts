@@ -1,7 +1,6 @@
 /**
  * Performance measurements for mingo query functions.
  *
- * Focuses on operations used by the RxDB library:
  *  - Query instantiation (new Query with various selectors)
  *  - Query matching (query.test())
  *  - Query find with cursor (query.find().all())
@@ -110,7 +109,7 @@ const FULL_OPTS: Partial<Options> = {
   context: FULL_CONTEXT
 };
 
-// ─── RxDB-style context (only the operators RxDB uses) ────────────────────────
+// ─── Minimal context (subset of operators) ────────────────────────────────────
 
 const RXDB_CONTEXT = Context.init({
   pipeline: { $sort, $project },
@@ -345,7 +344,6 @@ function benchQueryMatching() {
     RXDB_OPTS
   );
 
-  // RxDB-style query
   const rxdbQuery = new Query(
     {
       $and: [
@@ -771,7 +769,7 @@ function benchSortComparator() {
 function benchRxDBPatterns() {
   console.log("\n=== RxDB-Specific Patterns ===");
 
-  // Pattern 1: Create query and test many documents (query matcher)
+  // Create query and test many documents (query matcher)
   measure(
     "RxDB getQueryMatcher pattern (create + test 10K docs)",
     () => {
@@ -786,7 +784,7 @@ function benchRxDBPatterns() {
     10
   );
 
-  // Pattern 2: Query with $in (common in RxDB for batch lookups)
+  // Query with $in (batch lookups)
   measure(
     "RxDB $in query (batch ID lookup, 100 IDs) over 10K docs",
     () => {
@@ -797,7 +795,7 @@ function benchRxDBPatterns() {
     10
   );
 
-  // Pattern 3: $regex for text search
+  // $regex for text search
   measure(
     "RxDB $regex query over 10K docs",
     () => {
@@ -807,7 +805,7 @@ function benchRxDBPatterns() {
     10
   );
 
-  // Pattern 4: Nested field queries
+  // Nested field queries
   measure(
     "RxDB nested field query over 10K docs",
     () => {
@@ -820,7 +818,7 @@ function benchRxDBPatterns() {
     10
   );
 
-  // Pattern 5: $or with multiple conditions
+  // $or with multiple conditions
   measure(
     "RxDB $or query over 10K docs",
     () => {
@@ -839,7 +837,7 @@ function benchRxDBPatterns() {
     10
   );
 
-  // Pattern 6: $elemMatch
+  // $elemMatch
   measure(
     "RxDB $elemMatch query over 10K docs",
     () => {
@@ -852,7 +850,7 @@ function benchRxDBPatterns() {
     10
   );
 
-  // Pattern 7: Many sequential query instantiations (RxDB creates queries often)
+  // Many sequential query instantiations
   measure(
     "Sequential query instantiation (1K different queries)",
     () => {
@@ -863,7 +861,7 @@ function benchRxDBPatterns() {
     10
   );
 
-  // Pattern 8: $exists check
+  // $exists check
   measure(
     "RxDB $exists query over 10K docs",
     () => {
@@ -876,7 +874,7 @@ function benchRxDBPatterns() {
     10
   );
 
-  // Pattern 9: Query reuse (create once, test many)
+  // Query reuse (create once, test many)
   const reusableQuery = new Query(
     {
       $and: [
