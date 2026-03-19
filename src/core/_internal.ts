@@ -195,7 +195,8 @@ export class Context {
     // ensure all operator types are initialized
     for (const [type, operators] of Object.entries(ops)) {
       if (ctx.#operators[type] && operators) {
-        ctx.addOps(type as OpType, operators);
+        // direct assignment since operators are empty at init time
+        ctx.#operators[type] = { ...operators };
       }
     }
     return ctx;
