@@ -1,14 +1,8 @@
-import { Any, AnyObject, Options } from "../../../types";
-import { $in } from "./in";
+import { Any, Options } from "../../../types";
+import { $nin as __nin, processQuery } from "../../_predicates";
 
 /**
  * Matches values that do not exist in an array specified to the query.
  */
-export const $nin = (
-  selector: string,
-  value: Any,
-  options: Options
-): ((_: AnyObject) => boolean) => {
-  const inPredicate = $in(selector, value, options);
-  return (o: AnyObject): boolean => !inPredicate(o);
-};
+export const $nin = (selector: string, value: Any, options: Options) =>
+  processQuery(selector, value, options, __nin);

@@ -1,0 +1,8 @@
+import {
+  $type as __type,
+  processQuery
+} from "../../_predicates";
+const $type = (selector, value, options) => processQuery(selector, value, options, __type);
+export {
+  $type
+};

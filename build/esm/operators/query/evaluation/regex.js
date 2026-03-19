@@ -1,0 +1,8 @@
+import {
+  $regex as __regex,
+  processQuery
+} from "../../_predicates";
+const $regex = (selector, value, options) => processQuery(selector, value, options, __regex);
+export {
+  $regex
+};
