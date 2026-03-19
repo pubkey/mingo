@@ -24,7 +24,6 @@ import {
   isNumber,
   isObject,
   isOperator,
-  isPrimitive,
   isRegExp,
   isString,
   resolve,
@@ -43,13 +42,11 @@ export function processQuery(
   predicate: QueryPredicate
 ): (_: AnyObject) => boolean {
   const opts = { unwrapArray: true };
-  // pre-split the path once at compilation time
-  const pathArray = selector.split(".");
-  const depth = Math.max(1, pathArray.length - 1);
+  const depth = Math.max(1, selector.split(".").length - 1);
   const copts = ComputeOptions.init(options).update({ depth });
   return (o: AnyObject): boolean => {
     // value of field must be fully resolved.
-    const lhs = resolve(o, selector, opts, pathArray);
+    const lhs = resolve(o, selector, opts);
     return predicate(lhs, value, copts);
   };
 }
@@ -102,16 +99,7 @@ export function $ne(a: Any, b: Any, options?: Options): boolean {
 export function $in(a: Any[], b: Any[], _options?: Options): boolean {
   // queries for null should be able to find undefined fields
   if (isNil(a)) return b.some(v => v === null);
-
-  const lhs = ensureArray(a);
-
-  // fast path: if all values in b are primitives, use a Set for O(1) lookup.
-  if (b.every(isPrimitive)) {
-    const set = new Set(b);
-    return lhs.some(v => set.has(v));
-  }
-
-  return intersection([lhs, b]).length > 0;
+  return intersection([ensureArray(a), b]).length > 0;
 }
 
 /**
@@ -296,6 +284,5 @@ export function $type(
 }
 
 function compare(a: Any, b: Any, f: Predicate<Any>): boolean {
-  const tb = typeOf(b);
-  return ensureArray(a).some(x => typeOf(x) === tb && f(x, b));
+  return ensureArray(a).some(x => typeOf(x) === typeOf(b) && f(x, b));
 }
