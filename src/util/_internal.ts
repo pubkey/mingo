@@ -748,23 +748,8 @@ export function removeValue(
  * This is cheap and safe to do since keys beginning with '$' should be reserved for internal use.
  * @param {String} name
  */
-export const isOperator = (name: string): boolean => {
-  if (!name || name.length < 2 || name[0] !== "$") return false;
-  for (let i = 1; i < name.length; i++) {
-    const c = name.charCodeAt(i);
-    // a-z: 97-122, A-Z: 65-90, 0-9: 48-57, _: 95
-    if (
-      !(
-        (c >= 97 && c <= 122) ||
-        (c >= 65 && c <= 90) ||
-        (c >= 48 && c <= 57) ||
-        c === 95
-      )
-    )
-      return false;
-  }
-  return true;
-};
+export const isOperator = (name: string): boolean =>
+  !!name && name[0] === "$" && /^\$[a-zA-Z0-9_]+$/.test(name);
 
 /**
  * Simplify expression for easy evaluation with query operators map
