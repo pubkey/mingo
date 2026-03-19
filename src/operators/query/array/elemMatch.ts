@@ -28,19 +28,16 @@ export const $elemMatch = (
     format = x => ({ temp: x });
   }
 
-  // count dots to determine depth
-  let depth = 0;
-  for (let i = 0; i < selector.length; i++) {
-    if (selector.charCodeAt(i) === 46) depth++;
-  }
-  if (depth < 1) depth = 1;
+  // pre-split the path once
+  const pathArray = selector.split(".");
+  const depth = Math.max(1, pathArray.length - 1);
   const copts = ComputeOptions.init(options).update({ depth });
 
   // create query once, reuse for all documents
   const query = new Query(criteria, copts);
 
   return (o: AnyObject): boolean => {
-    const a = resolve(o, selector, opts) as Any[];
+    const a = resolve(o, selector, opts, pathArray) as Any[];
     if (isArray(a) && !isEmpty(a)) {
       for (let i = 0, len = a.length; i < len; i++) {
         if (query.test(format(a[i]) as AnyObject)) {

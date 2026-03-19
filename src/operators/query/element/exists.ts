@@ -9,14 +9,18 @@ export const $exists = (selector: string, value: Any, _options: Options) => {
   const b = !!value;
   // top-level keys and array elements.
   if (!nested || selector.match(/\.\d+$/)) {
-    return (o: AnyObject) => (resolve(o, selector) !== undefined) === b;
+    const pathArray = selector.split(".");
+    return (o: AnyObject) =>
+      (resolve(o, selector, undefined, pathArray) !== undefined) === b;
   }
   // for nested keys we resolve the entire value path so we don't confuse array scalars with plural values.
+  const parentSelector = selector.substring(0, selector.lastIndexOf("."));
+  const parentPathArray = parentSelector.split(".");
   return (o: AnyObject) => {
     const path = resolveGraph(o, selector, {
       preserveIndex: true
     }) as AnyObject;
-    const val = resolve(path, selector.substring(0, selector.lastIndexOf(".")));
+    const val = resolve(path, parentSelector, undefined, parentPathArray);
     return isArray(val)
       ? val.some(v => v !== undefined) === b
       : (val !== undefined) === b;

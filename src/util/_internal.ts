@@ -515,13 +515,24 @@ interface ResolveOptions {
  * Resolve the value of the field (dot separated) on the given object
  * @param obj {AnyObject} the object context
  * @param selector {String} dot separated path to field
+ * @param options Optional resolve options
+ * @param pathArray Optional pre-split path segments to avoid repeated string splitting
  * @returns {*}
  */
 export function resolve(
   obj: ArrayOrObject,
   selector: string,
-  options?: Pick<ResolveOptions, "unwrapArray">
+  options?: Pick<ResolveOptions, "unwrapArray">,
+  pathArray?: string[]
 ): Any {
+  if (isScalar(obj)) return obj;
+
+  // fast path for simple single-segment selectors on non-array objects (e.g., "active", "age")
+  const path = pathArray || selector.split(".");
+  if (path.length === 1 && !isArray(obj)) {
+    return getValue(obj, path[0]);
+  }
+
   let depth = 0;
   function resolve2(o: ArrayOrObject, path: string[]): Any {
     let value: Any = o;
@@ -551,7 +562,7 @@ export function resolve(
     return value;
   }
 
-  const res = isScalar(obj) ? obj : resolve2(obj, selector.split("."));
+  const res = resolve2(obj, path);
   return isArray(res) && options?.unwrapArray ? unwrap(res, depth) : res;
 }
 

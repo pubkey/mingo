@@ -43,16 +43,13 @@ export function processQuery(
   predicate: QueryPredicate
 ): (_: AnyObject) => boolean {
   const opts = { unwrapArray: true };
-  // count dots to determine depth; avoid allocating a new array
-  let depth = 0;
-  for (let i = 0; i < selector.length; i++) {
-    if (selector.charCodeAt(i) === 46 /* '.' */) depth++;
-  }
-  if (depth < 1) depth = 1;
+  // pre-split the path once at compilation time
+  const pathArray = selector.split(".");
+  const depth = Math.max(1, pathArray.length - 1);
   const copts = ComputeOptions.init(options).update({ depth });
   return (o: AnyObject): boolean => {
     // value of field must be fully resolved.
-    const lhs = resolve(o, selector, opts);
+    const lhs = resolve(o, selector, opts, pathArray);
     return predicate(lhs, value, copts);
   };
 }

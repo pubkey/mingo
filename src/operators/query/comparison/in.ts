@@ -22,16 +22,13 @@ export const $in = (
   const allPrimitive = b.every(isPrimitive);
   const lookupSet = allPrimitive ? new Set(b) : null;
   const hasNull = b.some(v => v === null);
-  // count dots to determine depth
-  let depth = 0;
-  for (let i = 0; i < selector.length; i++) {
-    if (selector.charCodeAt(i) === 46) depth++;
-  }
-  if (depth < 1) depth = 1;
+  // pre-split the path once
+  const pathArray = selector.split(".");
+  const depth = Math.max(1, pathArray.length - 1);
   const copts = ComputeOptions.init(options).update({ depth });
 
   return (o: AnyObject): boolean => {
-    const a = resolve(o, selector, opts) as Any[];
+    const a = resolve(o, selector, opts, pathArray) as Any[];
     // queries for null should be able to find undefined fields
     if (isNil(a)) return hasNull;
 
