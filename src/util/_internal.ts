@@ -559,7 +559,7 @@ export function resolve(
   // fast path for 2-segment selectors on plain objects (e.g., "address.city")
   if (path.length === 2 && !isArray(obj)) {
     const first = getValue(obj, path[0]);
-    if (first === undefined) return undefined;
+    if (first == null) return undefined;
     if (!isArray(first)) {
       return getValue(first as ArrayOrObject, path[1]);
     }

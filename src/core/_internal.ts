@@ -361,7 +361,7 @@ function computeExpression(obj: Any, expr: Any, options: ComputeOptions): Any {
   if (isObject(expr)) {
     const keys = Object.keys(expr);
     // if object represents an operator expression, there should only be a single key
-    if (keys.length > 0 && isOperator(keys[0])) {
+    if (isOperator(keys[0])) {
       assert(
         keys.length === 1,
         `Expression must contain a single operator. got [${keys.join(",")}]`
