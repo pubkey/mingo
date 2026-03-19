@@ -111,7 +111,7 @@ const FULL_OPTS: Partial<Options> = {
 
 // ─── Minimal context (subset of operators) ────────────────────────────────────
 
-const RXDB_CONTEXT = Context.init({
+const MINIMAL_CONTEXT = Context.init({
   pipeline: { $sort, $project },
   query: {
     $elemMatch,
@@ -135,10 +135,10 @@ const RXDB_CONTEXT = Context.init({
   }
 });
 
-const RXDB_OPTS: Partial<Options> = {
+const MINIMAL_OPTS: Partial<Options> = {
   idKey: "_id",
   processingMode: 0,
-  context: RXDB_CONTEXT
+  context: MINIMAL_CONTEXT
 };
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
@@ -168,7 +168,7 @@ function benchContextInit() {
   );
 
   measure(
-    "RxDB context init (subset of operators)",
+    "Minimal context init (subset of operators)",
     () => {
       Context.init({
         pipeline: { $sort, $project },
@@ -235,7 +235,7 @@ function benchQueryInstantiation() {
   );
 
   measure(
-    "RxDB-style query instantiation ($eq, $gt, $in)",
+    "Minimal-context query instantiation ($eq, $gt, $in)",
     () => {
       new Query(
         {
@@ -245,7 +245,7 @@ function benchQueryInstantiation() {
             { tags: { $in: ["tag1", "tag2"] } }
           ]
         },
-        RXDB_OPTS
+        MINIMAL_OPTS
       );
     },
     10_000
@@ -254,7 +254,7 @@ function benchQueryInstantiation() {
   measure(
     "Query with $regex",
     () => {
-      new Query({ name: { $regex: /^User 1/ } }, RXDB_OPTS);
+      new Query({ name: { $regex: /^User 1/ } }, MINIMAL_OPTS);
     },
     10_000
   );
@@ -266,7 +266,7 @@ function benchQueryInstantiation() {
         {
           items: { $elemMatch: { value: { $gt: 50 } } }
         },
-        RXDB_OPTS
+        MINIMAL_OPTS
       );
     },
     10_000
@@ -279,7 +279,7 @@ function benchQueryInstantiation() {
         {
           age: { $exists: true, $type: "number", $mod: [10, 0] }
         },
-        RXDB_OPTS
+        MINIMAL_OPTS
       );
     },
     10_000
@@ -295,7 +295,7 @@ function benchQueryInstantiation() {
             { age: { $nin: [20, 30, 40] } }
           ]
         },
-        RXDB_OPTS
+        MINIMAL_OPTS
       );
     },
     10_000
@@ -308,7 +308,7 @@ function benchQueryInstantiation() {
         {
           $nor: [{ age: { $lt: 18 } }, { active: { $eq: false } }]
         },
-        RXDB_OPTS
+        MINIMAL_OPTS
       );
     },
     10_000
@@ -317,7 +317,7 @@ function benchQueryInstantiation() {
   measure(
     "Query with $size",
     () => {
-      new Query({ tags: { $size: 2 } }, RXDB_OPTS);
+      new Query({ tags: { $size: 2 } }, MINIMAL_OPTS);
     },
     10_000
   );
@@ -338,13 +338,13 @@ function benchQueryMatching() {
     },
     FULL_OPTS
   );
-  const regexQuery = new Query({ name: { $regex: /^User 1/ } }, RXDB_OPTS);
+  const regexQuery = new Query({ name: { $regex: /^User 1/ } }, MINIMAL_OPTS);
   const elemMatchQuery = new Query(
     { items: { $elemMatch: { value: { $gt: 50 } } } },
-    RXDB_OPTS
+    MINIMAL_OPTS
   );
 
-  const rxdbQuery = new Query(
+  const minimalQuery = new Query(
     {
       $and: [
         { active: { $eq: true } },
@@ -352,7 +352,7 @@ function benchQueryMatching() {
         { tags: { $in: ["tag1", "tag2"] } }
       ]
     },
-    RXDB_OPTS
+    MINIMAL_OPTS
   );
 
   const doc = SMALL_DOCS[500];
@@ -398,9 +398,9 @@ function benchQueryMatching() {
   );
 
   measure(
-    "RxDB-style match (single doc)",
+    "Minimal-context match (single doc)",
     () => {
-      rxdbQuery.test(doc);
+      minimalQuery.test(doc);
     },
     100_000
   );
@@ -431,9 +431,9 @@ function benchQueryMatching() {
   );
 
   measure(
-    "RxDB-style match over 10K docs",
+    "Minimal-context match over 10K docs",
     () => {
-      for (const d of MEDIUM_DOCS) rxdbQuery.test(d);
+      for (const d of MEDIUM_DOCS) minimalQuery.test(d);
     },
     10
   );
@@ -451,11 +451,11 @@ function benchQueryFind() {
   console.log("\n=== Query Find with Cursor ===");
 
   const query = new Query({ active: true, age: { $gt: 30 } }, FULL_OPTS);
-  const rxdbQuery = new Query(
+  const minimalQuery = new Query(
     {
       $and: [{ active: { $eq: true } }, { age: { $gte: 30 } }]
     },
-    RXDB_OPTS
+    MINIMAL_OPTS
   );
 
   measure(
@@ -507,9 +507,9 @@ function benchQueryFind() {
   );
 
   measure(
-    "RxDB-style find().all() over 10K docs",
+    "Minimal-context find().all() over 10K docs",
     () => {
-      rxdbQuery.find(MEDIUM_DOCS).all();
+      minimalQuery.find(MEDIUM_DOCS).all();
     },
     10
   );
@@ -766,18 +766,18 @@ function benchSortComparator() {
   );
 }
 
-function benchRxDBPatterns() {
-  console.log("\n=== RxDB-Specific Patterns ===");
+function benchMinimalContextPatterns() {
+  console.log("\n=== Minimal-Context Patterns ===");
 
   // Create query and test many documents (query matcher)
   measure(
-    "RxDB getQueryMatcher pattern (create + test 10K docs)",
+    "getQueryMatcher pattern (create + test 10K docs)",
     () => {
       const q = new Query(
         {
           $and: [{ active: { $eq: true } }, { age: { $gte: 18, $lte: 65 } }]
         },
-        RXDB_OPTS
+        MINIMAL_OPTS
       );
       for (const d of MEDIUM_DOCS) q.test(d);
     },
@@ -786,10 +786,10 @@ function benchRxDBPatterns() {
 
   // Query with $in (batch lookups)
   measure(
-    "RxDB $in query (batch ID lookup, 100 IDs) over 10K docs",
+    "$in query (batch ID lookup, 100 IDs) over 10K docs",
     () => {
       const ids = Array.from({ length: 100 }, (_, i) => `doc-${i * 100}`);
-      const q = new Query({ _id: { $in: ids } }, RXDB_OPTS);
+      const q = new Query({ _id: { $in: ids } }, MINIMAL_OPTS);
       for (const d of MEDIUM_DOCS) q.test(d);
     },
     10
@@ -797,9 +797,9 @@ function benchRxDBPatterns() {
 
   // $regex for text search
   measure(
-    "RxDB $regex query over 10K docs",
+    "$regex query over 10K docs",
     () => {
-      const q = new Query({ name: { $regex: /^User [12]/ } }, RXDB_OPTS);
+      const q = new Query({ name: { $regex: /^User [12]/ } }, MINIMAL_OPTS);
       for (const d of MEDIUM_DOCS) q.test(d);
     },
     10
@@ -807,11 +807,11 @@ function benchRxDBPatterns() {
 
   // Nested field queries
   measure(
-    "RxDB nested field query over 10K docs",
+    "Nested field query over 10K docs",
     () => {
       const q = new Query(
         { "nested.city": { $in: ["City 1", "City 5", "City 10"] } },
-        RXDB_OPTS
+        MINIMAL_OPTS
       );
       for (const d of MEDIUM_DOCS) q.test(d);
     },
@@ -820,7 +820,7 @@ function benchRxDBPatterns() {
 
   // $or with multiple conditions
   measure(
-    "RxDB $or query over 10K docs",
+    "$or query over 10K docs",
     () => {
       const q = new Query(
         {
@@ -830,7 +830,7 @@ function benchRxDBPatterns() {
             { score: { $gte: 95 } }
           ]
         },
-        RXDB_OPTS
+        MINIMAL_OPTS
       );
       for (const d of MEDIUM_DOCS) q.test(d);
     },
@@ -839,11 +839,11 @@ function benchRxDBPatterns() {
 
   // $elemMatch
   measure(
-    "RxDB $elemMatch query over 10K docs",
+    "$elemMatch query over 10K docs",
     () => {
       const q = new Query(
         { items: { $elemMatch: { value: { $gt: 500 } } } },
-        RXDB_OPTS
+        MINIMAL_OPTS
       );
       for (const d of MEDIUM_DOCS) q.test(d);
     },
@@ -855,7 +855,7 @@ function benchRxDBPatterns() {
     "Sequential query instantiation (1K different queries)",
     () => {
       for (let i = 0; i < 1_000; i++) {
-        new Query({ age: { $gt: i % 60 } }, RXDB_OPTS);
+        new Query({ age: { $gt: i % 60 } }, MINIMAL_OPTS);
       }
     },
     10
@@ -863,11 +863,11 @@ function benchRxDBPatterns() {
 
   // $exists check
   measure(
-    "RxDB $exists query over 10K docs",
+    "$exists query over 10K docs",
     () => {
       const q = new Query(
         { score: { $exists: true }, "nested.city": { $exists: true } },
-        RXDB_OPTS
+        MINIMAL_OPTS
       );
       for (const d of MEDIUM_DOCS) q.test(d);
     },
@@ -884,11 +884,11 @@ function benchRxDBPatterns() {
         { "nested.zip": { $gt: 10100 } }
       ]
     },
-    RXDB_OPTS
+    MINIMAL_OPTS
   );
 
   measure(
-    "RxDB reuse query.test() over 100K docs",
+    "Reuse query.test() over 100K docs",
     () => {
       for (const d of LARGE_DOCS) reusableQuery.test(d);
     },
@@ -913,7 +913,7 @@ function main() {
   benchAggregation();
   benchUpdate();
   benchSortComparator();
-  benchRxDBPatterns();
+  benchMinimalContextPatterns();
 
   console.log("\n✅ All performance measurements complete.");
 }
