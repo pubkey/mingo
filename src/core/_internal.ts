@@ -169,17 +169,27 @@ export enum OpType {
   WINDOW = "window"
 }
 
+// cached values to avoid repeated Object.values() calls
+const OP_TYPE_VALUES: OpType[] = Object.values(OpType);
+
 /**
  * The `Context` class is a utility for managing and organizing operators of various types.
  * It provides methods to initialize, merge, and retrieve operators, as well as add specific
  * types of operators to the context.
  */
 export class Context {
-  #operators: Record<string, Record<string, Callback>> = Object.fromEntries(
-    Object.values(OpType).map(k => [k, {}])
-  );
+  #operators: Record<string, Record<string, Callback>>;
 
-  private constructor() {}
+  private constructor() {
+    this.#operators = {
+      [OpType.ACCUMULATOR]: {},
+      [OpType.EXPRESSION]: {},
+      [OpType.PIPELINE]: {},
+      [OpType.PROJECTION]: {},
+      [OpType.QUERY]: {},
+      [OpType.WINDOW]: {}
+    };
+  }
 
   static init(
     ops: {
@@ -193,7 +203,8 @@ export class Context {
   ): Context {
     const ctx = new Context();
     // ensure all operator types are initialized
-    for (const [type, operators] of Object.entries(ops)) {
+    for (const type of Object.keys(ops)) {
+      const operators = (ops as Record<string, Record<string, Callback>>)[type];
       if (ctx.#operators[type] && operators) {
         // direct assignment since operators are empty at init time
         ctx.#operators[type] = { ...operators };
@@ -208,7 +219,7 @@ export class Context {
     if (ctx.length === 1) return ctx[0];
     const newCtx = new Context();
     for (const context of ctx) {
-      for (const type of Object.values(OpType)) {
+      for (const type of OP_TYPE_VALUES) {
         newCtx.addOps(type, context.#operators[type]);
       }
     }
@@ -282,8 +293,7 @@ export function evalExpr(obj: Any, expr: Any, options: Options): Any {
   return computeExpression(obj, expr, copts);
 }
 
-const SYSTEM_VARS = ["$$ROOT", "$$CURRENT", "$$REMOVE", "$$NOW"] as const;
-type SystemVar = (typeof SYSTEM_VARS)[number];
+const SYSTEM_VARS = new Set(["$$ROOT", "$$CURRENT", "$$REMOVE", "$$NOW"]);
 
 /** Computes the value of the expr given for the object. */
 function computeExpression(obj: Any, expr: Any, options: ComputeOptions): Any {
@@ -292,7 +302,7 @@ function computeExpression(obj: Any, expr: Any, options: ComputeOptions): Any {
   //  we check and process them in that order.
   //
   // if expr begins only a single "$", then it is a path to a field on the object.
-  if (isString(expr) && expr.length > 0 && expr[0] === "$") {
+  if (isString(expr) && expr.length > 0 && expr.charCodeAt(0) === 0x24 /*$*/) {
     // we return redact variables as literals
     if (expr === "$$KEEP" || expr === "$$PRUNE" || expr === "$$DESCEND")
       return expr;
@@ -301,11 +311,12 @@ function computeExpression(obj: Any, expr: Any, options: ComputeOptions): Any {
     let ctx = options.local.root;
 
     // handle selectors with explicit prefix
-    const arr = expr.split(".");
-    if (SYSTEM_VARS.includes(arr[0] as SystemVar)) {
+    const dotIdx = expr.indexOf(".");
+    const prefix = dotIdx === -1 ? expr : expr.substring(0, dotIdx);
+    if (SYSTEM_VARS.has(prefix)) {
       // set 'root' only the first time it is required to be used for all subsequent calls
       // if it already available on the options, it will be used
-      switch (arr[0] as SystemVar) {
+      switch (prefix) {
         case "$$ROOT":
           break;
         case "$$CURRENT":
@@ -318,8 +329,8 @@ function computeExpression(obj: Any, expr: Any, options: ComputeOptions): Any {
           ctx = new Date(options.now);
           break;
       }
-      expr = expr.slice(arr[0].length + 1); //  +1 for '.'
-    } else if (arr[0].slice(0, 2) === "$$") {
+      expr = dotIdx === -1 ? "" : expr.substring(dotIdx + 1);
+    } else if (prefix.length >= 2 && prefix.charCodeAt(1) === 0x24 /*$*/) {
       // handle user-defined variables
       ctx = Object.assign(
         {},
@@ -331,12 +342,12 @@ function computeExpression(obj: Any, expr: Any, options: ComputeOptions): Any {
         options?.local?.variables
       );
       // the variable name
-      const name = arr[0].slice(2);
+      const name = prefix.substring(2);
       assert(has(ctx as AnyObject, name), `Use of undefined variable: ${name}`);
-      expr = expr.slice(2);
+      expr = expr.substring(2);
     } else {
       // 'expr' is a path to a field on the object.
-      expr = expr.slice(1);
+      expr = expr.substring(1);
     }
 
     return expr === "" ? ctx : resolve(ctx as ArrayOrObject, expr as string);
@@ -348,18 +359,18 @@ function computeExpression(obj: Any, expr: Any, options: ComputeOptions): Any {
   }
 
   if (isObject(expr)) {
+    const keys = Object.keys(expr);
+    // if object represents an operator expression, there should only be a single key
+    if (keys.length > 0 && isOperator(keys[0])) {
+      assert(
+        keys.length === 1,
+        `Expression must contain a single operator. got [${keys.join(",")}]`
+      );
+      return computeOperator(obj, expr[keys[0]], keys[0], options);
+    }
     const result: AnyObject = {};
-    const elems = Object.entries(expr);
-    for (const [key, val] of elems) {
-      // if object represents an operator expression, there should only be a single key
-      if (isOperator(key)) {
-        assert(
-          elems.length === 1,
-          `Expression must contain a single operator. got [${Object.keys(expr).join(",")}]`
-        );
-        return computeOperator(obj, val, key, options);
-      }
-      result[key] = computeExpression(obj, val, options);
+    for (let i = 0; i < keys.length; i++) {
+      result[keys[i]] = computeExpression(obj, expr[keys[i]], options);
     }
     return result;
   }

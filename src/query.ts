@@ -12,7 +12,7 @@ import type {
 } from "./types";
 import { assert, cloneDeep, isObject, isOperator, normalize } from "./util";
 
-const TOP_LEVEL_RE = /^\$(and|or|nor|expr|jsonSchema)$/;
+const TOP_LEVEL_OPS = new Set(["$and", "$or", "$nor", "$expr", "$jsonSchema"]);
 
 /**
  * Represents a query object used to filter and match documents based on specified criteria.
@@ -52,23 +52,25 @@ export class Query<T = AnyObject> {
     );
 
     const whereOperator: { field?: string; expr?: Any } = {};
-    const conditions = Object.entries(this.#condition);
-    for (const [field, expr] of conditions) {
+    const conditions = Object.keys(this.#condition);
+    for (let ci = 0; ci < conditions.length; ci++) {
+      const field = conditions[ci];
+      const expr = (this.#condition as AnyObject)[field];
       if ("$where" === field) {
         assert(
           this.#options.scriptEnabled,
           "$where operator requires 'scriptEnabled' option to be true."
         );
         Object.assign(whereOperator, { field: field, expr: expr });
-      } else if (TOP_LEVEL_RE.test(field)) {
+      } else if (TOP_LEVEL_OPS.has(field)) {
         this.processOperator(field, field, expr);
       } else {
         // normalize expression
         assert(!isOperator(field), `unknown top level operator: ${field}`);
-        for (const [operator, val] of Object.entries(
-          normalize(expr) as AnyObject
-        )) {
-          this.processOperator(field, operator, val);
+        const normalized = normalize(expr) as AnyObject;
+        const normKeys = Object.keys(normalized);
+        for (let ni = 0; ni < normKeys.length; ni++) {
+          this.processOperator(field, normKeys[ni], normalized[normKeys[ni]]);
         }
       }
 
