@@ -16,6 +16,7 @@
     "clean": "rm -fr build",
     "test": "vitest run --coverage",
     "test-dev": "vitest",
+    "test-perf": "vitest run test/perf-bench.test.ts",
     "release": "npm run test && npm run build && cd build && npm publish",
     "prepublishOnly": "echo \"use 'npm run release'\" && false",
     "postinstall": "node ./build.mjs install"
