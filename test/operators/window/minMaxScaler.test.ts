@@ -52,4 +52,36 @@ describe(testPath(__filename), () => {
       )
     ).toThrow("$minMaxScaler: input must be a numeric array");
   });
+
+  it("correctly updates rmax when max is not the first element", () => {
+    // Sort by b but scale on a, so a values are not in ascending order
+    const result = aggregate(
+      [
+        { a: 5, b: 1 },
+        { a: 1, b: 2 },
+        { a: 13, b: 3 },
+        { a: 21, b: 4 }
+      ],
+      [
+        {
+          $setWindowFields: {
+            sortBy: { b: 1 },
+            output: {
+              scaled: { $minMaxScaler: "$a" }
+            }
+          }
+        }
+      ],
+      options
+    );
+    // min=1, max=21, range=20
+    // a=5: (5-1)/20 = 0.2
+    expect(result[0].scaled).toBe(0.2);
+    // a=1: (1-1)/20 = 0
+    expect(result[1].scaled).toBe(0);
+    // a=13: (13-1)/20 = 0.6
+    expect(result[2].scaled).toBe(0.6);
+    // a=21: (21-1)/20 = 1
+    expect(result[3].scaled).toBe(1);
+  });
 });

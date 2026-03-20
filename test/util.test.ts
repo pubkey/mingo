@@ -291,7 +291,8 @@ describe("util", () => {
       ["array", []],
       ["object", {}],
       ["arraybuffer", new ArrayBuffer(0)],
-      ["custom", new Custom("abc")]
+      ["custom", new Custom("abc")],
+      ["object", Object.create(null)]
     ])("should expect %o for %o", (res, input) => {
       expect(typeOf(input)).toEqual(res);
     });
@@ -473,6 +474,14 @@ describe("util", () => {
     it("resolves value from custom object", () => {
       const result = resolve(ObjectId("100") as Any as AnyObject, "_id");
       expect(result).toEqual("100");
+    });
+
+    it("returns array as-is with unwrapArray when no array traversal occurred", () => {
+      const result = resolve({ a: { b: { c: [1, 2, 3] } } }, "a.b.c", {
+        unwrapArray: true
+      });
+      // depth is 0, so unwrap returns array unchanged
+      expect(result).toEqual([1, 2, 3]);
     });
   });
 

@@ -232,4 +232,28 @@ describe(testPath(__filename), () => {
       { altitude: 1700, variety: "Gesha", score: 95.5, price: 1029 }
     ]);
   });
+
+  it("should handle nil field values at the beginning of the collection", () => {
+    const data = [
+      { _id: 1, val: null },
+      { _id: 2 },
+      { _id: 3, val: 0 },
+      { _id: 4, val: 10 }
+    ];
+    const res = aggregate(data, [
+      {
+        $densify: {
+          field: "val",
+          range: {
+            bounds: "full",
+            step: 5
+          }
+        }
+      }
+    ]);
+    // nil-valued documents should be yielded first, then densified values
+    expect(res[0]).toEqual({ _id: 1, val: null });
+    expect(res[1]).toEqual({ _id: 2 });
+    expect(res[2]).toEqual({ _id: 3, val: 0 });
+  });
 });

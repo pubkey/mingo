@@ -1,3 +1,6 @@
+import { describe, expect, it } from "vitest";
+
+import { aggregate } from "../../../src";
 import * as samples from "../../support";
 
 const orders = [
@@ -395,3 +398,31 @@ samples.runTestPipeline(samples.testPath(__filename), [
     ]
   }
 ]);
+
+describe("$lookup with localField/foreignField and pipeline (no match path)", () => {
+  it("returns empty array for non-matching documents when pipeline is specified", () => {
+    const result = aggregate(
+      [
+        { _id: 1, code: "A" },
+        { _id: 2, code: "Z" } // no match in joinColl
+      ],
+      [
+        {
+          $lookup: {
+            from: [
+              { _id: 10, ref: "A", detail: "found" },
+              { _id: 11, ref: "B", detail: "other" }
+            ],
+            localField: "code",
+            foreignField: "ref",
+            pipeline: [{ $project: { detail: 1, _id: 0 } }],
+            as: "info"
+          }
+        }
+      ]
+    );
+    // _id:1 matches (ok=true), so pipeline runs; _id:2 doesn't match (ok=false), res=[]
+    expect(result[0].info).toEqual([{ detail: "found" }, { detail: "other" }]);
+    expect(result[1].info).toEqual([]);
+  });
+});

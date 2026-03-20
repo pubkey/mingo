@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { aggregate } from "../../../src";
+import { ProcessingMode } from "../../../src/core/_internal";
 import { testPath } from "../../support";
 
 describe(testPath(__filename), () => {
@@ -58,5 +59,16 @@ describe(testPath(__filename), () => {
         city_state: [{ zip_id: 10019, name: "New York, NY" }]
       }
     ]);
+  });
+
+  it("clones documents when CLONE_ALL processing mode is set", () => {
+    const docs = [{ x: 1 }, { x: 2 }];
+    const result = aggregate([], [{ $documents: docs }], {
+      processingMode: ProcessingMode.CLONE_ALL
+    });
+    expect(result).toEqual(docs);
+    // Verify the returned objects are clones (not the same references)
+    expect(result[0]).not.toBe(docs[0]);
+    expect(result[1]).not.toBe(docs[1]);
   });
 });

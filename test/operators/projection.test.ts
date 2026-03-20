@@ -455,4 +455,16 @@ describe(testPath(__filename), () => {
       );
     });
   });
+
+  describe("$elemMatch projection on non-array field", () => {
+    it("returns undefined when $elemMatch is used on a non-array field", () => {
+      const data = [{ _id: 1, name: "Alice", scores: 42 }];
+      const result = find(
+        data,
+        {},
+        { scores: { $elemMatch: { val: { $gte: 10 } } } }
+      ).all();
+      expect(result[0]).toEqual({ _id: 1 });
+    });
+  });
 });

@@ -160,4 +160,45 @@ describe(testPath(__filename), () => {
       }
     ]);
   });
+
+  it("prunes nested object fields via $$DESCEND with $cond", () => {
+    const res = aggregate(
+      [
+        {
+          _id: 1,
+          level: 1,
+          nested_good: {
+            level: 1,
+            text: "visible"
+          },
+          nested_bad: {
+            level: 5,
+            secret: "hidden"
+          }
+        }
+      ],
+      [
+        {
+          $redact: {
+            $cond: {
+              if: { $eq: ["$level", 5] },
+              then: "$$PRUNE",
+              else: "$$DESCEND"
+            }
+          }
+        }
+      ]
+    );
+    // nested_bad (level:5) should be pruned, nested_good (level:1) should remain
+    expect(res).toEqual([
+      {
+        _id: 1,
+        level: 1,
+        nested_good: {
+          level: 1,
+          text: "visible"
+        }
+      }
+    ]);
+  });
 });

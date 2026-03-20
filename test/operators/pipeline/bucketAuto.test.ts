@@ -420,4 +420,23 @@ describe(testPath(__filename), () => {
       expect(actual).toEqual(output);
     }
   );
+
+  it("should handle zero values in granularity rounding", () => {
+    // When the first bucket value is 0 with granularity, roundUp(0) returns 0
+    // which causes min < max assertion to fail since both are 0.
+    expect(() =>
+      aggregate(
+        [{ _id: 0 }, { _id: 5 }, { _id: 10 }],
+        [
+          {
+            $bucketAuto: {
+              groupBy: "$_id",
+              buckets: 3,
+              granularity: "R5"
+            }
+          }
+        ]
+      )
+    ).toThrow();
+  });
 });
