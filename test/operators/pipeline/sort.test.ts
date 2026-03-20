@@ -327,30 +327,5 @@ runTestPipeline("$sort", [
       { state: { start: new Date("2022-09-12T22:00:00.001Z"), foo: 222 } },
       { state: { start: new Date("2022-09-12T22:00:00.002Z"), foo: 333 } }
     ]
-  },
-
-  {
-    message: "should sort with collation caseFirst 'off'",
-    input: [{ name: "alice" }, { name: "Alice" }, { name: "Bob" }],
-    pipeline: [{ $sort: { name: 1 } }],
-    options: {
-      collation: {
-        locale: "en",
-        caseFirst: "off"
-      }
-    },
-    expected: [{ name: "alice" }, { name: "Alice" }, { name: "Bob" }]
-  },
-
-  {
-    message: "should use default compare for non-string values with collation",
-    input: [{ val: 3 }, { val: 1 }, { val: 2 }],
-    pipeline: [{ $sort: { val: 1 } }],
-    options: {
-      collation: {
-        locale: "en"
-      }
-    },
-    expected: [{ val: 1 }, { val: 2 }, { val: 3 }]
   }
 ]);

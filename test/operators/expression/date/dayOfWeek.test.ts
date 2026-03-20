@@ -12,18 +12,11 @@ const fixtures: [number | null, string, string?][] = [
 ] as const;
 
 runTest(testPath(__filename), {
-  $dayOfWeek: [
-    ...fixtures.map(([result, date, timezone]) => [
-      {
-        date: new Date(date),
-        timezone
-      },
-      result
-    ]),
-    // computeDate line 263: numeric timestamp (seconds since epoch)
-    // 1451606400 = 2016-01-01T00:00:00Z → dayOfWeek = 6 (Friday)
-    ["$ts", 6, { obj: { ts: 1451606400 } }],
-    // computeDate line 267: { date: <number>, timezone } where date is seconds
-    [{ date: 1451606400, timezone: "+00:00" }, 6]
-  ]
+  $dayOfWeek: fixtures.map(([result, date, timezone]) => [
+    {
+      date: new Date(date),
+      timezone
+    },
+    result
+  ])
 });

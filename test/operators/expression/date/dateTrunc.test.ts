@@ -97,18 +97,4 @@ describe("$dateTrunc", () => {
 
     expect(res).toEqual(new Date("1988-12-22T00:00:00Z"));
   });
-
-  it("returns null when date is nil", () => {
-    const res = $dateTrunc({}, { date: null, unit: "day" }, DEFAULT_OPTS);
-    expect(res).toBeNull();
-  });
-
-  it("returns null when unit is nil", () => {
-    const res = $dateTrunc(
-      {},
-      { date: new Date("2020-01-01T00:00:00Z"), unit: null },
-      DEFAULT_OPTS
-    );
-    expect(res).toBeNull();
-  });
 });

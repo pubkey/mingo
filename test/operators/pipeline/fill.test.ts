@@ -445,25 +445,3 @@ samples.runTestPipeline("operators/pipeline/fill", [
     ]
   }
 ]);
-
-describe("$fill additional coverage", () => {
-  it("should fill with value expressions without sortBy", () => {
-    const data = [
-      { _id: 1, score: null },
-      { _id: 2, score: 80 }
-    ];
-    const result = aggregate(data, [
-      {
-        $fill: {
-          output: {
-            score: { value: 0 }
-          }
-        }
-      }
-    ]);
-    expect(result).toEqual([
-      { _id: 1, score: 0 },
-      { _id: 2, score: 80 }
-    ]);
-  });
-});

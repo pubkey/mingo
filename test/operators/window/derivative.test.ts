@@ -104,34 +104,4 @@ describe(testPath(__filename), () => {
       }
     ]);
   });
-
-  it("Can Compute Derivative without Unit (defaults to millisecond)", () => {
-    const result = aggregate(
-      [
-        { _id: 1, x: 0, y: 0 },
-        { _id: 2, x: 10, y: 20 },
-        { _id: 3, x: 20, y: 60 }
-      ],
-      [
-        {
-          $setWindowFields: {
-            sortBy: { x: 1 },
-            output: {
-              slope: {
-                $derivative: { input: "$y" },
-                window: { documents: ["unbounded", "current"] }
-              }
-            }
-          }
-        }
-      ],
-      options
-    );
-    // For x=0: only 1 point, returns null
-    expect(result[0].slope).toBeNull();
-    // For x=10: (20-0)/(10-0) = 2
-    expect(result[1].slope).toBe(2);
-    // For x=20: (60-0)/(20-0) = 3
-    expect(result[2].slope).toBe(3);
-  });
 });

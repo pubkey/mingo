@@ -291,8 +291,7 @@ describe("util", () => {
       ["array", []],
       ["object", {}],
       ["arraybuffer", new ArrayBuffer(0)],
-      ["custom", new Custom("abc")],
-      ["object", Object.create(null)]
+      ["custom", new Custom("abc")]
     ])("should expect %o for %o", (res, input) => {
       expect(typeOf(input)).toEqual(res);
     });

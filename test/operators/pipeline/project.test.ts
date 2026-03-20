@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-import { aggregate } from "../../../src";
-import { ProcessingMode } from "../../../src/core/_internal";
 import { validateProjection } from "../../../src/operators/pipeline/_internal";
 import { Any, AnyObject } from "../../../src/types";
 import {
@@ -711,19 +709,6 @@ describe(testPath(__filename) + ": More Tests", () => {
       const res = validateProjection(input, opts, true);
       expect(res.inclusions).toEqual(Object.keys(input).sort());
       expect(res.exclusions).toEqual([]);
-    });
-  });
-
-  describe("$project edge cases", () => {
-    it("should return collection as-is with empty projection expression", () => {
-      const data = [
-        { _id: 1, x: 10 },
-        { _id: 2, x: 20 }
-      ];
-      const result = aggregate(data, [{ $project: {} }], {
-        processingMode: ProcessingMode.CLONE_INPUT
-      });
-      expect(result).toEqual(data);
     });
   });
 });

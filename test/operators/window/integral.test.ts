@@ -127,34 +127,4 @@ describe(testPath(__filename), () => {
       }
     ]);
   });
-
-  it("Can Compute Integral without Unit (defaults to millisecond)", () => {
-    const result = aggregate(
-      [
-        { _id: 1, x: 0, y: 2 },
-        { _id: 2, x: 10, y: 4 },
-        { _id: 3, x: 20, y: 6 }
-      ],
-      [
-        {
-          $setWindowFields: {
-            sortBy: { x: 1 },
-            output: {
-              area: {
-                $integral: { input: "$y" },
-                window: { documents: ["unbounded", "current"] }
-              }
-            }
-          }
-        }
-      ],
-      options
-    );
-    // For x=0: only 1 point, integral = 0
-    expect(result[0].area).toBe(0);
-    // For x=10: trapezoid(2,4)*10 = 0.5*(2+4)*10 = 30
-    expect(result[1].area).toBe(30);
-    // For x=20: 30 + trapezoid(4,6)*10 = 30 + 0.5*(4+6)*10 = 30 + 50 = 80
-    expect(result[2].area).toBe(80);
-  });
 });

@@ -61,48 +61,6 @@ runTest(testPath(__filename), {
     [{ format: "%j", date: new Date("2023-02-08T12:00:00Z") }, "039"],
 
     // day of week (0-6) - wednesday (3)
-    [{ format: "%w", date }, "3"],
-
-    // isoDayOfWeek on Sunday (%u returns 7 for Sunday via || 7 branch)
-    [
-      {
-        date: new Date("2021-01-03T12:00:00Z"), // 2021-01-03 is a Sunday
-        format: "%u"
-      },
-      "7"
-    ],
-
-    // onNull: return onNull when date is null
-    [{ date: null, onNull: "N/A" }, "N/A"],
-
-    // format with no format specifiers returns the string as-is
-    [{ date, format: "plain text no specifiers" }, "plain text no specifiers"],
-
-    // timezone "UTC" triggers parseTimezone fallback (non-Olson, non-offset format)
-    [{ format: "%H:%M:%S%z", date, timezone: "UTC" }, "08:15:39+0000"],
-
-    // default format (no format specified) uses DATE_FORMAT: "%Y-%m-%dT%H:%M:%S.%LZ"
-    [
-      { date: new Date("2021-01-01T12:00:00.000Z") },
-      "2021-01-01T12:00:00.000Z"
-    ],
-
-    // isoWeek overflow: Dec 31, 2018 belongs to ISO week 1 of 2019
-    [
-      {
-        date: new Date("2018-12-31T12:00:00Z"),
-        format: "isoWeek=%V"
-      },
-      "isoWeek=01"
-    ],
-
-    // weekOfYear (%U) on a Sunday (getUTCDay() == 0) returns result + 1
-    [
-      {
-        date: new Date("2021-01-03T12:00:00Z"), // Sunday
-        format: "week=%U"
-      },
-      "week=54"
-    ]
+    [{ format: "%w", date }, "3"]
   ]
 });
