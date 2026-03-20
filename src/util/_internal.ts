@@ -803,13 +803,12 @@ export const isOperator = (name: string): boolean => {
   }
   for (let i = 1; i < name.length; i++) {
     const c = name.charCodeAt(i);
-    // a-z: 97-122, A-Z: 65-90, 0-9: 48-57, _: 95
     if (
       !(
-        (c >= 97 && c <= 122) ||
-        (c >= 65 && c <= 90) ||
-        (c >= 48 && c <= 57) ||
-        c === 95
+        (c >= 97 && c <= 122) || // a-z
+        (c >= 65 && c <= 90) || // A-Z
+        (c >= 48 && c <= 57) || // 0-9
+        c === 95 // _
       )
     ) {
       return false;
