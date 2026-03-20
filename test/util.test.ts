@@ -474,6 +474,14 @@ describe("util", () => {
       const result = resolve(ObjectId("100") as Any as AnyObject, "_id");
       expect(result).toEqual("100");
     });
+
+    it("returns array as-is with unwrapArray when no array traversal occurred", () => {
+      const result = resolve({ a: { b: { c: [1, 2, 3] } } }, "a.b.c", {
+        unwrapArray: true
+      });
+      // depth is 0, so unwrap returns array unchanged
+      expect(result).toEqual([1, 2, 3]);
+    });
   });
 
   describe("resolveGraph", () => {
