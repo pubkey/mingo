@@ -97,6 +97,16 @@ runTest("EdgeCases", {
         [1, 2]
       ],
       true
+    ],
+    // non-primitive: subset with extra elements (HashMap early termination)
+    [[[{ a: 1 }], [{ a: 1 }, { a: 2 }]], true],
+    // non-primitive: not a subset
+    [
+      [
+        [{ a: 1 }, { a: 3 }],
+        [{ a: 1 }, { a: 2 }]
+      ],
+      false
     ]
   ],
   $setEquals: [
@@ -123,7 +133,17 @@ runTest("EdgeCases", {
         [1, 2]
       ],
       true
-    ]
+    ],
+    // non-primitive: equal object arrays (HashMap path)
+    [
+      [
+        [{ a: 1 }, { b: 2 }],
+        [{ b: 2 }, { a: 1 }]
+      ],
+      true
+    ],
+    // non-primitive: different sizes (HashMap path)
+    [[[{ a: 1 }, { b: 2 }], [{ a: 1 }]], false]
   ]
 });
 
