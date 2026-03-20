@@ -203,8 +203,7 @@ export class Context {
   ): Context {
     const ctx = new Context();
     // ensure all operator types are initialized
-    for (const type of Object.keys(ops)) {
-      const operators = (ops as Record<string, Record<string, Callback>>)[type];
+    for (const [type, operators] of Object.entries(ops)) {
       if (ctx.#operators[type] && operators) {
         // direct assignment since operators are empty at init time
         ctx.#operators[type] = { ...operators };
@@ -302,7 +301,7 @@ function computeExpression(obj: Any, expr: Any, options: ComputeOptions): Any {
   //  we check and process them in that order.
   //
   // if expr begins only a single "$", then it is a path to a field on the object.
-  if (isString(expr) && expr.length > 0 && expr.charCodeAt(0) === 0x24 /*$*/) {
+  if (isString(expr) && expr.length > 0 && expr[0] === "$") {
     // we return redact variables as literals
     if (expr === "$$KEEP" || expr === "$$PRUNE" || expr === "$$DESCEND")
       return expr;
@@ -330,7 +329,7 @@ function computeExpression(obj: Any, expr: Any, options: ComputeOptions): Any {
           break;
       }
       expr = dotIdx === -1 ? "" : expr.substring(dotIdx + 1);
-    } else if (prefix.length >= 2 && prefix.charCodeAt(1) === 0x24 /*$*/) {
+    } else if (prefix.length >= 2 && prefix[1] === "$") {
       // handle user-defined variables
       ctx = Object.assign(
         {},
