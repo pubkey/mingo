@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "es2020",
-    "lib": ["es2020", "esnext.collection"],
+    "lib": ["es2020"],
     "noEmit": true,
     "module": "preserve",
     "moduleResolution": "bundler",
