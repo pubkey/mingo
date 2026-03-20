@@ -1,6 +1,6 @@
 import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, Options } from "../../../types";
-import { assert, HashMap, isArray, isNil } from "../../../util";
+import { assert, HashMap, isArray, isNil, isPrimitive } from "../../../util";
 import { errExpectArray } from "../_internal";
 
 const OP = "$setDifference";
@@ -23,6 +23,12 @@ export const $setDifference = (
     ok &&= isArray(v);
   }
   if (!ok) return errExpectArray(foe, `${OP} arguments`);
+
+  // fast path: use native Set.difference() when all elements are primitives
+  if (args[0].every(isPrimitive) && args[1].every(isPrimitive)) {
+    return Array.from(new Set(args[0]).difference(new Set(args[1])));
+  }
+
   const m = HashMap.init();
   args[0].forEach(v => m.set(v, true));
   args[1].forEach(v => m.delete(v));

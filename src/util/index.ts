@@ -22,6 +22,7 @@ export {
   isObject,
   isObjectLike,
   isOperator,
+  isPrimitive,
   isRegExp,
   isString,
   isSymbol,

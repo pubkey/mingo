@@ -1,6 +1,6 @@
 import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, Options } from "../../../types";
-import { assert, HashMap, isArray } from "../../../util";
+import { assert, HashMap, isArray, isPrimitive } from "../../../util";
 import { errExpectArray } from "../_internal";
 
 /**
@@ -16,6 +16,16 @@ export const $setEquals = (
   const foe = options.failOnError;
   // all args must be arrays (not null/undefined)
   if (!args.every(isArray)) return errExpectArray(foe, "$setEquals arguments");
+
+  // fast path: use native Set when all elements across all arrays are primitives
+  if (args.every(arr => arr.every(isPrimitive))) {
+    const first = new Set(args[0]);
+    for (let i = 1; i < args.length; i++) {
+      const other = new Set(args[i]);
+      if (first.size !== other.size || !first.isSubsetOf(other)) return false;
+    }
+    return true;
+  }
 
   // store a unique number for each unique item. repeated values may be overriden but that's okay.
   const map = HashMap.init<Any, number>();

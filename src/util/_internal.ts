@@ -421,6 +421,16 @@ export function intersection<T = Any>(input: T[][]): T[] {
   if (input.some(arr => arr.length === 0)) return [];
   if (input.length === 1) return input[0].slice();
 
+  // fast path: use native Set.intersection() when all elements are primitives
+  if (input.every(arr => arr.every(isPrimitive))) {
+    let result = new Set(input[0]);
+    for (let i = 1; i < input.length; i++) {
+      result = result.intersection(new Set(input[i]));
+      if (result.size === 0) return [];
+    }
+    return Array.from(result) as T[];
+  }
+
   const vmaps = [HashMap.init<T, boolean>(), HashMap.init<T, boolean>()];
   // start with last array to ensure stableness.
   input[input.length - 1].forEach(v => vmaps[0].set(v, true));
@@ -465,6 +475,10 @@ export function flatten(xs: Any[], depth = 1): Any[] {
  * @return {Array}
  */
 export function unique<T = Any>(input: T[]): T[] {
+  // fast path: use native Set for primitives
+  if (input.every(isPrimitive)) {
+    return Array.from(new Set(input));
+  }
   const m = HashMap.init<T, boolean>();
   input.forEach(v => m.set(v, true));
   return Array.from(m.keys());
