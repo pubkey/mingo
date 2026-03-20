@@ -504,4 +504,19 @@ describe(testPath(__filename), () => {
     });
     expect(query.test(doc)).toBe(true);
   });
+
+  it("can match $all with $elemMatch using only comparison operators", () => {
+    const data = [
+      { _id: 1, scores: [10, 50, 100] },
+      { _id: 2, scores: [5, 15, 25] },
+      { _id: 3, scores: [80, 90, 100] }
+    ];
+    const result = find(data, {
+      scores: { $all: [{ $elemMatch: { $gte: 50, $lte: 100 } }] }
+    }).all();
+    expect(result).toEqual([
+      { _id: 1, scores: [10, 50, 100] },
+      { _id: 3, scores: [80, 90, 100] }
+    ]);
+  });
 });
