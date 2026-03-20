@@ -67,8 +67,7 @@ function mingoCmp(a: Any, b: Any, descendArray: boolean = false): number {
   // fast path: both numbers (very common in sorting/comparisons)
   if (typeof a === "number" && typeof b === "number") return a < b ? -1 : 1;
   // fast path: both strings
-  if (typeof a === "string" && typeof b === "string")
-    return a < b ? -1 : a > b ? 1 : 0;
+  if (typeof a === "string" && typeof b === "string") return a < b ? -1 : 1;
   const typeA = isTypedArray(a) ? "arraybuffer" : typeOf(a);
   const typeB = isTypedArray(b) ? "arraybuffer" : typeOf(b);
   // unequal types
@@ -99,9 +98,6 @@ function mingoCmp(a: Any, b: Any, descendArray: boolean = false): number {
   }
 
   switch (typeA) {
-    case "number":
-    case "string":
-      return simpleCmp(a, b);
     case "boolean":
     case "date":
       return simpleCmp(+(a as Date | boolean), +(b as Date | boolean));
