@@ -184,7 +184,11 @@ export function isEqual(a: Any, b: Any): boolean {
   if (isRegExp(a))
     return isRegExp(b) && a.source === b.source && a.flags === b.flags;
   if (isArray(a) && isArray(b)) {
-    return a.length === b.length && a.every((v, i) => isEqual(v, b[i]));
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (!isEqual(a[i], b[i])) return false;
+    }
+    return true;
   }
   if (a?.constructor !== Object && hasCustomString(a)) {
     return (a as Str)?.toString() === (b as Str)?.toString();
@@ -195,7 +199,15 @@ export function isEqual(a: Any, b: Any): boolean {
   const keysA = Object.keys(objA);
   const keysB = Object.keys(objB);
   if (keysA.length !== keysB.length) return false;
-  return keysA.every(k => has(objB, k) && isEqual(objA[k], objB[k]));
+  for (let i = 0; i < keysA.length; i++) {
+    const k = keysA[i];
+    if (
+      !Object.prototype.hasOwnProperty.call(objB, k) ||
+      !isEqual(objA[k], objB[k])
+    )
+      return false;
+  }
+  return true;
 }
 
 /**
@@ -311,9 +323,14 @@ export function assert(condition: Any, msg: string): void {
 export function typeOf(v: Any): string {
   if (v === null) return "null";
   const t = typeof v;
-  // primitives
-  if (t !== "object" && SORT_ORDER[t]) return t;
-  // fast path for common types
+  // fast path for primitives - avoid hash lookup
+  if (t === "number") return "number";
+  if (t === "string") return "string";
+  if (t === "boolean") return "boolean";
+  if (t === "function") return "function";
+  if (t === "symbol") return "symbol";
+  if (t === "undefined") return "undefined";
+  // object types
   if (isArray(v)) return "array";
   if (isDate(v)) return "date";
   if (isRegExp(v)) return "regexp";
@@ -349,8 +366,13 @@ export const isEmpty = (x: Any): boolean =>
 /** ensure a value is an array or wrapped within one. */
 export const ensureArray = <T>(x: T | T[]): T[] => (isArray(x) ? x : [x]);
 
-export const has = (obj: object, ...props: string[]): boolean =>
-  !!obj && props.every(p => Object.prototype.hasOwnProperty.call(obj, p));
+export const has = (obj: object, ...props: string[]): boolean => {
+  if (!obj) return false;
+  for (let i = 0; i < props.length; i++) {
+    if (!Object.prototype.hasOwnProperty.call(obj, props[i])) return false;
+  }
+  return true;
+};
 
 const isTypedArray = (v: Any): v is ArrayBuffer =>
   typeof ArrayBuffer !== "undefined" && ArrayBuffer.isView(v);
@@ -399,6 +421,16 @@ export function intersection<T = Any>(input: T[][]): T[] {
   if (input.some(arr => arr.length === 0)) return [];
   if (input.length === 1) return input[0].slice();
 
+  // fast path: use native Set.intersection() when all elements are primitives
+  if (input.every(arr => arr.every(isPrimitive))) {
+    let result = new Set(input[0]);
+    for (let i = 1; i < input.length; i++) {
+      result = result.intersection(new Set(input[i]));
+      if (result.size === 0) return [];
+    }
+    return Array.from(result) as T[];
+  }
+
   const vmaps = [HashMap.init<T, boolean>(), HashMap.init<T, boolean>()];
   // start with last array to ensure stableness.
   input[input.length - 1].forEach(v => vmaps[0].set(v, true));
@@ -443,6 +475,10 @@ export function flatten(xs: Any[], depth = 1): Any[] {
  * @return {Array}
  */
 export function unique<T = Any>(input: T[]): T[] {
+  // fast path: use native Set for primitives
+  if (input.every(isPrimitive)) {
+    return Array.from(new Set(input));
+  }
   const m = HashMap.init<T, boolean>();
   input.forEach(v => m.set(v, true));
   return Array.from(m.keys());
@@ -527,10 +563,21 @@ export function resolve(
 ): Any {
   if (isScalar(obj)) return obj;
 
-  // fast path for simple single-segment selectors on non-array objects (e.g., "active", "age")
   const path = pathArray || selector.split(".");
+
+  // fast path for simple single-segment selectors on non-array objects (e.g., "active", "age")
   if (path.length === 1 && !isArray(obj)) {
     return getValue(obj, path[0]);
+  }
+
+  // fast path for 2-segment selectors on plain objects (e.g., "address.city")
+  if (path.length === 2 && !isArray(obj)) {
+    const first = getValue(obj, path[0]);
+    if (first == null) return undefined;
+    if (!isArray(first)) {
+      return getValue(first as ArrayOrObject, path[1]);
+    }
+    // first is an array; fall through to general case
   }
 
   let depth = 0;
@@ -667,15 +714,15 @@ export function walk(
   fn: (_o: AnyObject, _k: string) => void,
   options?: WalkOptions
 ): void {
-  const names = selector.split(".");
-  const key = names[0];
-  const next = names.slice(1).join(".");
+  const sep = selector.indexOf(".");
+  const key = sep === -1 ? selector : selector.substring(0, sep);
 
-  if (names.length === 1) {
+  if (sep === -1) {
     if (isObject(obj) || (isArray(obj) && isDigitStr(key))) {
       fn(obj, key);
     }
   } else {
+    const next = selector.substring(sep + 1);
     // force the rest of the graph while traversing
     if (options?.buildGraph && isNil(obj[key])) {
       obj[key] = {};
@@ -686,7 +733,9 @@ export function walk(
     // nothing more to do
     if (!item) return;
     // we peek to see if next key is an array index.
-    const isNextArrayIndex = !!(names.length > 1 && isDigitStr(names[1]));
+    const nextSep = next.indexOf(".");
+    const nextKey = nextSep === -1 ? next : next.substring(0, nextSep);
+    const isNextArrayIndex = isDigitStr(nextKey);
     // if we have an array value but the next key is not an index and the 'descendArray' option is set,
     // we walk each item in the array separately. This allows for handling traversing keys for objects
     // nested within an array.
@@ -748,8 +797,25 @@ export function removeValue(
  * This is cheap and safe to do since keys beginning with '$' should be reserved for internal use.
  * @param {String} name
  */
-export const isOperator = (name: string): boolean =>
-  !!name && name[0] === "$" && /^\$[a-zA-Z0-9_]+$/.test(name);
+export const isOperator = (name: string): boolean => {
+  if (!name || name.length < 2 || name.charCodeAt(0) !== 0x24 /*$*/) {
+    return false;
+  }
+  for (let i = 1; i < name.length; i++) {
+    const c = name.charCodeAt(i);
+    if (
+      !(
+        (c >= 97 && c <= 122) || // a-z
+        (c >= 65 && c <= 90) || // A-Z
+        (c >= 48 && c <= 57) || // 0-9
+        c === 95 // _
+      )
+    ) {
+      return false;
+    }
+  }
+  return true;
+};
 
 /**
  * Simplify expression for easy evaluation with query operators map
@@ -765,8 +831,9 @@ export function normalize(expr: Any): Any {
   if (isObjectLike(expr)) {
     // no valid query operator found, so we do simple comparison
     let hasOp = false;
-    for (const k in expr as AnyObject) {
-      if (Object.prototype.hasOwnProperty.call(expr, k) && isOperator(k)) {
+    const keys = Object.keys(expr as AnyObject);
+    for (let i = 0; i < keys.length; i++) {
+      if (isOperator(keys[i])) {
         hasOp = true;
         break;
       }

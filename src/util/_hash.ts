@@ -131,11 +131,13 @@ function hashObject(
   if (seen.has(obj)) return Tag.Cycle;
   seen.add(obj);
 
-  const keys = Object.keys(obj).sort();
+  const keys = Object.keys(obj);
+  // sort in-place to avoid extra allocation (keys array is already a fresh copy)
+  keys.sort();
   let h = hashString(obj?.constructor?.name);
-  for (const k of keys) {
-    h = mix(h, hashString(k));
-    h = mix(h, internalHash(obj[k], seen));
+  for (let i = 0; i < keys.length; i++) {
+    h = mix(h, hashString(keys[i]));
+    h = mix(h, internalHash(obj[keys[i]], seen));
   }
 
   seen.delete(obj);

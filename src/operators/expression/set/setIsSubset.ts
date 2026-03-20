@@ -1,6 +1,6 @@
 import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, Options } from "../../../types";
-import { assert, HashMap, isArray } from "../../../util";
+import { assert, HashMap, isArray, isPrimitive } from "../../../util";
 import { errExpectArray } from "../_internal";
 
 const OP = "$setIsSubset";
@@ -20,6 +20,12 @@ export const $setIsSubset = (
     return errExpectArray(options.failOnError, `${OP} arguments`);
 
   const [first, second] = args;
+
+  // fast path: use native Set.isSubsetOf() when all elements are primitives
+  if (first.every(isPrimitive) && second.every(isPrimitive)) {
+    return new Set(first).isSubsetOf(new Set(second));
+  }
+
   const map = HashMap.init<Any, number>();
   const set = new Set<number>();
 
