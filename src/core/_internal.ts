@@ -169,9 +169,6 @@ export enum OpType {
   WINDOW = "window"
 }
 
-// cached values to avoid repeated Object.values() calls
-const OP_TYPE_VALUES: OpType[] = Object.values(OpType);
-
 /**
  * The `Context` class is a utility for managing and organizing operators of various types.
  * It provides methods to initialize, merge, and retrieve operators, as well as add specific
@@ -218,7 +215,7 @@ export class Context {
     if (ctx.length === 1) return ctx[0];
     const newCtx = new Context();
     for (const context of ctx) {
-      for (const type of OP_TYPE_VALUES) {
+      for (const type of Object.values(OpType)) {
         newCtx.addOps(type, context.#operators[type]);
       }
     }

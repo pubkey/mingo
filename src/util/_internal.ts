@@ -178,11 +178,7 @@ export function isEqual(a: Any, b: Any): boolean {
   if (isRegExp(a))
     return isRegExp(b) && a.source === b.source && a.flags === b.flags;
   if (isArray(a) && isArray(b)) {
-    if (a.length !== b.length) return false;
-    for (let i = 0; i < a.length; i++) {
-      if (!isEqual(a[i], b[i])) return false;
-    }
-    return true;
+    return a.length === b.length && a.every((v, i) => isEqual(v, b[i]));
   }
   if (a?.constructor !== Object && hasCustomString(a)) {
     return (a as Str)?.toString() === (b as Str)?.toString();
@@ -193,15 +189,7 @@ export function isEqual(a: Any, b: Any): boolean {
   const keysA = Object.keys(objA);
   const keysB = Object.keys(objB);
   if (keysA.length !== keysB.length) return false;
-  for (let i = 0; i < keysA.length; i++) {
-    const k = keysA[i];
-    if (
-      !Object.prototype.hasOwnProperty.call(objB, k) ||
-      !isEqual(objA[k], objB[k])
-    )
-      return false;
-  }
-  return true;
+  return keysA.every(k => has(objB, k) && isEqual(objA[k], objB[k]));
 }
 
 /**
