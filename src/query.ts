@@ -52,10 +52,8 @@ export class Query<T = AnyObject> {
     );
 
     const whereOperator: { field?: string; expr?: Any } = {};
-    const conditions = Object.keys(this.#condition);
-    for (let ci = 0; ci < conditions.length; ci++) {
-      const field = conditions[ci];
-      const expr = (this.#condition as AnyObject)[field];
+    const conditions = Object.entries(this.#condition);
+    for (const [field, expr] of conditions) {
       if ("$where" === field) {
         assert(
           this.#options.scriptEnabled,
@@ -68,9 +66,8 @@ export class Query<T = AnyObject> {
         // normalize expression
         assert(!isOperator(field), `unknown top level operator: ${field}`);
         const normalized = normalize(expr) as AnyObject;
-        const normKeys = Object.keys(normalized);
-        for (let ni = 0; ni < normKeys.length; ni++) {
-          this.processOperator(field, normKeys[ni], normalized[normKeys[ni]]);
+        for (const [operator, val] of Object.entries(normalized)) {
+          this.processOperator(field, operator, val);
         }
       }
 

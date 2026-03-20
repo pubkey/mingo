@@ -21,15 +21,9 @@ export const isPrimitive = (v: Any): boolean =>
 /** Scalar types provided by the JS runtime. Includes primitives, RegExp, and Date */
 const isScalar = (v: Any) => isPrimitive(v) || isDate(v) || isRegExp(v);
 
-/** Check if a string contains only digits (equivalent to /^\d+$/ but faster). */
-const isDigitStr = (s: string): boolean => {
-  if (s.length === 0) return false;
-  for (let i = 0; i < s.length; i++) {
-    const c = s.charCodeAt(i);
-    if (c < 48 || c > 57) return false;
-  }
-  return true;
-};
+/** Check if a string contains only digits. */
+const DIGIT_RE = /^\d+$/;
+const isDigitStr = (s: string): boolean => DIGIT_RE.test(s);
 
 /** MongoDB sort comparison order. https://www.mongodb.com/docs/manual/reference/bson-type-comparison-order */
 const SORT_ORDER: Record<string, number> = {
@@ -323,14 +317,9 @@ export function assert(condition: Any, msg: string): void {
 export function typeOf(v: Any): string {
   if (v === null) return "null";
   const t = typeof v;
-  // fast path for primitives - avoid hash lookup
-  if (t === "number") return "number";
-  if (t === "string") return "string";
-  if (t === "boolean") return "boolean";
-  if (t === "function") return "function";
-  if (t === "symbol") return "symbol";
-  if (t === "undefined") return "undefined";
-  // object types
+  // primitives
+  if (t !== "object" && SORT_ORDER[t]) return t;
+  // fast path for common types
   if (isArray(v)) return "array";
   if (isDate(v)) return "date";
   if (isRegExp(v)) return "regexp";
@@ -366,13 +355,8 @@ export const isEmpty = (x: Any): boolean =>
 /** ensure a value is an array or wrapped within one. */
 export const ensureArray = <T>(x: T | T[]): T[] => (isArray(x) ? x : [x]);
 
-export const has = (obj: object, ...props: string[]): boolean => {
-  if (!obj) return false;
-  for (let i = 0; i < props.length; i++) {
-    if (!Object.prototype.hasOwnProperty.call(obj, props[i])) return false;
-  }
-  return true;
-};
+export const has = (obj: object, ...props: string[]): boolean =>
+  !!obj && props.every(p => Object.prototype.hasOwnProperty.call(obj, p));
 
 const isTypedArray = (v: Any): v is ArrayBuffer =>
   typeof ArrayBuffer !== "undefined" && ArrayBuffer.isView(v);
@@ -714,15 +698,15 @@ export function walk(
   fn: (_o: AnyObject, _k: string) => void,
   options?: WalkOptions
 ): void {
-  const sep = selector.indexOf(".");
-  const key = sep === -1 ? selector : selector.substring(0, sep);
+  const names = selector.split(".");
+  const key = names[0];
+  const next = names.slice(1).join(".");
 
-  if (sep === -1) {
+  if (names.length === 1) {
     if (isObject(obj) || (isArray(obj) && isDigitStr(key))) {
       fn(obj, key);
     }
   } else {
-    const next = selector.substring(sep + 1);
     // force the rest of the graph while traversing
     if (options?.buildGraph && isNil(obj[key])) {
       obj[key] = {};
@@ -733,9 +717,7 @@ export function walk(
     // nothing more to do
     if (!item) return;
     // we peek to see if next key is an array index.
-    const nextSep = next.indexOf(".");
-    const nextKey = nextSep === -1 ? next : next.substring(0, nextSep);
-    const isNextArrayIndex = isDigitStr(nextKey);
+    const isNextArrayIndex = !!(names.length > 1 && isDigitStr(names[1]));
     // if we have an array value but the next key is not an index and the 'descendArray' option is set,
     // we walk each item in the array separately. This allows for handling traversing keys for objects
     // nested within an array.
@@ -797,25 +779,8 @@ export function removeValue(
  * This is cheap and safe to do since keys beginning with '$' should be reserved for internal use.
  * @param {String} name
  */
-export const isOperator = (name: string): boolean => {
-  if (!name || name.length < 2 || name.charCodeAt(0) !== 0x24 /*$*/) {
-    return false;
-  }
-  for (let i = 1; i < name.length; i++) {
-    const c = name.charCodeAt(i);
-    if (
-      !(
-        (c >= 97 && c <= 122) || // a-z
-        (c >= 65 && c <= 90) || // A-Z
-        (c >= 48 && c <= 57) || // 0-9
-        c === 95 // _
-      )
-    ) {
-      return false;
-    }
-  }
-  return true;
-};
+export const isOperator = (name: string): boolean =>
+  !!name && name[0] === "$" && /^\$[a-zA-Z0-9_]+$/.test(name);
 
 /**
  * Simplify expression for easy evaluation with query operators map
@@ -830,15 +795,7 @@ export function normalize(expr: Any): Any {
   // normalize object expression. using ObjectLike handles custom types
   if (isObjectLike(expr)) {
     // no valid query operator found, so we do simple comparison
-    let hasOp = false;
-    const keys = Object.keys(expr as AnyObject);
-    for (let i = 0; i < keys.length; i++) {
-      if (isOperator(keys[i])) {
-        hasOp = true;
-        break;
-      }
-    }
-    if (!hasOp) return { $eq: expr };
+    if (!Object.keys(expr as AnyObject).some(isOperator)) return { $eq: expr };
     // ensure valid regex
     if (isObject(expr) && has(expr, "$regex")) {
       const newExpr = { ...expr };
