@@ -37,8 +37,7 @@ const SORT_ORDER: Record<string, number> = {
   function: 12
 };
 
-const USER_TYPE = Object.keys(SORT_ORDER).length * 2;
-type Cmp = string | number;
+type Cmp = string | number | boolean;
 export const simpleCmp = <T = Cmp>(a: T, b: T) => (a < b ? -1 : a > b ? 1 : 0);
 const typedArraysCmp = (a: ArrayBufferView, b: ArrayBufferView): number => {
   const bytesA = new Uint8Array(a.buffer, a.byteOffset, a.byteLength);
@@ -53,85 +52,89 @@ const typedArraysCmp = (a: ArrayBufferView, b: ArrayBufferView): number => {
 };
 
 function mingoCmp(a: Any, b: Any, descendArray: boolean = false): number {
-  // capture "not equal" result to use in if-expressions when order evaluates to 1 or -1.
-  let neq = 0;
-
   if (a === MISSING) a = undefined;
   if (b === MISSING) b = undefined;
   // null, undefined, same object ref, same primitive value
   if (a === b || Object.is(a, b)) return 0;
-  const typeA = isTypedArray(a) ? "arraybuffer" : typeOf(a);
-  const typeB = isTypedArray(b) ? "arraybuffer" : typeOf(b);
-  // unequal types
-  if (typeA !== typeB) {
-    // undefined is smallest, empty array is next smallest.
-    if (typeA == "undefined") return -1;
-    if (typeB == "undefined") return 1;
-    if (descendArray && typeA == "array" && !(a as Any[]).length) return -1;
-    if (descendArray && typeB == "array" && !(b as Any[]).length) return 1;
-    if (descendArray) {
-      if (isArray(a)) {
-        const sorted = a.slice().sort(mingoCmp);
-        neq = 1;
-        for (const v of sorted)
-          if ((neq = Math.min(neq, mingoCmp(v, b))) < 0) return neq;
-        return neq;
-      } else if (isArray(b)) {
-        const sorted = b.slice().sort(mingoCmp);
-        neq = -1;
-        for (const v of sorted)
-          if ((neq = Math.max(neq, mingoCmp(a, v))) > 0) return neq;
-        return neq;
+
+  const typeA = typeOf(a);
+  const typeB = typeOf(b);
+  // capture "not equal" result to use in if-expressions when order evaluates to 1 or -1.
+  let neq = 0;
+
+  if (typeA === typeB) {
+    switch (typeA) {
+      case "number":
+      case "string":
+      case "boolean":
+        return simpleCmp(a as Cmp, b as Cmp);
+      case "date":
+        return simpleCmp(+(a as Date), +(b as Date));
+      case "regexp":
+        if ((neq = simpleCmp((a as RegExp).source, (b as RegExp).source)))
+          return neq;
+        return simpleCmp((a as RegExp).flags, (b as RegExp).flags);
+      case "arraybuffer":
+        return typedArraysCmp(a as ArrayBufferView, b as ArrayBufferView);
+      case "array": {
+        const xs = (a as Any[]).slice().sort(mingoCmp);
+        const ys = (b as Any[]).slice().sort(mingoCmp);
+        const size = Math.min(xs.length, ys.length);
+        for (let i = 0; i < size; i++)
+          if ((neq = mingoCmp(xs[i], ys[i]))) return neq;
+        return simpleCmp(xs.length, ys.length);
+      }
+      default: {
+        if (typeA !== "object") {
+          const isSameType = a?.constructor === b?.constructor;
+          // short-cut when objects are the same type and have toString().
+          if (isSameType && hasCustomString(a))
+            return simpleCmp((a as Str).toString(), (b as Str).toString());
+          // use constructor name order if different types
+          if ((neq = simpleCmp(a?.constructor?.name, b?.constructor?.name)))
+            return neq;
+        }
+        // plain objects
+        const keysA = Object.keys(a as object).sort();
+        const keysB = Object.keys(b as object).sort();
+        if ((neq = mingoCmp(keysA, keysB))) return neq;
+        for (const k of keysA)
+          if ((neq = mingoCmp((a as AnyObject)[k], (b as AnyObject)[k])))
+            return neq;
+        return 0;
       }
     }
-    const orderA = SORT_ORDER[typeA] ?? USER_TYPE;
-    const orderB = SORT_ORDER[typeB] ?? USER_TYPE;
-    if (orderA !== orderB) return simpleCmp(orderA, orderB);
   }
 
-  switch (typeA) {
-    case "number":
-    case "string":
-      return simpleCmp(a, b);
-    case "boolean":
-    case "date":
-      return simpleCmp(+(a as Date | boolean), +(b as Date | boolean));
-    case "regexp":
-      if ((neq = simpleCmp((a as RegExp).source, (b as RegExp).source)))
-        return neq;
-      if ((neq = simpleCmp((a as RegExp).flags, (b as RegExp).flags)))
-        return neq;
-      return 0;
-    case "arraybuffer":
-      return typedArraysCmp(a as ArrayBufferView, b as ArrayBufferView);
-    case "array": {
-      const x = (a as Any[]).slice().sort(mingoCmp);
-      const y = (b as Any[]).slice().sort(mingoCmp);
-      const size = Math.min(x.length, y.length);
-      for (let i = 0; i < size; i++)
-        if ((neq = mingoCmp(x[i], y[i]))) return neq;
-      return simpleCmp(x.length, y.length);
+  // undefined is smallest, empty array is next smallest.
+  if (typeA == "undefined") return -1;
+  if (typeB == "undefined") return 1;
+  if (descendArray) {
+    if (typeA == "array") {
+      const xs = a as Any[];
+      if (!xs.length) return -1;
+      const sorted = xs.slice().sort(mingoCmp);
+      neq = 1;
+      for (const v of sorted)
+        if ((neq = Math.min(neq, mingoCmp(v, b))) < 0) return neq;
+      return neq;
     }
-    default: {
-      if (typeA !== "object") {
-        const isSameType = a?.constructor === b?.constructor;
-        // short-cut when objects are the same type and have toString().
-        if (isSameType && hasCustomString(a))
-          return simpleCmp((a as Str).toString(), (b as Str).toString());
-        // use constructor name order if different types
-        if ((neq = simpleCmp(a?.constructor?.name, b?.constructor?.name)))
-          return neq;
-      }
-      // plain objects
-      const keysA = Object.keys(a as object).sort();
-      const keysB = Object.keys(b as object).sort();
-      if ((neq = mingoCmp(keysA, keysB))) return neq;
-      for (const k of keysA)
-        if ((neq = mingoCmp((a as AnyObject)[k], (b as AnyObject)[k])))
-          return neq;
-      return 0;
+    if (typeB == "array") {
+      const ys = b as Any[];
+      if (!ys.length) return 1;
+      const sorted = ys.slice().sort(mingoCmp);
+      neq = -1;
+      for (const v of sorted)
+        if ((neq = Math.max(neq, mingoCmp(a, v))) > 0) return neq;
+      return neq;
     }
   }
+
+  const orderA = SORT_ORDER[typeA] ?? Number.MAX_VALUE;
+  const orderB = SORT_ORDER[typeB] ?? Number.MAX_VALUE;
+  return orderA !== orderB
+    ? simpleCmp(orderA, orderB)
+    : simpleCmp(typeA, typeB);
 }
 
 /**
@@ -294,14 +297,22 @@ export function assert(condition: Any, msg: string): void {
  * @param v Any value
  */
 export function typeOf(v: Any): string {
-  if (v === null) return "null";
   const t = typeof v;
-  // primitives
-  if (t !== "object" && SORT_ORDER[t]) return t;
-  // fast path for common types
+  switch (t) {
+    case "number":
+    case "string":
+    case "boolean":
+    case "undefined":
+    case "function":
+    case "symbol":
+      return t;
+  }
+  if (v === null) return "null";
   if (isArray(v)) return "array";
   if (isDate(v)) return "date";
   if (isRegExp(v)) return "regexp";
+  if (isTypedArray(v)) return "arraybuffer";
+  if (v?.constructor === Object) return "object";
   // native objects and custom types
   return v?.constructor?.name?.toLowerCase() ?? "object";
 }
