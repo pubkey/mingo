@@ -21,14 +21,9 @@ export const $setIsSubset = (
 
   const [first, second] = args;
   const map = HashMap.init<Any, number>();
-  const set = new Set<number>();
 
-  first.every((v, i) => map.set(v, i));
-  for (const v of second) {
-    set.add(map.get(v) ?? -1);
-    // check if we have seen all sub-items including one miss (-1)
-    if (set.size > map.size) return true;
-  }
-  set.delete(-1);
-  return set.size == map.size;
+  for (const v of second) map.set(v, 0);
+  for (const v of first) if (!map.has(v)) return false;
+
+  return true;
 };

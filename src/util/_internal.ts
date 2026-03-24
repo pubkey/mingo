@@ -392,7 +392,7 @@ export function intersection<T = Any>(input: T[][]): T[] {
 
   const vmaps = [HashMap.init<T, boolean>(), HashMap.init<T, boolean>()];
   // start with last array to ensure stableness.
-  input[input.length - 1].forEach(v => vmaps[0].set(v, true));
+  for (const v of input[input.length - 1]) vmaps[0].set(v, true);
   // process collection backwards.
   for (let i = input.length - 2; i > -1; i--) {
     for (let j = 0; j < input[i].length; j++) {
@@ -435,7 +435,7 @@ export function flatten(xs: Any[], depth = 1): Any[] {
  */
 export function unique<T = Any>(input: T[]): T[] {
   const m = HashMap.init<T, boolean>();
-  input.forEach(v => m.set(v, true));
+  for (const v of input) m.set(v, true);
   return Array.from(m.keys());
 }
 
@@ -506,7 +506,6 @@ interface ResolveOptions {
  * Resolve the value of the field (dot separated) on the given object
  * @param obj {AnyObject} the object context
  * @param selector {String} dot separated path to field
- * @returns {*}
  */
 export function resolve(
   obj: ArrayOrObject,
@@ -518,7 +517,7 @@ export function resolve(
     let value: Any = o;
     for (let i = 0; i < path.length; i++) {
       const field = path[i];
-      const isText = /^\d+$/.exec(field) === null;
+      const isText = !DIGITS_RE.test(field);
       // using instanceof to aid typescript compiler
       if (isText && isArray(value)) {
         // On the first iteration, we check if we received a stop flag.
@@ -630,7 +629,7 @@ export interface WalkOptions {
   descendArray?: boolean;
 }
 
-const NUMBER_RE = /^\d+$/;
+const DIGITS_RE = /^\d+$/;
 export type Indexed = string | number;
 
 /**
@@ -640,7 +639,6 @@ export type Indexed = string | number;
  * @param  {String} selector    The selector to navigate.
  * @param  {Callback} fn Callback to execute for value at the end the traversal.
  * @param  {WalkOptions} options The opetions to use for the function.
- * @return {*}
  */
 export function walk(
   obj: AnyObject,
@@ -653,7 +651,7 @@ export function walk(
   const next = names.slice(1).join(".");
 
   if (names.length === 1) {
-    if (isObject(obj) || (isArray(obj) && NUMBER_RE.test(key))) {
+    if (isObject(obj) || (isArray(obj) && DIGITS_RE.test(key))) {
       fn(obj, key);
     }
   } else {
@@ -667,7 +665,7 @@ export function walk(
     // nothing more to do
     if (!item) return;
     // we peek to see if next key is an array index.
-    const isNextArrayIndex = !!(names.length > 1 && NUMBER_RE.test(names[1]));
+    const isNextArrayIndex = !!(names.length > 1 && DIGITS_RE.test(names[1]));
     // if we have an array value but the next key is not an index and the 'descendArray' option is set,
     // we walk each item in the array separately. This allows for handling traversing keys for objects
     // nested within an array.
