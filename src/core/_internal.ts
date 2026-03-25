@@ -348,10 +348,8 @@ function computeExpression(obj: Any, expr: Any, options: ComputeOptions): Any {
 
   if (isObject(expr)) {
     const keys = Object.keys(expr);
-    const result: AnyObject = {};
-    const elems = Object.entries(expr);
     if (isOperator(keys[0])) {
-      if (elems.length !== 1) {
+      if (keys.length !== 1) {
         throw new MingoError(
           `Expression must contain a single operator. got [${keys.join(",")}]`
         );
@@ -359,6 +357,7 @@ function computeExpression(obj: Any, expr: Any, options: ComputeOptions): Any {
       return computeOperator(obj, expr[keys[0]], keys[0], options);
     }
 
+    const result: AnyObject = {};
     for (let i = 0; i < keys.length; i++) {
       result[keys[i]] = computeExpression(obj, expr[keys[i]], options);
     }
