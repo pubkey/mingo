@@ -23,9 +23,7 @@ const regexStrip = (s: string): string =>
 
 const REGEX_SPECIAL_CHARS = ["^", ".", "-", "*", "?", "$"] as const;
 function regexQuote(s: string): string {
-  REGEX_SPECIAL_CHARS.forEach((c: string) => {
-    s = s.replace(c, `\\${c}`);
-  });
+  for (const c of REGEX_SPECIAL_CHARS) s = s.replace(c, `\\${c}`);
   return s;
 }
 

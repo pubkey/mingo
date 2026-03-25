@@ -9,8 +9,8 @@ export function $pullAll(
   options = DEFAULT_OPTIONS
 ) {
   const pullExpr: Record<string, AnyObject> = {};
-  Object.entries(expr).forEach(([k, v]) => {
+  for (const [k, v] of Object.entries(expr)) {
     pullExpr[k] = { $in: v };
-  });
+  }
   return $pull(pullExpr, arrayFilters, options);
 }

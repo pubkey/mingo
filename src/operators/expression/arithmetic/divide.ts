@@ -11,14 +11,21 @@ export const $divide = (obj: AnyObject, expr: Any, options: Options) => {
   const args = evalExpr(obj, expr, options) as number[];
   const foe = options.failOnError;
 
-  if (args.some(isNil)) return null;
-  if (!args.every(isNumber)) {
+  let t_num = true;
+  for (const v of args) {
+    if (isNil(v)) return null;
+    t_num &&= isNumber(v);
+  }
+
+  if (!t_num) {
     return errExpectArray(foe, "$divide", {
       size: 2,
       type: "number"
     });
   }
-  const [a, b] = args;
-  if (b === 0) return errInvalidArgs(foe, "$divide cannot divide by zero");
-  return a / b;
+
+  if (args[1] === 0)
+    return errInvalidArgs(foe, "$divide cannot divide by zero");
+
+  return args[0] / args[1];
 };

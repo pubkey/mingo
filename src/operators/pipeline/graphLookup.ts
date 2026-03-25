@@ -82,16 +82,16 @@ export function $graphLookup(
           .collect()
       ) as AnyObject[];
       const oldSize = map.size;
-      matches.forEach(k => map.set(k, map.get(k) ?? i));
+      for (const k of matches) map.set(k, map.get(k) ?? i);
       // check to see if there are any new items
       if (oldSize == map.size) break;
     } while (isNil(maxDepth) || i < maxDepth);
 
     const result = new Array(map.size);
     let n = 0;
-    map.forEach((v, k) => {
+    for (const [k, v] of map.entries()) {
       result[n++] = Object.assign(depthField ? { [depthField]: v } : {}, k);
-    });
+    }
     return { ...obj, [asField]: result };
   });
 }

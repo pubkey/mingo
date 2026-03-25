@@ -180,7 +180,7 @@ export function $all(
     if (isObject(query) && Object.keys(query).includes("$elemMatch")) {
       matched = $elemMatch(values, query["$elemMatch"] as AnyObject, options);
     } else if (isRegExp(query)) {
-      matched = values.some(s => typeof s === "string" && query.test(s));
+      matched = values.some(s => isString(s) && query.test(s));
     } else {
       matched = values.some(v => isEqual(query, v));
     }

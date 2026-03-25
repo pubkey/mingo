@@ -24,6 +24,7 @@ import {
   isObject,
   isOperator,
   isString,
+  MingoError,
   resolve
 } from "../util";
 
@@ -279,8 +280,7 @@ export function evalExpr(obj: Any, expr: Any, options: Options): Any {
   return computeExpression(obj, expr, copts);
 }
 
-const SYSTEM_VARS = ["$$ROOT", "$$CURRENT", "$$REMOVE", "$$NOW"] as const;
-type SystemVar = (typeof SYSTEM_VARS)[number];
+const SYSTEM_VARS = new Set(["$$ROOT", "$$CURRENT", "$$REMOVE", "$$NOW"]);
 
 /** Computes the value of the expr given for the object. */
 function computeExpression(obj: Any, expr: Any, options: ComputeOptions): Any {
@@ -299,10 +299,12 @@ function computeExpression(obj: Any, expr: Any, options: ComputeOptions): Any {
 
     // handle selectors with explicit prefix
     const arr = expr.split(".");
-    if (SYSTEM_VARS.includes(arr[0] as SystemVar)) {
+    const dotIdx = expr.indexOf(".");
+    const prefix = dotIdx === -1 ? expr : expr.substring(0, dotIdx);
+    if (SYSTEM_VARS.has(arr[0])) {
       // set 'root' only the first time it is required to be used for all subsequent calls
       // if it already available on the options, it will be used
-      switch (arr[0] as SystemVar) {
+      switch (prefix) {
         case "$$ROOT":
           break;
         case "$$CURRENT":
@@ -315,8 +317,8 @@ function computeExpression(obj: Any, expr: Any, options: ComputeOptions): Any {
           ctx = new Date(options.now);
           break;
       }
-      expr = expr.slice(arr[0].length + 1); //  +1 for '.'
-    } else if (arr[0].slice(0, 2) === "$$") {
+      expr = dotIdx === -1 ? "" : expr.substring(dotIdx + 1);
+    } else if (prefix.length >= 2 && prefix[1] === "$") {
       // handle user-defined variables
       ctx = Object.assign(
         {},
@@ -328,12 +330,12 @@ function computeExpression(obj: Any, expr: Any, options: ComputeOptions): Any {
         options?.local?.variables
       );
       // the variable name
-      const name = arr[0].slice(2);
+      const name = prefix.substring(2);
       assert(has(ctx as AnyObject, name), `Use of undefined variable: ${name}`);
-      expr = expr.slice(2);
+      expr = expr.substring(2);
     } else {
       // 'expr' is a path to a field on the object.
-      expr = expr.slice(1);
+      expr = expr.substring(1);
     }
 
     return expr === "" ? ctx : resolve(ctx as ArrayOrObject, expr as string);
@@ -345,18 +347,20 @@ function computeExpression(obj: Any, expr: Any, options: ComputeOptions): Any {
   }
 
   if (isObject(expr)) {
+    const keys = Object.keys(expr);
     const result: AnyObject = {};
     const elems = Object.entries(expr);
-    for (const [key, val] of elems) {
-      // if object represents an operator expression, there should only be a single key
-      if (isOperator(key)) {
-        assert(
-          elems.length === 1,
-          `Expression must contain a single operator. got [${Object.keys(expr).join(",")}]`
+    if (isOperator(keys[0])) {
+      if (elems.length !== 1) {
+        throw new MingoError(
+          `Expression must contain a single operator. got [${keys.join(",")}]`
         );
-        return computeOperator(obj, val, key, options);
       }
-      result[key] = computeExpression(obj, val, options);
+      return computeOperator(obj, expr[keys[0]], keys[0], options);
+    }
+
+    for (let i = 0; i < keys.length; i++) {
+      result[keys[i]] = computeExpression(obj, expr[keys[i]], options);
     }
     return result;
   }

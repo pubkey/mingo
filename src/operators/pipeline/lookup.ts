@@ -71,13 +71,13 @@ export function $lookup(
     const map = HashMap.init<Any, Any[]>();
     for (const doc of joinColl) {
       // add object for each value in the array.
-      ensureArray(resolve(doc, foreignField) ?? null).forEach(v => {
+      for (const v of ensureArray(resolve(doc, foreignField) ?? null)) {
         // minor optimization to minimize key hashing in value-map
         const xs = map.get(v);
         const arr = xs ?? [];
         arr.push(doc);
         if (arr !== xs) map.set(v, arr);
-      });
+      }
     }
 
     // create lookup function to get matching items. optimized for when more predicates are specified by 'pipeline'.
@@ -85,7 +85,7 @@ export function $lookup(
       const local = resolve(o, localField) ?? null;
       if (isArray(local)) {
         // only return the predicate result with no values since there is more to check.
-        if (pipeline.length) {
+        if (pipeline?.length) {
           // check that matches exist for this object.
           return [local.some(v => map.has(v)), []];
         }
@@ -97,7 +97,7 @@ export function $lookup(
       return [result !== null, result ?? []];
     };
 
-    if (pipeline.length === 0) {
+    if (pipeline?.length === 0) {
       return coll.map((obj: AnyObject) => {
         return { ...obj, [expr.as]: lookupEq(obj).pop() };
       });
@@ -105,7 +105,7 @@ export function $lookup(
   }
 
   // options to use for processing each stage.
-  const agg = new Aggregator(pipeline, options);
+  const agg = new Aggregator(pipeline ?? [], options);
   const opts = ComputeOptions.init(options);
   return coll.map((obj: AnyObject) => {
     const vars = evalExpr(obj, letExpr, options) as AnyObject;

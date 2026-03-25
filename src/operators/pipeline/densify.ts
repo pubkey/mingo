@@ -227,9 +227,9 @@ export function $densify(
     const denseObj: AnyObject = { [expr.field]: densifyValue };
     // add extra partition field values.
     if (partitionKey) {
-      partitionKey.forEach((v, i) => {
-        denseObj[partitionByFields[i]] = v;
-      });
+      for (let i = 0; i < partitionKey.length; i++) {
+        denseObj[partitionByFields[i]] = partitionKey[i];
+      }
     }
     peekItem.push(item);
     // this is an added dense object
@@ -268,9 +268,9 @@ export function $densify(
           computeNextValue(partitionMaxValue)
         );
         const denseObj: AnyObject = { [expr.field]: partitionMaxValue };
-        partitionKey.forEach((v, i) => {
-          denseObj[partitionByFields[i]] = v;
-        });
+        for (let i = 0; i < partitionKey.length; i++) {
+          denseObj[partitionByFields[i]] = partitionKey[i];
+        }
         // this is an added dense object
         return { done: false, value: denseObj };
       }

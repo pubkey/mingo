@@ -1,6 +1,6 @@
 import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, Options } from "../../../types";
-import { assert, isArray, isNil, isNumber } from "../../../util";
+import { assert, isArray, isInteger, isNil } from "../../../util";
 import { errInvalidArgs } from "../_internal";
 
 export function processBitwise(
@@ -9,14 +9,19 @@ export function processBitwise(
   options: Options,
   operator: string,
   fn: (n: number[]) => number
-): number {
+) {
   assert(isArray(expr), `${operator} expects array as argument`);
   const nums = evalExpr(obj, expr, options) as number[];
-  if (nums.some(isNil)) return null;
-  if (!nums.every(isNumber))
-    return errInvalidArgs(
-      options.failOnError,
-      `${operator} array elements must resolve to integers`
-    );
-  return fn(nums);
+  let t_num = true;
+  for (const v of nums) {
+    if (isNil(v)) return null;
+    t_num &&= isInteger(v);
+  }
+
+  if (t_num) return fn(nums);
+
+  return errInvalidArgs(
+    options.failOnError,
+    `${operator} array elements must resolve to integers`
+  );
 }

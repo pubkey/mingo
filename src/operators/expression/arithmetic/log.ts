@@ -14,9 +14,12 @@ export const $log = (
   const args = evalExpr(obj, expr, options) as number[];
 
   if (isArray(args) && args.length == 2) {
-    if (args.some(isNil)) return null;
-    if (args.every(v => typeof v === "number"))
-      return Math.log10(args[0]) / Math.log10(args[1]);
+    let t_num = true;
+    for (const v of args) {
+      if (isNil(v)) return null;
+      t_num &&= typeof v === "number";
+    }
+    if (t_num) return Math.log10(args[0]) / Math.log10(args[1]);
   }
 
   return errExpectArray(options.failOnError, "$log", {

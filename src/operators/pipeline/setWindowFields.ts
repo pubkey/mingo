@@ -148,7 +148,7 @@ export function $setWindowFields(
     }
 
     // each parition maintains its own closure to process the documents in the window.
-    partitions.forEach(((group: { items: AnyObject[] }) => {
+    for (const group of partitions as { items: AnyObject[] }[]) {
       // get the items to process
       const items = group.items;
 
@@ -280,7 +280,7 @@ export function $setWindowFields(
 
       // add to iterator list
       iterators.push(iterator);
-    }) as Callback);
+    }
 
     return concat(...iterators);
   });

@@ -12,5 +12,6 @@ export const $in = (obj: AnyObject, expr: Any, options: Options) => {
   const [item, arr] = args;
   if (!isArray(arr))
     return errInvalidArgs(options.failOnError, "$in arg2 <array>");
-  return arr.some(v => isEqual(v, item));
+  for (const v of arr) if (isEqual(v, item)) return true;
+  return false;
 };

@@ -53,17 +53,21 @@ export function $sort(
       if (cmp === compare) {
         let t_str = true;
         let t_num = true;
-        nativeSorted = sortedKeys.every(
-          v => +(t_str &&= isString(v)) ^ +(t_num &&= isNumber(v))
-        );
+        for (const v of sortedKeys) {
+          t_str &&= isString(v);
+          t_num &&= isNumber(v);
+          if (!t_str && !t_num) break;
+        }
+        nativeSorted = t_str || t_num;
 
         // ~6x faster than Array.sort(cmp).
         if (t_str) sortedKeys.sort();
         // ~4x faster than Array.sort(cmp) even with the extra copy.
         else if (t_num) {
-          new Float64Array(sortedKeys as number[])
-            .sort()
-            .forEach((v, i) => (sortedKeys[i] = v));
+          const numbers = new Float64Array(sortedKeys as number[]).sort();
+          for (let i = 0; i < numbers.length; i++) {
+            sortedKeys[i] = numbers[i];
+          }
         }
       }
 

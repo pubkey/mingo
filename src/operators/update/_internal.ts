@@ -101,7 +101,7 @@ export const applyUpdate = (
         ? applyUpdate(e as AnyObject, next, q, f, opts)
         : f(arr, i as Any as string);
     })
-    .some(Boolean);
+    .some(v => !!v);
 };
 
 export type Action<T> = (
@@ -215,7 +215,7 @@ export function buildParams(
       if (identifiers.length) {
         // extract filters for each identifier
         const filters: Record<string, AnyObject> = {};
-        identifiers.forEach(v => (filters[v] = filterIndexMap[v]));
+        for (const v of identifiers) filters[v] = filterIndexMap[v];
         // create query for each filter
         for (const [k, c] of Object.entries(filters)) {
           queries[k] = new Query(c, options);

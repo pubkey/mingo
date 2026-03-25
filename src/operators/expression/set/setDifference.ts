@@ -24,7 +24,7 @@ export const $setDifference = (
   }
   if (!ok) return errExpectArray(foe, `${OP} arguments`);
   const m = HashMap.init();
-  args[0].forEach(v => m.set(v, true));
-  args[1].forEach(v => m.delete(v));
+  for (const v of args[0]) m.set(v, true);
+  for (const v of args[1]) m.delete(v);
   return Array.from(m.keys());
 };

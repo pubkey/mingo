@@ -69,15 +69,15 @@ export function validateProjection(
     } else if (!isObject(v)) {
       res.inclusions.push(k);
     } else {
-      const s = validateProjection(v, options, false);
-      if (!s.inclusions.length && !s.exclusions.length) {
+      const meta = validateProjection(v, options, false);
+      if (!meta.inclusions.length && !meta.exclusions.length) {
         // if we got nothing back it means we hit a leaf to be included.
         if (!res.inclusions.includes(k)) res.inclusions.push(k);
       } else {
-        s.inclusions.forEach(s => res.inclusions.push(`${k}.${s}`));
-        s.exclusions.forEach(s => res.exclusions.push(`${k}.${s}`));
+        for (const n of meta.exclusions) res.exclusions.push(`${k}.${n}`);
+        for (const n of meta.inclusions) res.inclusions.push(`${k}.${n}`);
       }
-      res.positional += s.positional;
+      res.positional += meta.positional;
     }
     assert(
       !(res.exclusions.length && res.inclusions.length),
@@ -95,8 +95,8 @@ export function validateProjection(
   }
   if (isRoot) {
     const p = new PathValidator();
-    res.exclusions.forEach(k => assert(p.add(k), `Path collision at ${k}.`));
-    res.inclusions.forEach(k => assert(p.add(k), `Path collision at ${k}.`));
+    for (const k of res.exclusions) assert(p.add(k), `Path collision at ${k}.`);
+    for (const k of res.inclusions) assert(p.add(k), `Path collision at ${k}.`);
     res.exclusions.sort();
     res.inclusions.sort();
   }

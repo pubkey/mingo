@@ -185,7 +185,9 @@ const findMatches = (
   assert(isArray(arr), `${OP}: field '${key}' must resolve to array`);
   const matches: number[] = [];
   // note: each value is passed in as an arary to support $elemMatch operator.
-  arr.forEach((e, i) => pred({ [leaf]: [e] }) && matches.push(i));
+  for (let i = 0; i < arr.length; i++) {
+    if (pred({ [leaf]: [arr[i]] })) matches.push(i);
+  }
   return matches;
 };
 
@@ -244,7 +246,7 @@ function getPositionalFilter(
         `${OP}: '${key}' is not allowed in this context`
       );
       for (const item of val as AnyObject[]) {
-        Object.entries(item).forEach(([k, v]) => stack.push([k, v, key]));
+        for (const [k, v] of Object.entries(item)) stack.push([k, v, key]);
       }
     }
   }

@@ -8,5 +8,7 @@ import { assert, isArray, truthy } from "../../../util/_internal";
 export const $or = (obj: AnyObject, expr: Any[], options: Options): Any => {
   assert(isArray(expr), "$or expects array of expressions");
   const strict = options.useStrictMode;
-  return expr.some(v => truthy(evalExpr(obj, v, options), strict));
+  for (const v of expr)
+    if (truthy(evalExpr(obj, v, options), strict)) return true;
+  return false;
 };

@@ -19,7 +19,8 @@ export const $setEquals = (
 
   // store a unique number for each unique item. repeated values may be overriden but that's okay.
   const map = HashMap.init<Any, number>();
-  args[0].every((v, i) => map.set(v, i));
+  const first = args[0];
+  for (let i = 0; i < first.length; i++) map.set(first[i], i);
   // handle arbitrary number of arrays
   for (let i = 1; i < args.length; i++) {
     const arr = args[i];

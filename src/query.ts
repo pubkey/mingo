@@ -12,7 +12,7 @@ import type {
 } from "./types";
 import { assert, cloneDeep, isObject, isOperator, normalize } from "./util";
 
-const TOP_LEVEL_RE = /^\$(and|or|nor|expr|jsonSchema)$/;
+const TOP_LEVEL_OPS = new Set(["$and", "$or", "$nor", "$expr", "$jsonSchema"]);
 
 /**
  * Represents a query object used to filter and match documents based on specified criteria.
@@ -60,14 +60,13 @@ export class Query<T = AnyObject> {
           "$where operator requires 'scriptEnabled' option to be true."
         );
         Object.assign(whereOperator, { field: field, expr: expr });
-      } else if (TOP_LEVEL_RE.test(field)) {
+      } else if (TOP_LEVEL_OPS.has(field)) {
         this.processOperator(field, field, expr);
       } else {
         // normalize expression
         assert(!isOperator(field), `unknown top level operator: ${field}`);
-        for (const [operator, val] of Object.entries(
-          normalize(expr) as AnyObject
-        )) {
+        const normalizedExpr = normalize(expr) as AnyObject;
+        for (const [operator, val] of Object.entries(normalizedExpr)) {
           this.processOperator(field, operator, val);
         }
       }

@@ -23,11 +23,11 @@ export function $pull(
 
         const curr = new Array<Any>();
         let ok = false;
-        prev.forEach(v => {
+        for (const v of prev) {
           const b = pred(v);
           if (!b) curr.push(v);
           ok ||= b;
-        });
+        }
         if (!ok) return false;
         o[k] = curr;
         return true;

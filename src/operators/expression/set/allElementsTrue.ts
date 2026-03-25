@@ -20,5 +20,6 @@ export const $allElementsTrue = (
   const foe = options.failOnError;
   const args = evalExpr(obj, expr, options) as Any[];
   if (!isArray(args)) return errExpectArray(foe, `$allElementsTrue argument`);
-  return args.every(v => truthy(v, options.useStrictMode));
+  for (const v of args) if (!truthy(v, options.useStrictMode)) return false;
+  return true;
 };
