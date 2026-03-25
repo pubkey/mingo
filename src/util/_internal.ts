@@ -387,24 +387,25 @@ export const cloneDeep = <T>(v: T, refs?: WeakSet<object>): T => {
  */
 export function intersection<T = Any>(input: T[][]): T[] {
   if (input.length === 0) return [];
-  if (input.some(arr => arr.length === 0)) return [];
   if (input.length === 1) return input[0].slice();
+  for (const arr of input) if (arr.length === 0) return [];
 
-  const vmaps = [HashMap.init<T, boolean>(), HashMap.init<T, boolean>()];
+  const maps = [HashMap.init<T, boolean>(), HashMap.init<T, boolean>()];
+  let index = 0;
   // start with last array to ensure stableness.
-  for (const v of input[input.length - 1]) vmaps[0].set(v, true);
+  for (const v of input[input.length - 1]) maps[0].set(v, true);
   // process collection backwards.
-  for (let i = input.length - 2; i > -1; i--) {
+  for (let i = input.length - 2; i >= 0; i--) {
     for (let j = 0; j < input[i].length; j++) {
       const v = input[i][j];
-      if (vmaps[0].has(v)) vmaps[1].set(v, true);
+      if (maps[index].has(v)) maps[index ^ 1].set(v, true);
     }
-    if (vmaps[1].size === 0) return [];
-    vmaps.reverse();
-    vmaps[1].clear();
+    if (maps[index ^ 1].size === 0) return [];
+    maps[index].clear();
+    index = index ^ 1;
   }
 
-  return Array.from(vmaps[0].keys());
+  return Array.from(maps[index].keys());
 }
 
 /**
