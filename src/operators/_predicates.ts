@@ -41,9 +41,10 @@ export function processQuery(
   options: Options,
   predicate: QueryPredicate
 ): (_: AnyObject) => boolean {
-  const opts = { unwrapArray: true };
-  const depth = Math.max(1, selector.split(".").length - 1);
+  const pathArray = selector.split(".");
+  const depth = Math.max(1, pathArray.length - 1);
   const copts = ComputeOptions.init(options).update({ depth });
+  const opts = { unwrapArray: true, pathArray };
   return (o: AnyObject): boolean => {
     // value of field must be fully resolved.
     const lhs = resolve(o, selector, opts);
@@ -195,8 +196,8 @@ export function $size(a: Any[], b: number, _options?: Options): boolean {
   return Array.isArray(a) && a.length === b;
 }
 
-function isNonBooleanOperator(name: string): boolean {
-  return isOperator(name) && ["$and", "$or", "$nor"].indexOf(name) === -1;
+export function isNonBooleanOperator(n: string): boolean {
+  return isOperator(n) && "$and" !== n && "$or" !== n && "$nor" !== n;
 }
 
 /**

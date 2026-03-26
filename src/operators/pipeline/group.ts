@@ -26,8 +26,8 @@ export function $group(
 
   const newFields = Object.keys(expr).filter(k => k != ID_KEY);
 
-  return coll.transform((coll: Any[]) => {
-    const partitions = groupBy(coll, obj => evalExpr(obj, idExpr, options));
+  return coll.transform((items: Any[]) => {
+    const partitions = groupBy(items, obj => evalExpr(obj, idExpr, options));
 
     let i = -1;
     const partitionKeys = Array.from(partitions.keys());

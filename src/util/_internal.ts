@@ -501,6 +501,8 @@ interface ResolveOptions {
   preserveKeys?: boolean;
   /** Preserve untouched indexes in arrays. */
   preserveIndex?: boolean;
+  /** pre-splitted selector path */
+  pathArray?: string[];
 }
 
 /**
@@ -511,8 +513,25 @@ interface ResolveOptions {
 export function resolve(
   obj: ArrayOrObject,
   selector: string,
-  options?: Pick<ResolveOptions, "unwrapArray">
+  options?: Pick<ResolveOptions, "unwrapArray" | "pathArray">
 ): Any {
+  if (isScalar(obj)) return obj;
+
+  const path = options?.pathArray ?? selector.split(".");
+
+  // fast path for simple single-segment selectors on non-array objects (e.g., "active", "age")
+  if (path.length === 1 && !isArray(obj)) {
+    return getValue(obj, path[0]);
+  }
+
+  // fast path for 2-segment selectors on plain objects (e.g., "address.city")
+  if (path.length === 2 && !isArray(obj)) {
+    const first = getValue(obj, path[0]);
+    if (first == null) return undefined;
+    if (!isArray(first)) return getValue(first as ArrayOrObject, path[1]);
+    // first is an array; fall through to general case
+  }
+
   let depth = 0;
   function resolve2(o: ArrayOrObject, path: string[]): Any {
     let value: Any = o;
@@ -542,7 +561,7 @@ export function resolve(
     return value;
   }
 
-  const res = isScalar(obj) ? obj : resolve2(obj, selector.split("."));
+  const res = resolve2(obj, path);
   return isArray(res) && options?.unwrapArray ? unwrap(res, depth) : res;
 }
 
