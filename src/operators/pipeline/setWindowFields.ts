@@ -60,8 +60,9 @@ export function $setWindowFields(
   const operators: Record<string, string> = {};
 
   // validate inputs early since this can be an expensive operation.
-  const entries = Object.entries(expr.output);
-  for (const [field, outputExpr] of entries) {
+  const outputFields = Object.keys(expr.output);
+  for (const field of outputFields) {
+    const outputExpr = expr.output[field];
     const keys = Object.keys(outputExpr);
     const op = keys.find(isOperator);
     const context = options.context;
@@ -120,7 +121,8 @@ export function $setWindowFields(
       window?: WindowOutputOption;
     }> = [];
 
-    for (const [field, outputExpr] of entries) {
+    for (const field of outputFields) {
+      const outputExpr = expr.output[field];
       const op = operators[field];
 
       const config = {

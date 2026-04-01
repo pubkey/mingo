@@ -136,9 +136,9 @@ export function walkExpression<T>(
     opts.local.updateParams ?? buildParams([expr], arrayFilters, opts);
 
   const modified: string[] = [];
-  for (const [key, val] of Object.entries(expr)) {
+  for (const key of Object.keys(expr)) {
     const { node, queries } = params[key];
-    if (callback(val as T, node, queries)) modified.push(node.selector);
+    if (callback(expr[key] as T, node, queries)) modified.push(node.selector);
   }
 
   return modified.sort();
@@ -217,8 +217,8 @@ export function buildParams(
         const filters: Record<string, AnyObject> = {};
         for (const v of identifiers) filters[v] = filterIndexMap[v];
         // create query for each filter
-        for (const [k, c] of Object.entries(filters)) {
-          queries[k] = new Query(c, options);
+        for (const k of Object.keys(filters)) {
+          queries[k] = new Query(filters[k], options);
         }
       }
 

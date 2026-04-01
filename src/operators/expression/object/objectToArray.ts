@@ -16,11 +16,11 @@ export const $objectToArray = (
   if (!isObject(val))
     return errExpectObject(options.failOnError, "$objectToArray");
 
-  const entries = Object.entries(val);
-  const result = new Array<Any>(entries.length);
+  const keys = Object.keys(val);
+  const result = new Array<Any>(keys.length);
   let i = 0;
-  for (const [k, v] of entries) {
-    result[i++] = { k, v };
+  for (const k of keys) {
+    result[i++] = { k, v: val[k] };
   }
   return result;
 };

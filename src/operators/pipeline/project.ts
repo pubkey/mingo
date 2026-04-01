@@ -221,9 +221,9 @@ function getPositionalFilter(
   for (let i = 0; i < stack.length; i++) {
     const [key, val, op] = stack[i] as [string, Any, string];
     if (key === field || key.startsWith(field + ".")) {
-      const [operator, expr] = Object.entries(
-        normalize(val) as object
-      ).pop() as [string, Any];
+      const normalizedExpr = normalize(val) as AnyObject;
+      const operator = Object.keys(normalizedExpr)[0];
+      const expr = normalizedExpr[operator];
       const fn = options.context.getOperator(
         OpType.QUERY,
         operator
@@ -246,7 +246,7 @@ function getPositionalFilter(
         `${OP}: '${key}' is not allowed in this context`
       );
       for (const item of val as AnyObject[]) {
-        for (const [k, v] of Object.entries(item)) stack.push([k, v, key]);
+        for (const k of Object.keys(item)) stack.push([k, item[k], key]);
       }
     }
   }

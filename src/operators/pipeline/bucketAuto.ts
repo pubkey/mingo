@@ -129,7 +129,8 @@ export function $bucketAuto(
     const outFields = evalExpr(bucket, outputExpr, options) as AnyObject;
 
     // remove nil entries from arrays
-    for (const [k, v] of Object.entries(outFields)) {
+    for (const k of Object.keys(outFields)) {
+      const v = outFields[k];
       if (isArray(v)) outFields[k] = v.filter(v => !isNil(v));
     }
 

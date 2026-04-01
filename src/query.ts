@@ -52,22 +52,22 @@ export class Query<T = AnyObject> {
     );
 
     const whereOperator: { field?: string; expr?: Any } = {};
-    const conditions = Object.entries(this.#condition);
-    for (const [field, expr] of conditions) {
+    for (const field of Object.keys(this.#condition)) {
+      const expr = this.#condition[field as keyof Criteria<T>];
       if ("$where" === field) {
         assert(
           this.#options.scriptEnabled,
           "$where operator requires 'scriptEnabled' option to be true."
         );
-        Object.assign(whereOperator, { field: field, expr: expr });
+        Object.assign(whereOperator, { field, expr });
       } else if (TOP_LEVEL_OPS.has(field)) {
         this.processOperator(field, field, expr);
       } else {
         // normalize expression
         assert(!isOperator(field), `unknown top level operator: ${field}`);
         const normalizedExpr = normalize(expr) as AnyObject;
-        for (const [operator, val] of Object.entries(normalizedExpr)) {
-          this.processOperator(field, operator, val);
+        for (const operator of Object.keys(normalizedExpr)) {
+          this.processOperator(field, operator, normalizedExpr[operator]);
         }
       }
 

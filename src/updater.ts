@@ -356,8 +356,9 @@ function updateDocuments<T extends AnyObject>(
   const modifiedFields: string[] = [];
 
   const fns: Callback<string[]>[] = [];
-  for (const [op, expr] of Object.entries(modifier) as [string, Any][]) {
+  for (const op of Object.keys(modifier)) {
     const fn = UPDATE_OPERATORS[op] as Callback<(_: AnyObject) => string[]>;
+    const expr = modifier[op as keyof typeof modifier] as Any;
     fns.push(fn(expr, arrayFilters, opts) as Callback<string[]>);
   }
 

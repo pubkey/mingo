@@ -11,8 +11,8 @@ export const $let = (
 ): Any => {
   // resolve vars
   const variables: AnyObject = {};
-  for (const [key, val] of Object.entries(expr.vars)) {
-    variables[key] = evalExpr(obj, val, options);
+  for (const key of Object.keys(expr.vars)) {
+    variables[key] = evalExpr(obj, expr.vars[key], options);
   }
 
   return evalExpr(

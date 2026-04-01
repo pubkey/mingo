@@ -22,8 +22,8 @@ export function $facet(
 
   return coll.transform((arr: AnyObject[]) => {
     const o: AnyObject = {};
-    for (const [k, stages] of Object.entries(expr)) {
-      o[k] = new Aggregator(stages, options).run(arr);
+    for (const k of Object.keys(expr)) {
+      o[k] = new Aggregator(expr[k], options).run(arr);
     }
     return Lazy([o]);
   });

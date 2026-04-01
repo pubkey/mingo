@@ -24,7 +24,6 @@ import {
   isObject,
   isOperator,
   isString,
-  MingoError,
   resolve
 } from "../util";
 
@@ -357,11 +356,7 @@ function computeExpression(obj: Any, expr: Any, options: ComputeOptions): Any {
   if (isObject(expr)) {
     const keys = Object.keys(expr);
     if (isOperator(keys[0])) {
-      if (keys.length !== 1) {
-        throw new MingoError(
-          `Expression must contain a single operator. got [${keys.join(",")}]`
-        );
-      }
+      assert(keys.length === 1, "Expression must contain a single operator.");
       return computeOperator(obj, expr[keys[0]], keys[0], options);
     }
 

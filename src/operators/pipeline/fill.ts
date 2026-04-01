@@ -56,7 +56,8 @@ export function $fill(
 
   const valueExpr: AnyObject = {};
   const methodExpr: AnyObject = {};
-  for (const [k, m] of Object.entries(expr.output)) {
+  for (const k of Object.keys(expr.output)) {
+    const m = expr.output[k];
     if (has(m, "value")) {
       // translate to expression for $addFields
       const out = m as Output[0];

@@ -32,7 +32,8 @@ function redact(obj: AnyObject, expr: Any, options: ComputeOptions): Any {
 
       const output: AnyObject = {};
 
-      for (const [key, value] of Object.entries(obj)) {
+      for (const key of Object.keys(obj)) {
+        const value = obj[key];
         if (isArray(value)) {
           const res = new Array<Any>();
           for (let elem of value) {
