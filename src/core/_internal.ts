@@ -176,11 +176,18 @@ export enum OpType {
  * types of operators to the context.
  */
 export class Context {
-  #operators: Record<string, Record<string, Callback>> = Object.fromEntries(
-    Object.values(OpType).map(k => [k, {}])
-  );
+  #operators: Record<string, Record<string, Callback>>;
 
-  private constructor() {}
+  private constructor() {
+    this.#operators = {
+      [OpType.ACCUMULATOR]: {},
+      [OpType.EXPRESSION]: {},
+      [OpType.PIPELINE]: {},
+      [OpType.PROJECTION]: {},
+      [OpType.QUERY]: {},
+      [OpType.WINDOW]: {}
+    };
+  }
 
   static init(
     ops: {
@@ -194,16 +201,17 @@ export class Context {
   ): Context {
     const ctx = new Context();
     // ensure all operator types are initialized
-    for (const [type, operators] of Object.entries(ops)) {
-      if (ctx.#operators[type] && operators) {
-        ctx.addOps(type as OpType, operators);
-      }
+    for (const type of Object.keys(ops) as OpType[]) {
+      // direct assignment since operators are empty at init time
+      ctx.#operators[type] = { ...ops[type] } as Record<string, Callback>;
     }
     return ctx;
   }
 
   /** Returns a new context with the operators from the provided contexts merged left to right. */
   static from(...ctx: Context[]): Context {
+    if (ctx.length === 1) return Context.init(ctx[0].#operators);
+
     const newCtx = new Context();
     for (const context of ctx) {
       for (const type of Object.values(OpType)) {
