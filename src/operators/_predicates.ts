@@ -33,6 +33,27 @@ import {
 
 type ConversionType = number | Exclude<JsType, "function"> | BsonType;
 
+/**
+ * Builds a context for $elemMatch operator to remove repeated work required for each element in the array.
+ * This includes pre-compiling the query and determining if we need to wrap non-objects in a temporary object.
+ */
+function buildElemMatchContext(criteria: AnyObject, options: Options) {
+  // precompute criteria and format function at query compilation time
+  let format = (x: Any) => x;
+  // determine if we need to wrap the criteria in a temporary key to avoid confusion with top-level operators.
+  let wrap = true;
+  for (const k of Object.keys(criteria)) {
+    wrap &&= isOperator(k) && "$and" !== k && "$or" !== k && "$nor" !== k;
+    if (!wrap) break;
+  }
+  if (wrap) {
+    criteria = { field: criteria };
+    format = x => ({ field: x });
+  }
+  // create query once, reuse for all documents
+  return { format, query: new Query(criteria, options) };
+}
+
 export type QueryPredicate = (_a: Any, _b: Any, _o: Options) => boolean;
 
 export function processQuery(
@@ -45,6 +66,9 @@ export function processQuery(
   const depth = Math.max(1, pathArray.length - 1);
   const copts = ComputeOptions.init(options).update({ depth });
   const opts = { unwrapArray: true, pathArray };
+  if (predicate === $elemMatch) {
+    value = buildElemMatchContext(value as AnyObject, options);
+  }
   return (o: AnyObject): boolean => {
     // value of field must be fully resolved.
     const lhs = resolve(o, selector, opts);
@@ -56,7 +80,7 @@ export function processExpression(
   obj: AnyObject,
   expr: Any,
   options: Options,
-  predicate: (_a: Any, _b: Any, _o?: Options) => boolean
+  predicate: QueryPredicate
 ): boolean {
   assert(
     isArray(expr) && expr.length === 2,
@@ -162,28 +186,25 @@ export function $regex(a: Any, b: RegExp, options?: Options): boolean {
  */
 export function $all(
   values: Any[],
-  queries: AnyObject[],
+  rhs: AnyObject[],
   options: Options
 ): boolean {
-  if (
-    !isArray(values) ||
-    !isArray(queries) ||
-    !values.length ||
-    !queries.length
-  ) {
+  if (!isArray(values) || !isArray(rhs) || !values.length || !rhs.length) {
     return false;
   }
 
   let matched = true;
-  for (const query of queries) {
+  for (const expr of rhs) {
     // no need to check all the queries.
     if (!matched) break;
-    if (isObject(query) && Object.keys(query).includes("$elemMatch")) {
-      matched = $elemMatch(values, query["$elemMatch"] as AnyObject, options);
-    } else if (isRegExp(query)) {
-      matched = values.some(s => isString(s) && query.test(s));
+    if (isObject(expr) && Object.keys(expr)[0] === "$elemMatch") {
+      const criteria = expr["$elemMatch"] as AnyObject;
+      const ctx = buildElemMatchContext(criteria, options);
+      matched = $elemMatch(values, ctx, options);
+    } else if (isRegExp(expr)) {
+      matched = values.some(s => isString(s) && expr.test(s));
     } else {
-      matched = values.some(v => isEqual(query, v));
+      matched = values.some(v => isEqual(expr, v));
     }
   }
   return matched;
@@ -196,28 +217,28 @@ export function $size(a: Any[], b: number, _options?: Options): boolean {
   return Array.isArray(a) && a.length === b;
 }
 
-export function isNonBooleanOperator(n: string): boolean {
-  return isOperator(n) && "$and" !== n && "$or" !== n && "$nor" !== n;
-}
-
 /**
  * Selects documents if element in the array field matches all the specified $elemMatch condition.
  */
-export function $elemMatch(a: Any[], b: AnyObject, options: Options): boolean {
+export function $elemMatch(
+  a: Any[],
+  b: ReturnType<typeof buildElemMatchContext>,
+  _options: Options
+): boolean {
   // should return false for non-matching input
   if (isArray(a) && !isEmpty(a)) {
-    let format = (x: Any) => x;
-    let criteria = b;
+    // let format = (x: Any) => x;
+    // let criteria = b;
 
-    // If we find a boolean operator in the subquery, we fake a field to point to it. This is an
-    // attempt to ensure that it is a valid criteria. We cannot make this substitution for operators
-    // like $and/$or/$nor; as otherwise, this faking will break our query.
-    if (Object.keys(b).every(isNonBooleanOperator)) {
-      criteria = { temp: b };
-      format = x => ({ temp: x });
-    }
+    // // If we find a boolean operator in the subquery, we fake a field to point to it. This is an
+    // // attempt to ensure that it is a valid criteria. We cannot make this substitution for operators
+    // // like $and/$or/$nor; as otherwise, this faking will break our query.
+    // if (Object.keys(b).every(isNonBooleanOperator)) {
+    //   criteria = { temp: b };
+    //   format = x => ({ temp: x });
+    // }
 
-    const query = new Query(criteria, options);
+    const { format, query } = b;
     for (let i = 0, len = a.length; i < len; i++) {
       if (query.test(format(a[i]) as AnyObject)) {
         return true;
