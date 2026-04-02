@@ -1,6 +1,6 @@
 import { evalExpr } from "../../../core/_internal";
 import { Any, AnyObject, Options } from "../../../types";
-import { isNil, isString } from "../../../util";
+import { isString } from "../../../util";
 
 interface InputExpr {
   readonly field: string;
@@ -19,8 +19,6 @@ export const $getField = (
   const { field, input } = isString(args)
     ? { field: args, input: obj }
     : { field: args.field, input: args.input ?? obj };
-
-  if (isNil(input)) return null;
 
   return input[field];
 };

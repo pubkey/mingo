@@ -73,7 +73,7 @@ export function runTest(
           let input = val[0] as AnyObject;
           let expected = val[1];
           const ctx = (val[2] ?? {}) as AnyObject;
-          const obj = ctx?.obj || {};
+          const obj = ctx?.obj ?? {};
 
           let field: string | null = operator;
           // use the operator as field if not present in input
