@@ -1,5 +1,17 @@
 # Changelog
 
+## 7.2.1 / 2026-04-03
+
+**Fixes**
+- `$setWindowFields` properly handle sort-by validation for unbounded windows.
+- Update operations handle multiple keys per arrayFilter object.
+
+**Improvements**
+- Added numerous optimizations resulting in ~2x speedup across commonly used operators. (#598)
+  - Query: `$eq`, `$gt`, `$lt`, `$and`, `$or`, `$regex`, `$elemMatch`, `$exists`, `$type`, `$mod`, `$not`, `$nin`, `$nor`, `$size`.
+  - Pipeline: `$match`, `$project`, `$group`, `$sort`.
+  - Update: `$set`, `$inc`, `$unset`, `$push`, `$addToSet`.
+
 ## 7.2.0 / 2025-01-26
 
 **New**
