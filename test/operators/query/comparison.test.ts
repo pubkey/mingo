@@ -4,8 +4,6 @@ import { find, Query } from "../../../src";
 import { Any, AnyObject } from "../../../src/types";
 import { DEFAULT_OPTS, ObjectId, personData } from "../../support";
 
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-
 const objectId = ObjectId("123456789abe");
 const obj = Object.assign({}, personData, { _id: objectId });
 
@@ -83,7 +81,10 @@ describe("operators/query/comparison", () => {
     [
       {
         $where: function () {
-          return this.jobs === 6 && this.grades.length < 10;
+          return (
+            (this as unknown as { jobs: number }).jobs === 6 &&
+            (this as unknown as { grades: unknown[] }).grades.length < 10
+          );
         }
       },
       "can match with $where expression"
@@ -103,5 +104,30 @@ describe("operators/query/comparison", () => {
     const data = [{ _id: 1, item: null }, { _id: 2 }];
     const result = find(data, { item: null }, {}, DEFAULT_OPTS).all();
     expect(result).toEqual(data);
+  });
+
+  it("can match non-primitive values with $in", () => {
+    const data = [
+      { _id: 1, tags: [[1, 2]] },
+      { _id: 2, tags: [[3, 4]] },
+      { _id: 3, tags: [[5, 6]] }
+    ];
+    const result = find(
+      data,
+      {
+        tags: {
+          $in: [
+            [1, 2],
+            [5, 6]
+          ]
+        }
+      },
+      {},
+      DEFAULT_OPTS
+    ).all();
+    expect(result).toEqual([
+      { _id: 1, tags: [[1, 2]] },
+      { _id: 3, tags: [[5, 6]] }
+    ]);
   });
 });

@@ -5,8 +5,6 @@ import { aggregate, find } from "../../../src";
 import { Any, AnyObject, JsonSchemaValidator } from "../../../src/types";
 import { testPath } from "../../support";
 
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-
 describe(testPath(__filename), () => {
   describe("$where", () => {
     const data = [
@@ -37,7 +35,11 @@ describe(testPath(__filename), () => {
         "user.color": { $exists: true },
         "user.number": { $exists: true },
         $where: function () {
-          return this.user.color === "green" && this.user.number === 42;
+          return (
+            (this as unknown as { user: { color: string } }).user.color ===
+              "green" &&
+            (this as unknown as { user: { number: number } }).user.number === 42
+          );
         }
       };
 
@@ -53,12 +55,18 @@ describe(testPath(__filename), () => {
         $and: [
           {
             $where: function () {
-              return this.user.color === "green";
+              return (
+                (this as unknown as { user: { color: string } }).user.color ===
+                "green"
+              );
             }
           },
           {
             $where: function () {
-              return this.user.number === 42;
+              return (
+                (this as unknown as { user: { number: number } }).user
+                  .number === 42
+              );
             }
           }
         ]

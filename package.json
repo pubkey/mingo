@@ -14,6 +14,7 @@
     "build": "npm run clean && node ./build.mjs",
     "postbuild": "tsc --project tsconfig.build.json",
     "clean": "rm -fr build",
+    "perf": "npx tsx benchmarks/perf.ts",
     "test": "vitest run --coverage",
     "test-dev": "vitest",
     "release": "npm run test && npm run build && cd build && npm publish",
