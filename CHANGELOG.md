@@ -14,7 +14,7 @@
   - Pipeline: `$match`, `$project`, `$group`, `$sort`.
   - Update: `$set`, `$inc`, `$unset`, `$push`, `$addToSet`.
 
-## 7.2.0 / 2025-01-26
+## 7.2.0 / 2026-01-26
 
 **New**
 
