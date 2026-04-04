@@ -86,13 +86,9 @@ function mingoCmp(a: Any, b: Any, descendArray: boolean = false): number {
       }
       default: {
         if (typeA !== "object") {
-          const isSameType = a?.constructor === b?.constructor;
           // short-cut when objects are the same type and have toString().
-          if (isSameType && hasCustomString(a))
+          if (a?.constructor === b?.constructor && hasCustomString(a))
             return simpleCmp((a as Str).toString(), (b as Str).toString());
-          // use constructor name order if different types
-          if ((neq = simpleCmp(a?.constructor?.name, b?.constructor?.name)))
-            return neq;
         }
         // plain objects
         const keysA = Object.keys(a as object).sort();
