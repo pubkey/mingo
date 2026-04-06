@@ -97,4 +97,29 @@ describe("$dateTrunc", () => {
 
     expect(res).toEqual(new Date("1988-12-22T00:00:00Z"));
   });
+
+  it("handles null date", () => {
+    const res = $dateTrunc(
+      {},
+      { date: null, unit: "week", binSize: 4, startOfWeek: "sun" },
+      DEFAULT_OPTS
+    );
+
+    expect(res).toEqual(null);
+  });
+
+  it("handles null unit", () => {
+    const res = $dateTrunc(
+      {},
+      {
+        date: new Date("1989-01-01T00:00:00Z"),
+        unit: null,
+        binSize: 4,
+        startOfWeek: "sun"
+      },
+      DEFAULT_OPTS
+    );
+
+    expect(res).toEqual(null);
+  });
 });

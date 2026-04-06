@@ -7,6 +7,30 @@ runTest(testPath(__filename), {
   $dateToString: [
     [
       {
+        date: new Date("2026-04-05T13:05:30.257Z")
+      },
+      "2026-04-05T13:05:30.257Z"
+    ],
+
+    [
+      {
+        date: null,
+        onNull: "returnNull",
+        format: "Hello"
+      },
+      "returnNull"
+    ],
+
+    [
+      {
+        date: new Date("2021-01-28T13:05:30.257Z"),
+        format: "hello"
+      },
+      "hello"
+    ],
+
+    [
+      {
         date: new Date("2021-01-28T13:05:30.257Z"),
         format: "%Y/%m/%d %H:%M:%S.%L%z isoDayOfWeek=%u isoWeek=%V"
       },
