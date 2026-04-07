@@ -1,6 +1,6 @@
 import { evalExpr } from "../../../core/_internal";
 import { Any, Options } from "../../../types";
-import { assert, isDate, isNumber } from "../../../util";
+import { assert, isDate } from "../../../util";
 
 export const TIME_UNITS = [
   "year",
@@ -214,7 +214,7 @@ export function parseTimezone(
     return Math.round((tzDate.getTime() - utcDate.getTime()) / 6e4);
   }
 
-  const match = DATE_SYM_TABLE["%z"].re.exec(timeZone) ?? [];
+  const match = DATE_SYM_TABLE["%z"].re.exec(timeZone)!;
   assert(!!match, `timezone '${timeZone}' is invalid or not supported.`);
 
   const hr = parseInt(match[2]) || 0;
@@ -248,23 +248,18 @@ export function adjustDate(d: Date, minuteOffset: number): void {
 /**
  * Computes a date expression
  * @param obj The target object
- * @param expr Any value that resolves to a valid date expression. Valid expressions include a number, Date, or Object{date: number|Date, timezone?: string}
+ * @param expr Any value that resolves to a valid date expression. Valid expressions include Date or {date: Date, timezone?: string}
  */
 export function computeDate(obj: Any, expr: Any, options: Options): Date {
-  if (isDate(obj)) return obj;
-
   const d = evalExpr(obj, expr, options) as
     | Date
-    | number
-    | { date: Date | number; timezone?: string };
+    | { date: Date; timezone?: string };
 
   if (isDate(d)) return new Date(d);
-  // timestamp is in seconds
-  if (isNumber(d)) return new Date(d * 1000);
 
   assert(!!d?.date, `cannot convert ${JSON.stringify(expr)} to date`);
 
-  const date = isDate(d.date) ? new Date(d.date) : new Date(d.date * 1000);
+  const date = new Date(d.date);
 
   if (d.timezone) adjustDate(date, parseTimezone(d.timezone, date));
 
