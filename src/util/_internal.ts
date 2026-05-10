@@ -345,7 +345,7 @@ const isTypedArray = (v: Any): v is ArrayBuffer =>
  * Deep clone an object.
  */
 export const cloneDeep = <T>(v: T, refs?: WeakSet<object>): T => {
-  if (isNil(v) || isBoolean(v) || isNumber(v) || isString(v)) return v;
+  if (isPrimitive(v)) return v;
   if (isDate(v)) return new Date(v) as T;
   if (isRegExp(v)) return new RegExp(v) as T;
   if (isTypedArray(v)) {

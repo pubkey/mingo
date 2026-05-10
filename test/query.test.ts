@@ -32,4 +32,15 @@ describe("Query", () => {
       /unknown query operator/
     );
   });
+
+  it("should match NaN with NaN using $eq operator. Issue #602", () => {
+    const result = find([{ value: NaN }, { value: 1 }], {
+      value: { $eq: NaN }
+    }).all();
+    expect(result).toEqual([
+      {
+        value: NaN
+      }
+    ]);
+  });
 });
