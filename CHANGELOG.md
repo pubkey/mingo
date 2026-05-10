@@ -1,5 +1,10 @@
 # Changelog
 
+## 7.2.2 / 2026-05-xx
+
+**Fixes**
+- Properly handle `NaN` in equality checks.
+
 ## 7.2.1 / 2026-04-03
 
 **Fixes**
