@@ -25,8 +25,10 @@ export const $map = (
   const copts = ComputeOptions.init(options);
   const k = expr.as || "this";
   const locals = { variables: {} as AnyObject };
-  return input.map((o: Any) => {
-    locals.variables[k] = o;
-    return evalExpr(obj, expr.in, copts.update(locals));
-  });
+  const result = new Array(input.length);
+  for (let i = 0; i < input.length; i++) {
+    locals.variables[k] = input[i];
+    result[i] = evalExpr(obj, expr.in, copts.update(locals));
+  }
+  return result;
 };

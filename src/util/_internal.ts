@@ -227,7 +227,6 @@ export class HashMap<K, V> extends Map<K, V> {
     // filter out the deleted key
     this.#keyMap.set(
       hash,
-
       this.#keyMap.get(hash)!.filter(k => !isEqual(k, masterKey))
     );
     return true;

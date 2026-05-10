@@ -32,16 +32,17 @@ export const $percentile = (
   const centiles = $push(expr.p, "$$CURRENT", options) as number[];
   const method = expr.method || "approximate";
 
-  for (const n of centiles) {
-    if (!isNumber(n) || n < 0 || n > 1) {
+  const output = new Array<number>(centiles.length);
+  for (let i = 0; i < centiles.length; i++) {
+    const p = centiles[i];
+
+    if (!isNumber(p) || p < 0 || p > 1) {
       return errInvalidArgs(
         options.failOnError,
         "$percentile 'p' must resolve to array of numbers between [0.0, 1.0]"
       );
     }
-  }
 
-  return centiles.map(p => {
     // compute rank for the percentile
     const r = p * (X.length - 1) + 1;
     // get the integer part
@@ -51,14 +52,18 @@ export const $percentile = (
       r === ri ? X[r - 1] : X[ri - 1] + (r % 1) * (X[ri] - X[ri - 1]);
     switch (method) {
       case "exact":
-        return result;
+        output[i] = result;
+        break;
       case "approximate": {
         // returns nearest value (inclusive) that is closest to the given centile.
-        const i = findInsertIndex(X, result);
+        const pos = findInsertIndex(X, result);
         // we need to adjust the selected value based on whether it falls within the percentile range.
         // e.g. for X = [10, 20], p <= 0.5 should equal 10 AND p > 0.5 should equal 20.
-        return i / X.length >= p ? X[Math.max(i - 1, 0)] : X[i];
+        output[i] = pos / X.length >= p ? X[Math.max(pos - 1, 0)] : X[pos];
+        break;
       }
     }
-  });
+  }
+
+  return output;
 };

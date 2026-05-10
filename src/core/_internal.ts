@@ -350,7 +350,11 @@ function computeExpression(obj: Any, expr: Any, options: ComputeOptions): Any {
 
   // check and return value if already in a resolved state
   if (isArray(expr)) {
-    return expr.map(item => computeExpression(obj, item, options));
+    const result = new Array(expr.length);
+    for (let i = 0; i < expr.length; i++) {
+      result[i] = computeExpression(obj, expr[i], options);
+    }
+    return result;
   }
 
   if (isObject(expr)) {

@@ -92,16 +92,17 @@ export const applyUpdate = (
   }
 
   // apply update to matching items.
-  return arr
-    .map((e, i) => {
-      // filter if applicable.
-      if (c !== ARRAY_WIDE && q[c] && !q[c].test({ [c]: [e] })) return false;
-      // apply update.
-      return next
-        ? applyUpdate(e as AnyObject, next, q, f, opts)
-        : f(arr, i as Any as string);
-    })
-    .some(v => !!v);
+  let status = false;
+  for (let i = 0; i < arr.length; i++) {
+    const e = arr[i] as AnyObject;
+    // filter if applicable.
+    if (c !== ARRAY_WIDE && q[c] && !q[c].test({ [c]: [e] })) continue;
+    // apply update and track success.
+    status = next
+      ? applyUpdate(e as AnyObject, next, q, f, opts) || status
+      : f(arr, i as Any as string) || status;
+  }
+  return status;
 };
 
 export type Action<T> = (

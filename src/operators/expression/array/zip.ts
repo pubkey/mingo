@@ -60,9 +60,11 @@ export const $zip = (
   const result: Any[] = [];
 
   for (let i = 0; i < zipCount; i++) {
-    const temp = inputs.map((val: Any[], index: number) => {
-      return isNil(val[i]) ? (defaults[index] ?? null) : val[i];
-    });
+    const temp = new Array(inputs.length);
+    for (let j = 0; j < inputs.length; j++) {
+      const val = inputs[j][i];
+      temp[j] = isNil(val) ? (defaults[j] ?? null) : val;
+    }
     result.push(temp);
   }
 
