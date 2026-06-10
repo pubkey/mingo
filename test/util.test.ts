@@ -15,6 +15,7 @@ import {
   isObjectLike,
   MISSING,
   normalize,
+  OBJECT_PROTO_PROPS,
   PathValidator,
   removeValue,
   resolve,
@@ -474,6 +475,24 @@ describe("util", () => {
       const result = resolve(ObjectId("100") as Any as AnyObject, "_id");
       expect(result).toEqual("100");
     });
+
+    it("throws when selector contains __proto__ anywhere in the path", () => {
+      expect(() => resolve({ a: 1 }, "__proto__")).toThrow(/__proto__/);
+      expect(() => resolve({ a: { b: 2 } }, "a.__proto__.b")).toThrow(
+        /__proto__/
+      );
+      expect(() => resolve({ a: { b: 2 } }, "a.b.__proto__")).toThrow(
+        /__proto__/
+      );
+    });
+
+    it("does not resolve Object.prototype properties unless explicitly present", () => {
+      for (const prop of OBJECT_PROTO_PROPS) {
+        const selector = `a.${prop}`;
+        expect(resolve({ a: 1 }, selector)).toBeUndefined();
+        expect(resolve({ a: { [prop!]: "value" } }, selector)).toEqual("value");
+      }
+    });
   });
 
   describe("resolveGraph", () => {
@@ -494,6 +513,16 @@ describe("util", () => {
     it("resolves object in a nested array", () => {
       const result = resolveGraph({ a: [{ b: [{ c: 1 }] }] }, "a.b.c");
       expect(result).toEqual({ a: [{ b: [{ c: 1 }] }] });
+    });
+
+    it("does not resolve Object.prototype properties unless explicitly present", () => {
+      for (const prop of OBJECT_PROTO_PROPS) {
+        const selector = `a.${prop}`;
+        expect(resolveGraph({ a: 1 }, selector)).toBeUndefined();
+        expect(resolveGraph({ a: { [prop!]: "value" } }, selector)).toEqual({
+          a: { [prop!]: "value" }
+        });
+      }
     });
 
     it("preserves untouched keys of the resolved object", () => {
@@ -641,6 +670,12 @@ describe("util", () => {
 
       walk(o, "a.b.d.e", () => counter++, { buildGraph: true });
       expect(has(resolve(o, "a.b") as AnyObject, "d")).toEqual(true);
+    });
+
+    it("throws when selector contains __proto__ anywhere in the path", () => {
+      expect(() => walk(o, "__proto__", () => {})).toThrow(/__proto__/);
+      expect(() => walk(o, "a.__proto__.b", () => {})).toThrow(/__proto__/);
+      expect(() => walk(o, "a.b.__proto__", () => {})).toThrow(/__proto__/);
     });
   });
 

@@ -183,4 +183,12 @@ describe("operators/update/set", () => {
       expect(s).toEqual(results[i]);
     });
   });
+
+  it("Reject update selector paths containing __proto__", () => {
+    const state = { _id: 1, items: [{ value: 1 }] };
+
+    expect(() => $set({ "__proto__.evil": true })(state)).toThrow();
+    expect(() => $set({ "items.__proto__.value": 2 })(state)).toThrow();
+    expect(() => $set({ "items.0.__proto__": 2 })(state)).toThrow();
+  });
 });

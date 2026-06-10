@@ -215,9 +215,6 @@ export class HashMap<K, V> extends Map<K, V> {
     this.#keyMap.clear();
   }
 
-  /**
-   * @returns true if an element in the Map existed and has been removed, or false if the element does not exist.
-   */
   delete(key: K): boolean {
     if (isPrimitive(key)) return super.delete(key);
 
@@ -232,10 +229,6 @@ export class HashMap<K, V> extends Map<K, V> {
     return true;
   }
 
-  /**
-   * Returns a specified element from the Map object. If the value that is associated to the provided key is an object, then you will get a reference to that object and any change made to that object will effectively modify it inside the Map.
-   * @returns Returns the element associated with the specified key. If no element is associated with the specified key, undefined is returned.
-   */
   get(key: K): V | undefined {
     if (isPrimitive(key)) return super.get(key);
 
@@ -243,9 +236,6 @@ export class HashMap<K, V> extends Map<K, V> {
     return super.get(masterKey);
   }
 
-  /**
-   * @returns boolean indicating whether an element with the specified key exists or not.
-   */
   has(key: K): boolean {
     if (isPrimitive(key)) return super.has(key);
 
@@ -253,9 +243,6 @@ export class HashMap<K, V> extends Map<K, V> {
     return super.has(masterKey);
   }
 
-  /**
-   * Adds a new element with a specified key and value to the Map. If an element with the same key already exists, the element will be updated.
-   */
   set(key: K, value: V): this {
     if (isPrimitive(key)) return super.set(key, value);
 
@@ -286,6 +273,19 @@ export class HashMap<K, V> extends Map<K, V> {
 export function assert(condition: Any, msg: string): void {
   if (!condition) throw new MingoError(msg);
 }
+
+export const assertNoProto = (s: string) => {
+  if (
+    s === "__proto__" ||
+    s.startsWith("__proto__.") ||
+    s.endsWith(".__proto__") ||
+    s.includes(".__proto__.")
+  ) {
+    throw new MingoError(
+      `Accessing __proto__ is not allowed in selector: '${s}'.`
+    );
+  }
+};
 
 /**
  * Returns the name of type in lowercase including custom types.
@@ -335,11 +335,27 @@ export const isEmpty = (x: Any): boolean =>
 /** ensure a value is an array or wrapped within one. */
 export const ensureArray = <T>(x: T | T[]): T[] => (isArray(x) ? x : [x]);
 
-export const has = (obj: object, ...props: string[]): boolean =>
-  !!obj && props.every(p => Object.prototype.hasOwnProperty.call(obj, p));
+export const has = (
+  obj: object,
+  key1: string,
+  key2: string = "",
+  key3: string = ""
+): boolean =>
+  !!(
+    obj &&
+    Object.prototype.hasOwnProperty.call(obj, key1) &&
+    (key2 === "" || Object.prototype.hasOwnProperty.call(obj, key2)) &&
+    (key3 === "" || Object.prototype.hasOwnProperty.call(obj, key3))
+  );
 
 const isTypedArray = (v: Any): v is ArrayBuffer =>
   typeof ArrayBuffer !== "undefined" && ArrayBuffer.isView(v);
+
+const isDigits = (s: string): boolean => {
+  for (let i = 0; i < s.length; i++)
+    if (s.charCodeAt(i) < 48 || s.charCodeAt(i) > 57) return false;
+  return true;
+};
 
 /**
  * Deep clone an object.
@@ -463,15 +479,21 @@ export function groupBy<T = Any, K = Any>(
   return result;
 }
 
+export const OBJECT_PROTO_PROPS = new Set(
+  Object.getOwnPropertyNames(Object.prototype).find(s => s !== "__proto__")!
+);
+
 /**
- * Retrieve the value of a given key on an object
- * @param obj
- * @param key
- * @returns {*}
- * @private
+ * Retrieve the value of a given key on an object/array
  */
 function getValue(obj: ArrayOrObject, key: string | number): Any {
-  return isObjectLike(obj) ? (obj as AnyObject)[key] : undefined;
+  if (isPrimitive(obj) || Number.isNaN(key)) return undefined;
+  // enforce array is only accessed with numeric keys.
+  if (isArray(obj)) return obj[typeof key === "number" ? key : Number(key)];
+  // enforce properties of Object.prototype are not accessed accidentally.
+  return !OBJECT_PROTO_PROPS.has(key as string) || has(obj, key as string)
+    ? (obj as AnyObject)[key]
+    : undefined;
 }
 
 /**
@@ -496,8 +518,7 @@ interface ResolveOptions {
   preserveKeys?: boolean;
   /** Preserve untouched indexes in arrays. */
   preserveIndex?: boolean;
-  /** pre-splitted selector path */
-  pathArray?: string[];
+  ignoreProto?: boolean;
 }
 
 /**
@@ -508,55 +529,55 @@ interface ResolveOptions {
 export function resolve(
   obj: ArrayOrObject,
   selector: string,
-  options?: Pick<ResolveOptions, "unwrapArray" | "pathArray">
+  options?: Pick<ResolveOptions, "unwrapArray">
 ): Any {
+  assertNoProto(selector);
+
   if (isScalar(obj)) return obj;
 
-  const path = options?.pathArray ?? selector.split(".");
-
   // fast path for simple single-segment selectors on non-array objects (e.g., "active", "age")
-  if (path.length === 1 && !isArray(obj)) {
-    return getValue(obj, path[0]);
-  }
-
-  // fast path for 2-segment selectors on plain objects (e.g., "address.city")
-  if (path.length === 2 && !isArray(obj)) {
-    const first = getValue(obj, path[0]);
-    if (first == null) return undefined;
-    if (!isArray(first)) return getValue(first as ArrayOrObject, path[1]);
-    // first is an array; fall through to general case
+  if (!selector.includes(".") && !isArray(obj)) {
+    return getValue(obj, selector);
   }
 
   let depth = 0;
-  function resolve2(o: ArrayOrObject, path: string[]): Any {
+
+  function resolvePath(o: ArrayOrObject, path: string): Any {
     let value: Any = o;
-    for (let i = 0; i < path.length; i++) {
-      const field = path[i];
-      const isText = !DIGITS_RE.test(field);
-      // using instanceof to aid typescript compiler
-      if (isText && isArray(value)) {
+    let begin = 0;
+    let dot = 0;
+    while (dot !== -1) {
+      dot = path.indexOf(".", begin);
+      const field =
+        dot === -1 ? path.substring(begin) : path.substring(begin, dot);
+      const isIndex = isDigits(field);
+      if (!isIndex && isArray(value)) {
         // On the first iteration, we check if we received a stop flag.
         // If so, we stop to prevent iterating over a nested array value
         // on consecutive object keys in the selector.
-        if (i === 0 && depth > 0) break;
+        if (begin === 0 && depth > 0) break;
         depth += 1;
         // only look at the rest of the path
-        const subpath = path.slice(i);
+        const subpath = path.substring(begin);
         value = value.reduce<Any[]>((acc: Any[], item: ArrayOrObject) => {
-          const v = resolve2(item, subpath);
+          const v = resolvePath(item, subpath);
           if (v !== undefined) acc.push(v);
           return acc;
         }, []);
         break;
       } else {
+        // always get by numeric index if target is an array.
         value = getValue(value as ArrayOrObject, field);
       }
+
       if (value === undefined) break;
+      begin += field.length + 1;
     }
+
     return value;
   }
 
-  const res = resolve2(obj, path);
+  const res = resolvePath(obj, selector);
   return isArray(res) && options?.unwrapArray ? unwrap(res, depth) : res;
 }
 
@@ -571,6 +592,11 @@ export function resolveGraph(
   selector: string,
   options?: ResolveOptions
 ): ArrayOrObject | undefined {
+  if (options?.ignoreProto !== true) {
+    assertNoProto(selector);
+    options = { ...options, ignoreProto: true };
+  }
+
   const sep = selector.indexOf(".");
   const key = sep == -1 ? selector : selector.substring(0, sep);
   const next = selector.substring(sep + 1);
@@ -578,11 +604,11 @@ export function resolveGraph(
 
   if (isArray(obj)) {
     // obj is an array
-    const isIndex = /^\d+$/.test(key);
+    const isIndex = isDigits(key);
     const arr = isIndex && options?.preserveIndex ? obj.slice() : [];
     if (isIndex) {
-      const index = parseInt(key);
-      let value = getValue(obj, index) as ArrayOrObject;
+      const index = Number(key);
+      let value = getValue(obj, key) as ArrayOrObject;
       if (hasNext) {
         value = resolveGraph(value, next, options)!;
       }
@@ -642,9 +668,9 @@ export function filterMissing(obj: ArrayOrObject): void {
 export interface WalkOptions {
   buildGraph?: boolean;
   descendArray?: boolean;
+  ignoreProto?: boolean;
 }
 
-const DIGITS_RE = /^\d+$/;
 export type Indexed = string | number;
 
 /**
@@ -661,26 +687,30 @@ export function walk(
   fn: (_o: AnyObject, _k: string) => void,
   options?: WalkOptions
 ): void {
-  const names = selector.split(".");
-  const key = names[0];
-  const next = names.slice(1).join(".");
+  if (options?.ignoreProto !== true) {
+    assertNoProto(selector);
+    options = { ...options, ignoreProto: true };
+  }
 
-  if (names.length === 1) {
-    if (isObject(obj) || (isArray(obj) && DIGITS_RE.test(key))) {
-      fn(obj, key);
-    }
+  const dotIndex = selector.indexOf(".");
+  const key = dotIndex === -1 ? selector : selector.substring(0, dotIndex);
+  const next = selector.substring(key.length + 1);
+
+  if (next.length === 0) {
+    if (isObject(obj) || (isArray(obj) && isDigits(key))) fn(obj, key);
   } else {
     // force the rest of the graph while traversing
-    if (options?.buildGraph && isNil(obj[key])) {
-      obj[key] = {};
-    }
+    if (options?.buildGraph && isNil(obj[key])) obj[key] = {};
 
     // get the next item
     const item = obj[key] as AnyObject;
     // nothing more to do
     if (!item) return;
     // we peek to see if next key is an array index.
-    const isNextArrayIndex = !!(names.length > 1 && DIGITS_RE.test(names[1]));
+    const nextDotIndex = next.indexOf(".");
+    const nextKey =
+      nextDotIndex === -1 ? next : next.substring(0, nextDotIndex);
+    const isNextArrayIndex = isDigits(nextKey);
     // if we have an array value but the next key is not an index and the 'descendArray' option is set,
     // we walk each item in the array separately. This allows for handling traversing keys for objects
     // nested within an array.
@@ -728,7 +758,7 @@ export function removeValue(
     selector,
     ((item: Any, key: string) => {
       if (isArray(item)) {
-        item.splice(parseInt(key), 1);
+        item.splice(Number(key), 1);
       } else if (isObject(item)) {
         delete item[key];
       }
@@ -807,7 +837,7 @@ interface PathNode {
   isTerminal: boolean;
 }
 
-/** Simple to trie for validating path conflicts */
+/** Simple trie for validating path conflicts */
 export class PathValidator {
   private root: PathNode;
 

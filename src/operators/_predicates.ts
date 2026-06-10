@@ -63,10 +63,9 @@ export function processQuery(
   options: Options,
   predicate: QueryPredicate
 ): (_: AnyObject) => boolean {
-  const pathArray = selector.split(".");
-  const depth = Math.max(1, pathArray.length - 1);
+  const depth = Math.max(1, selector.split(".").length - 1);
   const copts = ComputeOptions.init(options).update({ depth });
-  const opts = { unwrapArray: true, pathArray };
+  const opts = { unwrapArray: true };
   if (predicate === $elemMatch) {
     value = elemMatchPredicate(value as AnyObject, options);
   }

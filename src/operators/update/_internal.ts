@@ -6,6 +6,7 @@ import { Query } from "../../query";
 import { Any, AnyObject } from "../../types";
 import {
   assert,
+  assertNoProto,
   cloneDeep,
   isArray,
   isDate,
@@ -182,6 +183,12 @@ export function buildParams(
 
   for (const expr of exprList) {
     for (const selector of Object.keys(expr)) {
+      assertNoProto(selector);
+      assert(
+        !selector.startsWith("$"),
+        `Dollar ($) prefixed field paths is not allowed in update operations: '${selector}'.`
+      );
+
       const identifiers: string[] = [];
       const node: PathNode = selector.includes("$")
         ? { selector: "" }

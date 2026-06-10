@@ -1,9 +1,10 @@
 # Changelog
 
-## 7.2.2 / 2026-05-xx
+## 7.2.2 / 2026-06-xx
 
 **Fixes**
-- Properly handle `NaN` in equality checks.
+- Properly handle `NaN` in equality checks. (#602)
+- Validate object prototype properties in selectors to prevent pollution or unexpected results. (#606)
 
 ## 7.2.1 / 2026-04-03
 
