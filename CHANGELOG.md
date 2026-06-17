@@ -1,10 +1,12 @@
 # Changelog
 
-## 7.2.2 / 2026-06-xx
+## 7.2.2 / 2026-06-17
 
 **Fixes**
 - Properly handle `NaN` in equality checks. (#602)
 - Validate object prototype properties in selectors to prevent pollution or unexpected results. (#606)
+- fix($strLenCP/$substrCP): index by Unicode code points, not UTF-16 code units (#608)
+- fix($replaceAll/$replaceOne): treat find/replacement as literal strings (correctness + ReDoS) (#607)
 
 ## 7.2.1 / 2026-04-03
 
