@@ -32,7 +32,8 @@ describe(testPath("accumulator/percentile"), () => {
       input,
       {
         input: "$test01",
-        p: [0.95]
+        p: [0.95],
+        method: "approximate"
       },
       options
     );
@@ -50,7 +51,8 @@ describe(testPath("accumulator/percentile"), () => {
         input,
         {
           input: expr,
-          p: [0.5, 0.75, 0.9, 0.95]
+          p: [0.5, 0.75, 0.9, 0.95],
+          method: "approximate"
         },
         options
       );
@@ -62,7 +64,8 @@ describe(testPath("accumulator/percentile"), () => {
         input,
         {
           input: "$test03",
-          p: [0.9, 0.5, 0.75, 0.95]
+          p: [0.9, 0.5, 0.75, 0.95],
+          method: "approximate"
         },
         options
       );
@@ -157,15 +160,17 @@ describe(testPath("accumulator/percentile"), () => {
   ])(
     "should compute Pct(%p,%p) => %p (exact, approximate)",
     (X, p, results) => {
-      ["exact", "approximate"].forEach((method, i) => {
-        expect(
-          $percentile(
-            X,
-            { input: "$$CURRENT", p: [p], method },
-            DEFAULT_OPTS
-          ).pop()
-        ).toEqual(results[i]);
-      });
+      Array.from<"approximate" | "exact">(["exact", "approximate"]).forEach(
+        (method, i) => {
+          expect(
+            $percentile(
+              X,
+              { input: "$$CURRENT", p: [p], method },
+              DEFAULT_OPTS
+            )?.pop()
+          ).toEqual(results[i]);
+        }
+      );
     }
   );
 });
