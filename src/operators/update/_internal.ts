@@ -164,7 +164,7 @@ export function buildParams(
   const filterIndexMap = arrayFilters.reduce(
     (res: Record<string, AnyObject>, filter) => {
       for (const k of Object.keys(filter)) {
-        const parent = k.split(".")[0];
+        const parent = k.substring(0, k.indexOf(".")) || k;
         if (res[parent]) {
           res[parent][k] = filter[k];
         } else {

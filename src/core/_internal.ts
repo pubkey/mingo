@@ -305,10 +305,9 @@ function computeExpression(obj: Any, expr: Any, options: ComputeOptions): Any {
     let ctx = options.local.root;
 
     // handle selectors with explicit prefix
-    const arr = expr.split(".");
-    const dotIdx = expr.indexOf(".");
-    const prefix = dotIdx === -1 ? expr : expr.substring(0, dotIdx);
-    if (SYSTEM_VARS.has(arr[0])) {
+    const dot = expr.indexOf(".");
+    const prefix = dot === -1 ? expr : expr.substring(0, dot);
+    if (SYSTEM_VARS.has(prefix)) {
       // set 'root' only the first time it is required to be used for all subsequent calls
       // if it already available on the options, it will be used
       switch (prefix) {
@@ -324,7 +323,7 @@ function computeExpression(obj: Any, expr: Any, options: ComputeOptions): Any {
           ctx = new Date(options.now);
           break;
       }
-      expr = dotIdx === -1 ? "" : expr.substring(dotIdx + 1);
+      expr = dot === -1 ? "" : expr.substring(dot + 1);
     } else if (prefix.length >= 2 && prefix[1] === "$") {
       // handle user-defined variables
       ctx = Object.assign(
