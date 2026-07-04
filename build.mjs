@@ -65,7 +65,6 @@ function createModule() {
     "./package.json": "./package.json"
   };
   packageJson.sideEffects = ["./cjs/init/system.js", "./esm/init/system.js"];
-  packageJson.browser = BUNDLE_NAME;
 
   // configure aliases for all exports
   SRC_FILES.filter(s => !s.includes("_")).forEach(s => {
@@ -86,7 +85,8 @@ function createModule() {
     packageJson.exports[key] = {
       types: typesPath,
       node: cjsPath,
-      default: esmPath
+      default: esmPath,
+      ...(isRoot && { browser: `./dist/${BUNDLE_NAME}` })
     };
   });
 
