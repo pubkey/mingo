@@ -8,6 +8,7 @@ import { $push } from "./push";
 export const $avg = (coll: Any[], expr: Any, options: Options) => {
   const data = $push(coll, expr, options).filter(isNumber);
   if (data.length === 0) return null;
-  const sum = data.reduce<number>((acc: number, n: number) => acc + n, 0);
+  let sum = 0;
+  for (let i = 0; i < data.length; i++) sum += data[i];
   return sum / data.length;
 };

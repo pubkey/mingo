@@ -14,12 +14,13 @@ interface InputExpr {
  */
 export const $maxN = (coll: AnyObject[], expr: InputExpr, options: Options) => {
   const copts = options as ComputeOptions;
-  const m = coll.length;
   const n = evalExpr(copts?.local?.groupId, expr.n, copts) as number;
   if (!isInteger(n) || n < 1) {
     return errExpectNumber(options.failOnError, "$maxN 'n'", INT_OPTS.pos);
   }
-  const arr = $push(coll, expr.input, options).filter(o => !isNil(o));
-  arr.sort((a, b) => -1 * compare(a, b));
-  return m <= n ? arr : arr.slice(0, n);
+  return $push(coll, expr.input, options)
+    .filter(o => !isNil(o))
+    .sort(compare)
+    .slice(-n)
+    .reverse();
 };

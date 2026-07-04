@@ -1,11 +1,16 @@
-export function stddev(data: number[], sampled = true): number {
-  const sum = data.reduce((acc: number, n: number) => acc + n, 0);
-  const N = Math.max(data.length, 1);
-  const avg = sum / N;
-  return Math.sqrt(
-    data.reduce((acc: number, n: number) => acc + Math.pow(n - avg, 2), 0) /
-      (N - Number(sampled))
-  );
+export function stddev(data: number[], sampled = true) {
+  let sum = 0;
+  for (let i = 0; i < data.length; i++) sum += data[i];
+
+  const mean = sum / data.length;
+
+  let result = 0;
+  for (let i = 0; i < data.length; i++) {
+    const x = data[i] - mean;
+    result += x * x;
+  }
+
+  return Math.sqrt(result / (data.length - Number(sampled)));
 }
 
 export function covariance(dataset: number[][], sampled = true) {
@@ -13,7 +18,8 @@ export function covariance(dataset: number[][], sampled = true) {
 
   let meanX = 0.0;
   let meanY = 0.0;
-  for (const [x, y] of dataset) {
+  for (let i = 0; i < dataset.length; i++) {
+    const [x, y] = dataset[i];
     meanX += x;
     meanY += y;
   }
@@ -21,7 +27,8 @@ export function covariance(dataset: number[][], sampled = true) {
   meanY /= dataset.length;
 
   let result = 0;
-  for (const [x, y] of dataset) {
+  for (let i = 0; i < dataset.length; i++) {
+    const [x, y] = dataset[i];
     result += (x - meanX) * (y - meanY);
   }
 

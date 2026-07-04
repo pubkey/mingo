@@ -719,8 +719,8 @@ export function walk(
     //  - individual objecs can be traversed with "array.k"
     //  - a specific object can be traversed with "array.1"
     if (isArray(item) && options?.descendArray && !isNextArrayIndex) {
-      item.forEach(((e: AnyObject) =>
-        walk(e, next, fn, options)) as Callback<void>);
+      for (let i = 0; i < item.length; i++)
+        walk(item[i] as AnyObject, next, fn, options);
     } else {
       walk(item, next, fn, options);
     }

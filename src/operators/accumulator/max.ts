@@ -6,7 +6,7 @@ import { $push } from "./push";
  * Returns the maximum value
  */
 export const $max = (coll: AnyObject[], expr: Any, options: Options) => {
-  const items = $push(coll, expr, options).filter(v => !isNil(v));
-  if (!items.length) return null;
-  return items.reduce((r, v) => (compare(r, v) >= 0 ? r : v));
+  const items = $push(coll, expr, options).slice().sort(compare);
+  const size = items.length;
+  return isNil(items[size - 1]) ? null : items[size - 1];
 };

@@ -19,7 +19,8 @@ export const $minN = (coll: AnyObject[], expr: InputExpr, options: Options) => {
   if (!isInteger(n) || n < 1) {
     return errExpectNumber(options.failOnError, "$minN 'n'", INT_OPTS.pos);
   }
-  const arr = $push(coll, expr.input, options).filter(o => !isNil(o));
-  arr.sort(compare);
-  return m <= n ? arr : arr.slice(0, n);
+  return $push(coll, expr.input, options)
+    .filter(o => !isNil(o))
+    .sort(compare)
+    .slice(0, n);
 };

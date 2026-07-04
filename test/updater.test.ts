@@ -277,6 +277,20 @@ describe("updater", () => {
   });
 
   describe("updateMany() with expressions", () => {
+    it("should update multiple documents but leave others unchanged", () => {
+      const people = [
+        { name: "Alice", group: 1 },
+        { name: "Anthony", group: 1 },
+        { name: "Able", group: 2 },
+        { name: "Bob", group: 2 },
+        { name: "Ben", group: 2 }
+      ];
+
+      // NOTE(kofrasa): this test enforces branch coverage when using pipeline stages for updates.
+      const res = updateMany(people, {}, [{ $set: { group: 1 } }]);
+      expect(res).toEqual({ matchedCount: 5, modifiedCount: 3 });
+    });
+
     it("performs idempotent updates", () => {
       const employees = [
         { _id: 1, name: "Rob", salary: 37000 },

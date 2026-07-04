@@ -18,7 +18,6 @@ import {
   isArray,
   isBoolean,
   isDate,
-  isEmpty,
   isEqual,
   isNil,
   isNumber,
@@ -227,7 +226,7 @@ export function $elemMatch(
   _options: Options
 ): boolean {
   // should return false for non-matching input
-  if (isArray(a) && !isEmpty(a)) {
+  if (isArray(a) && a.length !== 0) {
     for (let i = 0, len = a.length; i < len; i++) if (b(a[i])) return true;
   }
   return false;
