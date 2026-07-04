@@ -10,6 +10,7 @@ const NPM_ARGS = process.argv.slice(2);
 const SRC_FILES = glob("./src/**/*.ts");
 const BUILD_DIR = path.resolve("build");
 const NPM_IGNORE = [".*", "*.tgz", "node_modules", "package-lock.json"];
+const BUNDLE_NAME = `${packageJson.name}.min.js`;
 
 /** Builds */
 function build() {
@@ -23,6 +24,16 @@ function build() {
       treeShaking: true
     });
   }
+
+  // bundle
+  esbuild.buildSync({
+    globalName: packageJson.name,
+    entryPoints: ["./src/index.ts"],
+    outfile: path.join(BUILD_DIR, "dist", BUNDLE_NAME),
+    platform: "browser",
+    minify: true,
+    bundle: true
+  });
 }
 
 /**
@@ -54,6 +65,7 @@ function createModule() {
     "./package.json": "./package.json"
   };
   packageJson.sideEffects = ["./cjs/init/system.js", "./esm/init/system.js"];
+  packageJson.browser = BUNDLE_NAME;
 
   // configure aliases for all exports
   SRC_FILES.filter(s => !s.includes("_")).forEach(s => {
@@ -74,8 +86,7 @@ function createModule() {
     packageJson.exports[key] = {
       types: typesPath,
       node: cjsPath,
-      default: esmPath,
-      ...(isRoot ? { browser: cjsPath } : {})
+      default: esmPath
     };
   });
 
