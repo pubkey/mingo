@@ -65,7 +65,7 @@ function createHandler(
   const { exclusions, inclusions } = meta;
   const handlers: Record<string, SelectorHandler> = {};
   const resolveOpts = {
-    preserveMissing: true
+    preserveIndex: "missing" as const
   };
 
   for (const k of exclusions) {

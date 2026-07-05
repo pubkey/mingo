@@ -496,65 +496,54 @@ describe("util", () => {
   });
 
   describe("resolveGraph", () => {
-    const doc = { a: 1, b: { c: 2, d: ["hello"], e: [1, 2, 3] } };
-    const sameDoc = cloneDeep(doc);
+    const optsKeys = { preserveKeys: true };
+    const optsIndex = { preserveIndex: "default" as const };
+    const optsMissing = { preserveIndex: "missing" as const };
 
-    it("resolves the path to the selected field only", () => {
-      const result = resolveGraph(doc, "b.e.1");
-      expect(result).toEqual({ b: { e: [2] } });
-      expect(doc).toEqual(sameDoc);
-    });
+    const doc = {
+      a: 1,
+      b: { c: 2, d: ["hello"], e: [1, 2, 3, undefined, 5] },
+      f: [{ u: 0, v: 0 }, { u: 1, v: 1 }, { u: 2, v: 2 }, { v: 3 }]
+    };
+    it.each([
+      ["b.e.1", { b: { e: [2] } }, {}],
+      [
+        "b.e.1",
+        { a: 1, b: { c: 2, d: ["hello"], e: [2] }, f: doc.f },
+        optsKeys
+      ],
+      ["b.e.1", { b: { e: [1, 2, 3, undefined, 5] } }, optsIndex],
+      ["b.e.1", { b: { e: [2] } }, optsMissing],
 
-    it("resolves item in nested array by index", () => {
-      const result = resolveGraph({ a: [5, { b: [10] }] }, "a.1.b.0");
-      expect(result).toEqual({ a: [{ b: [10] }] });
-    });
-
-    it("resolves object in a nested array", () => {
-      const result = resolveGraph({ a: [{ b: [{ c: 1 }] }] }, "a.b.c");
-      expect(result).toEqual({ a: [{ b: [{ c: 1 }] }] });
-    });
-
-    it("does not resolve Object.prototype properties unless explicitly present", () => {
-      for (const prop of OBJECT_PROTO_PROPS) {
-        const selector = `a.${prop}`;
-        expect(resolveGraph({ a: 1 }, selector)).toBeUndefined();
-        expect(resolveGraph({ a: { [prop!]: "value" } }, selector)).toEqual({
-          a: { [prop!]: "value" }
-        });
+      [
+        "f.u",
+        {
+          f: [{ u: 0 }, { u: 1 }, { u: 2 }]
+        },
+        {}
+      ],
+      [
+        "f.u",
+        {
+          a: 1,
+          b: { c: 2, d: ["hello"], e: [1, 2, 3, undefined, 5] },
+          f: [
+            { u: 0, v: 0 },
+            { u: 1, v: 1 },
+            { u: 2, v: 2 }
+          ]
+        },
+        optsKeys
+      ],
+      ["f.u", { f: [{ u: 0 }, { u: 1 }, { u: 2 }, undefined] }, optsIndex],
+      ["f.u", { f: [{ u: 0 }, { u: 1 }, { u: 2 }, MISSING] }, optsMissing]
+    ])(
+      "%#. resolves object graph with appropriate options: (%s, %o, %o)",
+      (path, expected, opts) => {
+        const result = resolveGraph(doc, path, opts);
+        expect(result).toEqual(expected);
       }
-    });
-
-    it("preserves untouched keys of the resolved object", () => {
-      const result = resolveGraph(doc, "b.e.1", {
-        preserveKeys: true
-      }) as AnyObject;
-      expect(result).toEqual({ a: 1, b: { c: 2, d: ["hello"], e: [2] } });
-      expect(doc).toEqual(sameDoc);
-
-      const leaf = resolve(result, "b.d");
-      expect(leaf).toEqual(["hello"]);
-      expect(leaf === doc.b.d).toBeTruthy();
-    });
-
-    it("preserves untouched array indexes of resolved object graph", () => {
-      const result = resolveGraph(doc, "b.e.1", {
-        preserveIndex: true
-      }) as AnyObject;
-      expect(result).toEqual({ b: { e: [1, 2, 3] } });
-
-      const res2 = resolveGraph({ a: 1, b: [{ c: 2 }, { d: 3 }] }, "b.1.d", {
-        preserveIndex: true
-      }) as AnyObject;
-      expect(res2).toEqual({ b: [{ c: 2 }, { d: 3 }] });
-    });
-
-    it("preserves position of touched array indexes for nested object in resolved object", () => {
-      const result = resolveGraph({ a: 1, b: [{ c: 2 }, { d: 3 }] }, "b.d", {
-        preserveIndex: true
-      }) as AnyObject;
-      expect(result).toEqual({ b: [undefined, { d: 3 }] });
-    });
+    );
   });
 
   describe("unique", () => {

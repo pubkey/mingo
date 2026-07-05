@@ -19,6 +19,7 @@ import {
   isBoolean,
   isDate,
   isEqual,
+  isInteger,
   isNil,
   isNumber,
   isObject,
@@ -242,8 +243,8 @@ const compareFuncs: Record<ConversionType, Predicate<Any>> = {
   bool: isBoolean,
   date: isDate,
   number: isNumber,
-  int: isNumber,
-  long: isNumber,
+  int: isInteger,
+  long: isInteger,
   double: isNumber,
   decimal: isNumber,
   null: isNull,
@@ -263,8 +264,8 @@ const compareFuncs: Record<ConversionType, Predicate<Any>> = {
   9: isDate,
   10: isNull,
   11: isRegExp,
-  16: isNumber, //int
-  18: isNumber, //long
+  16: isInteger, //int
+  18: isInteger, //long
   19: isNumber //decimal
 };
 

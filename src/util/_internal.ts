@@ -489,7 +489,7 @@ export const OBJECT_PROTO_PROPS = new Set(
 function getValue(obj: ArrayOrObject, key: string | number): Any {
   if (isPrimitive(obj) || Number.isNaN(key)) return undefined;
   // enforce array is only accessed with numeric keys.
-  if (isArray(obj)) return obj[typeof key === "number" ? key : Number(key)];
+  if (isArray(obj)) return obj[Number(key)];
   // enforce properties of Object.prototype are not accessed accidentally.
   return !OBJECT_PROTO_PROPS.has(key as string) || has(obj, key as string)
     ? (obj as AnyObject)[key]
@@ -512,12 +512,10 @@ function unwrap(arr: Any[], depth: number): Any[] {
 interface ResolveOptions {
   /** Unwrap the final array value.  */
   unwrapArray?: boolean;
-  /** Replace "undefined" values with special MISSING symbol value. */
-  preserveMissing?: boolean;
-  /** Preserve values for untouched keys of objects. */
+  /** Preserve key/values for untouched keys in the subgraph. */
   preserveKeys?: boolean;
-  /** Preserve untouched indexes in arrays. */
-  preserveIndex?: boolean;
+  /** Preserve indexes in arrays. When value is "missing", the special MISSING symbol is used for undefined values. */
+  preserveIndex?: "default" | "missing";
   ignoreProto?: boolean;
 }
 
@@ -536,9 +534,7 @@ export function resolve(
   if (isScalar(obj)) return obj;
 
   // fast path for simple single-segment selectors on non-array objects (e.g., "active", "age")
-  if (!selector.includes(".") && !isArray(obj)) {
-    return getValue(obj, selector);
-  }
+  if (!selector.includes(".") && !isArray(obj)) return getValue(obj, selector);
 
   let depth = 0;
 
@@ -583,6 +579,8 @@ export function resolve(
 
 /**
  * Returns the full object to the resolved value given by the selector.
+ * When the target value is an array and the selctor is a non-numeric key, it is assumed the array contains objects and the selector is a field of those objects.
+ * The options specified may be used to control how the subgraph is returned.
  *
  * @param obj {AnyObject} the object context
  * @param selector {String} dot separated path to field
@@ -590,7 +588,7 @@ export function resolve(
 export function resolveGraph(
   obj: ArrayOrObject,
   selector: string,
-  options?: ResolveOptions
+  options: Omit<ResolveOptions, "unwrapArray">
 ): ArrayOrObject | undefined {
   if (options?.ignoreProto !== true) {
     assertNoProto(selector);
@@ -601,28 +599,26 @@ export function resolveGraph(
   const key = sep == -1 ? selector : selector.substring(0, sep);
   const next = selector.substring(sep + 1);
   const hasNext = sep != -1;
+  const { preserveIndex } = options;
 
   if (isArray(obj)) {
-    // obj is an array
     const isIndex = isDigits(key);
-    const arr = isIndex && options?.preserveIndex ? obj.slice() : [];
+    const arr = isIndex && preserveIndex === "default" ? obj.slice() : [];
     if (isIndex) {
       const index = Number(key);
       let value = getValue(obj, key) as ArrayOrObject;
-      if (hasNext) {
-        value = resolveGraph(value, next, options)!;
-      }
-      if (options?.preserveIndex) {
+      if (hasNext) value = resolveGraph(value, next, options)!;
+      if (preserveIndex === "default") {
         arr[index] = value;
       } else {
         arr.push(value);
       }
     } else {
-      for (const item of obj) {
-        const value = resolveGraph(item as ArrayOrObject, selector, options);
-        if (options?.preserveMissing) {
-          arr.push(value == undefined ? MISSING : value);
-        } else if (value != undefined || options?.preserveIndex) {
+      for (let i = 0; i < obj.length; i++) {
+        const value = resolveGraph(obj[i] as AnyObject, selector, options);
+        if (preserveIndex === "missing") {
+          arr.push(value ?? MISSING);
+        } else if (value !== undefined || preserveIndex === "default") {
           arr.push(value);
         }
       }
