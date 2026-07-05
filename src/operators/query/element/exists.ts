@@ -13,7 +13,7 @@ export const $exists = (selector: string, value: Any, _options: Options) => {
   }
   // for nested keys we resolve the entire value path so we don't confuse array scalars with plural values.
   const parentSelector = selector.substring(0, selector.lastIndexOf("."));
-  const opts = { preserveIndex: true };
+  const opts = { preserveIndex: "default" as const };
   return (o: AnyObject) => {
     const path = resolveGraph(o, selector, opts) as AnyObject;
     const val = resolve(path, parentSelector);
